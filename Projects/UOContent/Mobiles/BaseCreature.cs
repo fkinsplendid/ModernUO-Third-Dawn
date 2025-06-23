@@ -2972,6 +2972,9 @@ namespace Server.Mobiles
                 {
                     number = 1049608; // (bonded)
                 }
+                // Hireling title
+                else if ( this is BaseHire )
+                    number = 1062030; // (hired)
                 else
                 {
                     number = 502006; // (tame)

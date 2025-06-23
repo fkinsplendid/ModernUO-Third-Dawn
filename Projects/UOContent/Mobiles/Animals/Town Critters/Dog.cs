@@ -6,7 +6,7 @@ namespace Server.Mobiles
     public partial class Dog : BaseCreature
     {
         [Constructible]
-        public Dog() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Dog() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 0xD9;
             Hue = Utility.RandomAnimalHue();

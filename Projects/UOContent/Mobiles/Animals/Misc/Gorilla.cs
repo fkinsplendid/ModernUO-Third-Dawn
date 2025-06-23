@@ -6,7 +6,7 @@ namespace Server.Mobiles
     public partial class Gorilla : BaseCreature
     {
         [Constructible]
-        public Gorilla() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Gorilla() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 0x1D;
             BaseSoundID = 0x9E;

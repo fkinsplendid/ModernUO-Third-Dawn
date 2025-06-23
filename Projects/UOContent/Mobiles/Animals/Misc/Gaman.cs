@@ -7,7 +7,7 @@ namespace Server.Mobiles
     public partial class Gaman : BaseCreature
     {
         [Constructible]
-        public Gaman() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Gaman() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 248;
 

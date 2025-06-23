@@ -7,7 +7,7 @@ namespace Server.Mobiles
     public partial class BlackBear : BaseCreature
     {
         [Constructible]
-        public BlackBear() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public BlackBear() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 211;
             BaseSoundID = 0xA3;

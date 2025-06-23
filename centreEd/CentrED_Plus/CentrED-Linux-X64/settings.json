@@ -1,0 +1,105 @@
+{
+  "ActiveProfile": "iggy",
+  "ServerConfigPath": "cedserver.xml",
+  "PreferTexMaps": false,
+  "LegacyMouseScroll": false,
+  "Viewports": false,
+  "GraphicsDriver": "D3D11",
+  "Layout": {
+    "Connect": {
+      "IsOpen": false
+    },
+    "Local Server": {
+      "IsOpen": false
+    },
+    "Options": {
+      "IsOpen": false
+    },
+    "Export": {
+      "IsOpen": false
+    },
+    "Info": {
+      "IsOpen": true
+    },
+    "Toolbox": {
+      "IsOpen": true
+    },
+    "Tiles": {
+      "IsOpen": true
+    },
+    "LandBrush Manager": {
+      "IsOpen": false
+    },
+    "Hues": {
+      "IsOpen": true
+    },
+    "Filter": {
+      "IsOpen": true
+    },
+    "History": {
+      "IsOpen": false
+    },
+    "Large Scale Operations": {
+      "IsOpen": false
+    },
+    "Chat": {
+      "IsOpen": false
+    },
+    "Server Administration": {
+      "IsOpen": false
+    },
+    "Minimap": {
+      "IsOpen": false
+    },
+    "Debug": {
+      "IsOpen": false
+    }
+  },
+  "Keymap": {
+    "toggle_animated_statics": {
+      "Item1": [
+        162,
+        65
+      ],
+      "Item2": []
+    },
+    "minimap": {
+      "Item1": [
+        77
+      ],
+      "Item2": []
+    },
+    "move_left": {
+      "Item1": [
+        65
+      ],
+      "Item2": [
+        37
+      ]
+    },
+    "move_right": {
+      "Item1": [
+        68
+      ],
+      "Item2": [
+        39
+      ]
+    },
+    "move_up": {
+      "Item1": [
+        87
+      ],
+      "Item2": [
+        38
+      ]
+    },
+    "move_down": {
+      "Item1": [
+        83
+      ],
+      "Item2": [
+        40
+      ]
+    }
+  }
+}

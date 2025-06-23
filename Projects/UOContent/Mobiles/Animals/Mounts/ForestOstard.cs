@@ -8,7 +8,7 @@ namespace Server.Mobiles
         public override string DefaultName => "a forest ostard";
 
         [Constructible]
-        public ForestOstard() : base(0xDB, 0x3EA5, AIType.AI_Animal, FightMode.Aggressor)
+        public ForestOstard() : base(0xDB, 0x3EA5, AIType.AI_Animal, FightMode.Evil)
         {
             Hue = Utility.RandomSlimeHue() | 0x8000;
 

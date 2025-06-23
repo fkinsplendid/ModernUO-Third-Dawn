@@ -6,7 +6,7 @@ namespace Server.Mobiles
     public partial class Rabbit : BaseCreature
     {
         [Constructible]
-        public Rabbit() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Rabbit() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 205;
 

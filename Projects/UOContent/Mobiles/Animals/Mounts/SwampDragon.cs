@@ -9,7 +9,7 @@ namespace Server.Mobiles
         public override string DefaultName => "a swamp dragon";
 
         [Constructible]
-        public SwampDragon() : base(0x31A, 0x3EBD, AIType.AI_Melee, FightMode.Aggressor)
+        public SwampDragon() : base(0x31A, 0x3EBD, AIType.AI_Melee, FightMode.Evil)
         {
             BaseSoundID = 0x16A;
 

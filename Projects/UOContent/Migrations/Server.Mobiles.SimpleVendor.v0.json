@@ -1,0 +1,16 @@
+{
+  "version": 0,
+  "type": "Server.Mobiles.SimpleVendor",
+  "properties": [
+    {
+      "name": "PurchasedPlayers",
+      "type": "System.Collections.Generic.HashSet\u003CServer.Serial\u003E",
+      "rule": "HashSetMigrationRule",
+      "ruleArguments": [
+        "Server.Serial",
+        "PrimitiveUOTypeMigrationRule",
+        "Serial"
+      ]
+    }
+  ]
+}

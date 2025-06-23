@@ -6,7 +6,7 @@ namespace Server.Mobiles
     public partial class Chicken : BaseCreature
     {
         [Constructible]
-        public Chicken() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Chicken() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 0xD0;
             BaseSoundID = 0x6E;

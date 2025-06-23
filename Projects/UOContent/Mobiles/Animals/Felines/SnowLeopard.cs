@@ -7,7 +7,7 @@ namespace Server.Mobiles
     public partial class SnowLeopard : BaseCreature
     {
         [Constructible]
-        public SnowLeopard() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public SnowLeopard() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = Utility.RandomList(64, 65);
             BaseSoundID = 0x73;

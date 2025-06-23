@@ -6,7 +6,7 @@ namespace Server.Mobiles
     public partial class Bull : BaseCreature
     {
         [Constructible]
-        public Bull() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Bull() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = Utility.RandomList(0xE8, 0xE9);
             BaseSoundID = 0x64;

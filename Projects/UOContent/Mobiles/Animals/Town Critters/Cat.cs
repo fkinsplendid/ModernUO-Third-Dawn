@@ -7,7 +7,7 @@ namespace Server.Mobiles
     public partial class Cat : BaseCreature
     {
         [Constructible]
-        public Cat() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Cat() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 0xC9;
             Hue = Utility.RandomAnimalHue();

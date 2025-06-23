@@ -1,0 +1,52 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "Cedserver/1.0.0": {
+        "dependencies": {
+          "centredlib": "1.0.0",
+          "centredlib.Reference": "0.0.1.0"
+        },
+        "runtime": {
+          "Cedserver.dll": {}
+        }
+      },
+      "centredlib/1.0.0": {
+        "runtime": {
+          "centredlib.dll": {
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "centredlib.Reference/0.0.1.0": {
+        "runtime": {
+          "centredlib.dll": {
+            "assemblyVersion": "0.0.1.0",
+            "fileVersion": "0.0.1.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Cedserver/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "centredlib/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "centredlib.Reference/0.0.1.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

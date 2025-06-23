@@ -1,0 +1,338 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "CentrED/1.0.0": {
+        "dependencies": {
+          "Cedserver": "1.0.0",
+          "Client": "1.0.0",
+          "FNA": "1.0.0",
+          "FontStashSharp.FNA": "1.3.10",
+          "ImGui.NET": "1.91.6.1",
+          "centredlib": "1.0.0",
+          "Cedserver.Reference": "0.0.1.0",
+          "centredlib.Reference": "0.0.1.0",
+          "ClassicUO.Assets": "1.1.0.0",
+          "ClassicUO.IO": "1.1.0.0",
+          "ClassicUO.Renderer": "1.1.0.0",
+          "ClassicUO.Utility": "1.1.0.0",
+          "FNA.Reference": "25.4.0.0",
+          "FontStashSharp.FNA.Reference": "1.3.10.0"
+        },
+        "runtime": {
+          "CentrED.dll": {}
+        }
+      },
+      "Cyotek.Drawing.BitmapFont/2.0.4": {
+        "runtime": {
+          "lib/net5.0/Cyotek.Drawing.BitmapFont.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "2.0.4.0"
+          }
+        }
+      },
+      "FontStashSharp.Base/1.1.9": {
+        "runtime": {
+          "lib/netstandard2.0/FontStashSharp.Base.dll": {
+            "assemblyVersion": "1.1.9.0",
+            "fileVersion": "1.1.9.0"
+          }
+        }
+      },
+      "FontStashSharp.Rasterizers.StbTrueTypeSharp/1.1.9": {
+        "dependencies": {
+          "FontStashSharp.Base": "1.1.9",
+          "StbTrueTypeSharp": "1.26.12"
+        },
+        "runtime": {
+          "lib/netstandard2.0/FontStashSharp.Rasterizers.StbTrueTypeSharp.dll": {
+            "assemblyVersion": "1.1.9.0",
+            "fileVersion": "1.1.9.0"
+          }
+        }
+      },
+      "StbImageSharp/2.30.15": {
+        "runtime": {
+          "lib/netstandard2.0/StbImageSharp.dll": {
+            "assemblyVersion": "2.30.15.0",
+            "fileVersion": "2.30.15.0"
+          }
+        }
+      },
+      "StbTrueTypeSharp/1.26.12": {
+        "runtime": {
+          "lib/netstandard2.0/StbTrueTypeSharp.dll": {
+            "assemblyVersion": "1.26.12.0",
+            "fileVersion": "1.26.12.0"
+          }
+        }
+      },
+      "System.Buffers/4.5.1": {},
+      "System.Numerics.Vectors/4.5.0": {},
+      "System.Runtime.CompilerServices.Unsafe/6.0.0": {},
+      "Cedserver/1.0.0": {
+        "dependencies": {
+          "centredlib": "1.0.0"
+        },
+        "runtime": {
+          "Cedserver.dll": {
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "centredlib/1.0.0": {
+        "runtime": {
+          "centredlib.dll": {
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "Client/1.0.0": {
+        "dependencies": {
+          "centredlib": "1.0.0"
+        },
+        "runtime": {
+          "Client.dll": {
+            "assemblyVersion": "0.0.1.0",
+            "fileVersion": "0.0.1.0"
+          }
+        }
+      },
+      "FNA/1.0.0": {
+        "runtime": {
+          "FNA.dll": {
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "FontStashSharp.FNA/1.3.10": {
+        "dependencies": {
+          "Cyotek.Drawing.BitmapFont": "2.0.4",
+          "FNA": "1.0.0",
+          "FontStashSharp.Base": "1.1.9",
+          "FontStashSharp.Rasterizers.StbTrueTypeSharp": "1.1.9",
+          "StbImageSharp": "2.30.15"
+        },
+        "runtime": {
+          "FontStashSharp.FNA.dll": {
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "ImGui.NET/1.91.6.1": {
+        "dependencies": {
+          "System.Buffers": "4.5.1",
+          "System.Numerics.Vectors": "4.5.0",
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        },
+        "runtime": {
+          "ImGui.NET.dll": {
+            "assemblyVersion": "1.91.6.1",
+            "fileVersion": "1.91.6.1"
+          }
+        }
+      },
+      "Cedserver.Reference/0.0.1.0": {
+        "runtime": {
+          "Cedserver.dll": {
+            "assemblyVersion": "0.0.1.0",
+            "fileVersion": "0.0.1.0"
+          }
+        }
+      },
+      "centredlib.Reference/0.0.1.0": {
+        "runtime": {
+          "centredlib.dll": {
+            "assemblyVersion": "0.0.1.0",
+            "fileVersion": "0.0.1.0"
+          }
+        }
+      },
+      "ClassicUO.Assets/1.1.0.0": {
+        "runtime": {
+          "ClassicUO.Assets.dll": {
+            "assemblyVersion": "1.1.0.0",
+            "fileVersion": "1.1.0.0"
+          }
+        }
+      },
+      "ClassicUO.IO/1.1.0.0": {
+        "runtime": {
+          "ClassicUO.IO.dll": {
+            "assemblyVersion": "1.1.0.0",
+            "fileVersion": "1.1.0.0"
+          }
+        }
+      },
+      "ClassicUO.Renderer/1.1.0.0": {
+        "runtime": {
+          "ClassicUO.Renderer.dll": {
+            "assemblyVersion": "1.1.0.0",
+            "fileVersion": "1.1.0.0"
+          }
+        }
+      },
+      "ClassicUO.Utility/1.1.0.0": {
+        "runtime": {
+          "ClassicUO.Utility.dll": {
+            "assemblyVersion": "1.1.0.0",
+            "fileVersion": "1.1.0.0"
+          }
+        }
+      },
+      "FNA.Reference/25.4.0.0": {
+        "runtime": {
+          "FNA.dll": {
+            "assemblyVersion": "25.4.0.0",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "FontStashSharp.FNA.Reference/1.3.10.0": {
+        "runtime": {
+          "FontStashSharp.FNA.dll": {
+            "assemblyVersion": "1.3.10.0",
+            "fileVersion": "1.3.10.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "CentrED/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Cyotek.Drawing.BitmapFont/2.0.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-iA6WehGVdMUuNbfsQQDq/Bt+mMd/OqHjiMUtKFLIQd/0pyYh4ehT7FEjTxN9/4OXNKQZsp9bAJgltP2nnswUJg==",
+      "path": "cyotek.drawing.bitmapfont/2.0.4",
+      "hashPath": "cyotek.drawing.bitmapfont.2.0.4.nupkg.sha512"
+    },
+    "FontStashSharp.Base/1.1.9": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-/AjkOcPNijs8vyNgcCj3FfBJbVWmsSH744hqkhLfBt8qspDz/tEoD+U09my5u9eRBX6zX+RLQ/gdCvwy+ZBOtg==",
+      "path": "fontstashsharp.base/1.1.9",
+      "hashPath": "fontstashsharp.base.1.1.9.nupkg.sha512"
+    },
+    "FontStashSharp.Rasterizers.StbTrueTypeSharp/1.1.9": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-yi5iuTERem46uyHC5p+jRi3Jh8dKWzgNWLqcvHciGlyVHD1cWFdERgnxshZU4xWB2hRGnogxaCudCirbMpg4eQ==",
+      "path": "fontstashsharp.rasterizers.stbtruetypesharp/1.1.9",
+      "hashPath": "fontstashsharp.rasterizers.stbtruetypesharp.1.1.9.nupkg.sha512"
+    },
+    "StbImageSharp/2.30.15": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-7QqbupVhz2kcFUPTgMw4iHR9rYDHGundzzee19Mwmd1typ2Lnv8EVJcLJxlkeBM2+4ex0NwsMtdbGSJctp1XCQ==",
+      "path": "stbimagesharp/2.30.15",
+      "hashPath": "stbimagesharp.2.30.15.nupkg.sha512"
+    },
+    "StbTrueTypeSharp/1.26.12": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-hCc6/OsfcPa5VsLECcEU2m78WOshBrKwK42nAodSm9Z5wH68f7n66SoiRLCdGCkDaqbWz2TlX4zYHIjogj1HJA==",
+      "path": "stbtruetypesharp/1.26.12",
+      "hashPath": "stbtruetypesharp.1.26.12.nupkg.sha512"
+    },
+    "System.Buffers/4.5.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Rw7ijyl1qqRS0YQD/WycNst8hUUMgrMH4FCn1nNm27M4VxchZ1js3fVjQaANHO5f3sN4isvP4a+Met9Y4YomAg==",
+      "path": "system.buffers/4.5.1",
+      "hashPath": "system.buffers.4.5.1.nupkg.sha512"
+    },
+    "System.Numerics.Vectors/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-QQTlPTl06J/iiDbJCiepZ4H//BVraReU4O4EoRw1U02H5TLUIT7xn3GnDp9AXPSlJUDyFs4uWjWafNX6WrAojQ==",
+      "path": "system.numerics.vectors/4.5.0",
+      "hashPath": "system.numerics.vectors.4.5.0.nupkg.sha512"
+    },
+    "System.Runtime.CompilerServices.Unsafe/6.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-/iUeP3tq1S0XdNNoMz5C9twLSrM/TH+qElHkXWaPvuNOt+99G75NrV0OS2EqHx5wMN7popYjpc8oTjC1y16DLg==",
+      "path": "system.runtime.compilerservices.unsafe/6.0.0",
+      "hashPath": "system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512"
+    },
+    "Cedserver/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "centredlib/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Client/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "FNA/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "FontStashSharp.FNA/1.3.10": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ImGui.NET/1.91.6.1": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Cedserver.Reference/0.0.1.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "centredlib.Reference/0.0.1.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ClassicUO.Assets/1.1.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ClassicUO.IO/1.1.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ClassicUO.Renderer/1.1.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ClassicUO.Utility/1.1.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "FNA.Reference/25.4.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "FontStashSharp.FNA.Reference/1.3.10.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

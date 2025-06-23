@@ -8,7 +8,7 @@ namespace Server.Mobiles
         public override string DefaultName => "a ridgeback";
 
         [Constructible]
-        public Ridgeback() : base(187, 0x3EBA, AIType.AI_Animal, FightMode.Aggressor)
+        public Ridgeback() : base(187, 0x3EBA, AIType.AI_Animal, FightMode.Evil)
         {
             BaseSoundID = 0x3F3;
 

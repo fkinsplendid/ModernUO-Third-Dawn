@@ -8,7 +8,7 @@ namespace Server.Mobiles
         public override string DefaultName => "a hellsteed";
 
         [Constructible]
-        public HellSteed() : base(793, 0x3EBB, AIType.AI_Animal, FightMode.Aggressor)
+        public HellSteed() : base(793, 0x3EBB, AIType.AI_Animal, FightMode.Evil)
         {
             SetStats(this);
         }

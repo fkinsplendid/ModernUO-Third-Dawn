@@ -1,0 +1,35 @@
+{
+  "version": 0,
+  "type": "Server.Engines.PowerHour.PowerHourManager",
+  "properties": [
+    {
+      "name": "IsActive",
+      "type": "bool",
+      "rule": "PrimitiveTypeMigrationRule",
+      "ruleArguments": [
+        ""
+      ]
+    },
+    {
+      "name": "NextPowerHour",
+      "type": "System.DateTime",
+      "rule": "PrimitiveTypeMigrationRule",
+      "ruleArguments": [
+        ""
+      ]
+    },
+    {
+      "name": "Duration",
+      "type": "System.TimeSpan",
+      "rule": "PrimitiveTypeMigrationRule"
+    },
+    {
+      "name": "GainMultiplier",
+      "type": "double",
+      "rule": "PrimitiveTypeMigrationRule",
+      "ruleArguments": [
+        ""
+      ]
+    }
+  ]
+}

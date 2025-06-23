@@ -28,7 +28,6 @@ public static partial class CharacterCreation
         SkillName.Begging,
         SkillName.Blacksmith,
         SkillName.Fletching,
-        SkillName.Bushido,
         SkillName.Camping,
         SkillName.Carpentry,
         SkillName.Cartography,
@@ -44,7 +43,6 @@ public static partial class CharacterCreation
         SkillName.Healing,
         SkillName.Herding,
         SkillName.Hiding,
-        SkillName.Imbuing,
         SkillName.Inscribe,
         SkillName.ItemID,
         SkillName.Lockpicking,
@@ -54,9 +52,6 @@ public static partial class CharacterCreation
         SkillName.Meditation,
         SkillName.Mining,
         SkillName.Musicianship,
-        SkillName.Mysticism,
-        SkillName.Necromancy,
-        SkillName.Ninjitsu,
         SkillName.Parry,
         SkillName.Peacemaking,
         SkillName.Poisoning,
@@ -69,7 +64,6 @@ public static partial class CharacterCreation
         SkillName.Tactics,
         SkillName.Tailoring,
         SkillName.TasteID,
-        SkillName.Throwing,
         SkillName.Tinkering,
         SkillName.Tracking,
         SkillName.Veterinary,
@@ -100,19 +94,13 @@ public static partial class CharacterCreation
 
     public static readonly CityInfo[] TrammelStartingCities =
     [
-        new("Yew", "The Empath Abbey", 1075072, 633, 858, 0, Map.Trammel),
-        new("Minoc", "The Barnacle", 1075073, 2476, 413, 15, Map.Trammel),
-        new("Moonglow", "The Scholars Inn", 1075075, 4408, 1168, 0, Map.Trammel),
-        new("Trinsic", "The Traveler's Inn", 1075076, 1845, 2745, 0, Map.Trammel),
-        new("Jhelom", "The Mercenary Inn", 1075078, 1374, 3826, 0, Map.Trammel),
-        new("Skara Brae", "The Falconer's Inn", 1075079, 618, 2234, 0, Map.Trammel),
-        new("Vesper", "The Ironwood Inn", 1075080, 2771, 976, 0, Map.Trammel),
+        new("Britain", "The Wayfarer's Inn", 1075074, 1602, 1591, 20, Map.Trammel)
     ];
 
     public static readonly CityInfo[] NewHavenStartingCities =
     [
-        new("New Haven", "The Bountiful Harvest Inn", 1150168, 3503, 2574, 14, Map.Trammel),
-        new("Britain", "The Wayfarer's Inn", 1075074, 1602, 1591, 20, Map.Trammel)
+        //new("New Haven", "The Bountiful Harvest Inn", 1150168, 3503, 2574, 14, Map.Trammel),
+
         // Magincia removed because it burned down.
     ];
 

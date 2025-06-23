@@ -7,7 +7,7 @@ namespace Server.Mobiles
     public partial class GrizzlyBear : BaseCreature
     {
         [Constructible]
-        public GrizzlyBear() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public GrizzlyBear() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 212;
             BaseSoundID = 0xA3;

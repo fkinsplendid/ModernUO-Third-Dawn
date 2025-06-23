@@ -8,7 +8,7 @@ namespace Server.Mobiles
         public override string DefaultName => "a silver steed";
 
         [Constructible]
-        public SilverSteed() : base(0x75, 0x3EA8, AIType.AI_Animal, FightMode.Aggressor)
+        public SilverSteed() : base(0x75, 0x3EA8, AIType.AI_Animal, FightMode.Evil)
         {
             InitStats(Utility.Random(50, 30), Utility.Random(50, 30), 10);
             Skills.MagicResist.Base = 25.0 + Utility.RandomDouble() * 5.0;
