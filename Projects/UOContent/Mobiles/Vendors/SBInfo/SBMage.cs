@@ -37,6 +37,8 @@ namespace Server.Mobiles
                 Add(new GenericBuyInfo(typeof(LesserCurePotion), 15, 10, 0xF07, 0));
                 Add(new GenericBuyInfo(typeof(LesserExplosionPotion), 21, 10, 0xF0D, 0));
 
+                Add(new GenericBuyInfo("bag of reagents", typeof(MageReagentBag), 2000, 20, 0xE76, 0x485));
+
                 Add(new GenericBuyInfo(typeof(BlackPearl), 5, 20, 0xF7A, 0));
                 Add(new GenericBuyInfo(typeof(Bloodmoss), 5, 20, 0xF7B, 0));
                 Add(new GenericBuyInfo(typeof(Garlic), 3, 20, 0xF84, 0));
