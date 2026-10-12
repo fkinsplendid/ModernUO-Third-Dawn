@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using ModernUO.Serialization;
 using Server.Collections;
-using Server.Factions;
 using Server.Gumps;
 using Server.Maps;
 using Server.Mobiles;
@@ -169,9 +168,18 @@ public class PMEntry
         Number = number;
     }
 
+    public PMEntry(Point3D loc, string name)
+    {
+        Location = loc;
+        Name = name;
+    }
+
     public Point3D Location { get; }
 
     public int Number { get; }
+
+    /// <summary>Non-null to render with AddLabel instead of a cliloc.</summary>
+    public string Name { get; }
 }
 
 public class PMList
@@ -192,7 +200,7 @@ public class PMList
                 new PMEntry(new Point3D(643, 2067, 5), 1012009),    // Skara Brae
                 /* Dynamic Z for Magincia to support both old and new maps. */
                 new PMEntry(new Point3D(3563, 2139, Map.Trammel.GetAverageZ(3563, 2139)), 1012010), // (New) Magincia
-                new PMEntry(new Point3D(3450, 2677, 25), 1078098)                                   // New Haven
+                new PMEntry(new Point3D(3450, 2677, 25), "Haven")                                   // Haven
             }
         );
 
@@ -283,21 +291,19 @@ public class PMList
             }
         );
 
-    public static PMList[] NoTrammelLists = { Felucca };
-    public static PMList[] T2ALists = { Trammel, Felucca };
+    // Felucca is intentionally excluded from all destination lists.
+    public static PMList[] T2ALists = { Trammel };
     public static PMList[] T2AListsYoung = { Trammel };
-    public static PMList[] LBRLists = { Trammel, Felucca, Ilshenar };
+    public static PMList[] LBRLists = { Trammel, Ilshenar };
     public static PMList[] LBRListsYoung = { Trammel, Ilshenar };
-    public static PMList[] AOSLists = { Trammel, Felucca, Ilshenar, Malas };
+    public static PMList[] AOSLists = { Trammel, Ilshenar, Malas };
     public static PMList[] AOSListsYoung = { Trammel, Ilshenar, Malas };
-    public static PMList[] SELists = { Trammel, Felucca, Ilshenar, Malas, Tokuno };
+    public static PMList[] SELists = { Trammel, Ilshenar, Malas, Tokuno };
     public static PMList[] SEListsYoung = { Trammel, Ilshenar, Malas, Tokuno };
-    public static PMList[] SALists = { Trammel, Felucca, Ilshenar, Malas, Tokuno, TerMur };
+    public static PMList[] SALists = { Trammel, Ilshenar, Malas, Tokuno, TerMur };
     public static PMList[] SAListsYoung = { Trammel, Ilshenar, Malas, Tokuno, TerMur };
-    public static PMList[] TOLLists = { Trammel, Felucca, Ilshenar, Malas, Tokuno, TerMurEodon };
+    public static PMList[] TOLLists = { Trammel, Ilshenar, Malas, Tokuno, TerMurEodon };
     public static PMList[] TOLListsYoung = { Trammel, Ilshenar, Malas, Tokuno, TerMurEodon };
-    public static PMList[] RedLists = { Felucca };
-    public static PMList[] SigilLists = { Felucca };
 
     public PMList(int number, int selNumber, Map map, PMEntry[] entries)
     {
@@ -335,14 +341,6 @@ public class MoongateGump : Gump
         {
             checkLists = PMList.SELists;
         }
-        else if (Sigil.ExistsOn(mobile))
-        {
-            checkLists = PMList.SigilLists;
-        }
-        else if (mobile.Murderer)
-        {
-            checkLists = PMList.RedLists;
-        }
         else
         {
             var flags = mobile.NetState?.Flags ?? ClientFlags.None;
@@ -355,11 +353,11 @@ public class MoongateGump : Gump
                 >= Expansion.SA when (flags & ClientFlags.TerMur) != 0 => young ? PMList.SAListsYoung : PMList.SALists,
                 >= Expansion.SE when (flags & ClientFlags.Tokuno) != 0 => young ? PMList.SEListsYoung : PMList.SELists,
                 >= Expansion.AOS when (flags & ClientFlags.Malas) != 0 => young ? PMList.AOSListsYoung : PMList.AOSLists,
-                >= Expansion.LBR when (flags & ClientFlags.Ilshenar) != 0 =>
+                >= Expansion.UOTD when (flags & ClientFlags.Ilshenar) != 0 =>
                     young ? PMList.LBRListsYoung : PMList.LBRLists,
                 >= Expansion.T2A when (flags & ClientFlags.Trammel) != 0 =>
                     young ? PMList.T2AListsYoung : PMList.T2ALists,
-                _ => PMList.NoTrammelLists
+                _ => []
             };
         }
 
@@ -429,7 +427,14 @@ public class MoongateGump : Gump
         for (var i = 0; i < entries.Length; ++i)
         {
             AddRadio(200, 35 + i * 25, 210, 211, false, index * 100 + i);
-            AddHtmlLocalized(225, 35 + i * 25, 150, 20, entries[i].Number);
+            if (entries[i].Name != null)
+            {
+                AddLabel(225, 35 + i * 25, 0, entries[i].Name);
+            }
+            else
+            {
+                AddHtmlLocalized(225, 35 + i * 25, 150, 20, entries[i].Number);
+            }
         }
     }
 
@@ -473,14 +478,6 @@ public class MoongateGump : Gump
         if (!_mobile.InRange(_moongate.GetWorldLocation(), 1) || _mobile.Map != _moongate.Map)
         {
             _mobile.SendLocalizedMessage(1019002); // You are too far away to use the gate.
-        }
-        else if (_mobile.Player && _mobile.Murderer && list.Map != Map.Felucca)
-        {
-            _mobile.SendLocalizedMessage(1019004); // You are not allowed to travel there.
-        }
-        else if (Sigil.ExistsOn(_mobile) && list.Map != Faction.Facet)
-        {
-            _mobile.SendLocalizedMessage(1019004); // You are not allowed to travel there.
         }
         else if (_mobile.Criminal)
         {

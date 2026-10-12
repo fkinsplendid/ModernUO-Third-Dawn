@@ -464,8 +464,7 @@ namespace Server.Gumps
                     SkillName.Fletching,
                     SkillName.Inscribe,
                     SkillName.Tailoring,
-                    SkillName.Tinkering,
-                    SkillName.Imbuing
+                    SkillName.Tinkering
                 }
             ),
             new(
@@ -482,17 +481,11 @@ namespace Server.Gumps
                 "Magical",
                 new[]
                 {
-                    SkillName.Chivalry,
                     SkillName.EvalInt,
                     SkillName.Magery,
                     SkillName.MagicResist,
                     SkillName.Meditation,
-                    SkillName.Necromancy,
-                    SkillName.SpiritSpeak,
-                    SkillName.Ninjitsu,
-                    SkillName.Bushido,
-                    SkillName.Spellweaving,
-                    SkillName.Mysticism
+                    SkillName.SpiritSpeak
                 }
             ),
             new(
@@ -501,7 +494,6 @@ namespace Server.Gumps
                 {
                     SkillName.Camping,
                     SkillName.Fishing,
-                    SkillName.Focus,
                     SkillName.Healing,
                     SkillName.Herding,
                     SkillName.Lockpicking,
@@ -521,8 +513,7 @@ namespace Server.Gumps
                     SkillName.Parry,
                     SkillName.Swords,
                     SkillName.Tactics,
-                    SkillName.Wrestling,
-                    SkillName.Throwing
+                    SkillName.Wrestling
                 }
             ),
             new(
