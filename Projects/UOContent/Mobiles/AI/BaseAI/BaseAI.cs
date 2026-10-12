@@ -28,6 +28,7 @@ public abstract partial class BaseAI
 {
     private ActionType _action;
     public long _nextDetectHidden;
+    private DateTime _dwellUntil;
     public PathFollower Path { get; protected set; }
     public readonly Timer _timer;
     public DateTime _lastOrder = DateTime.MinValue;
@@ -361,6 +362,11 @@ public abstract partial class BaseAI
 
     private void HandleWayPoint()
     {
+        if (Core.Now < _dwellUntil)
+        {
+            return;
+        }
+
         var point = Mobile.CurrentWayPoint;
 
         if ((point.X != Mobile.Location.X || point.Y != Mobile.Location.Y)
@@ -373,6 +379,11 @@ public abstract partial class BaseAI
         else if (OnAtWayPoint())
         {
             this.DebugSayFormatted($"I have reached waypoint {point.X}, {point.Y}.");
+
+            if (point.DwellSeconds > 0)
+            {
+                _dwellUntil = Core.Now + TimeSpan.FromSeconds(point.DwellSeconds);
+            }
 
             Mobile.CurrentWayPoint = point.NextPoint;
             if (point.NextPoint?.Deleted == true)

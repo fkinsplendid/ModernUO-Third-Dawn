@@ -4,12 +4,16 @@ using Server.Targeting;
 namespace Server.Items;
 
 [Flippable(0x1f14, 0x1f15, 0x1f16, 0x1f17)]
-[SerializationGenerator(0, false)]
+[SerializationGenerator(1, false)]
 public partial class WayPoint : Item
 {
     [SerializableField(0)]
     [SerializedCommandProperty(AccessLevel.GameMaster)]
     private WayPoint _nextPoint;
+
+    [SerializableField(1)]
+    [SerializedCommandProperty(AccessLevel.GameMaster)]
+    private int _dwellSeconds;
 
     [Constructible]
     public WayPoint(WayPoint prev = null) : base(0x1f14)
@@ -22,6 +26,11 @@ public partial class WayPoint : Item
         {
             prev.NextPoint = this;
         }
+    }
+
+    private void MigrateFrom(V0Content content)
+    {
+        _nextPoint = content.NextPoint;
     }
 
     public override string DefaultName => "AI Way Point";
@@ -56,6 +65,10 @@ public partial class WayPoint : Item
         if (_nextPoint == null)
         {
             LabelTo(from, "(Unlinked)");
+        }
+        else if (_dwellSeconds > 0)
+        {
+            LabelTo(from, $"(Linked: {_nextPoint.Location}, Dwell: {_dwellSeconds}s)");
         }
         else
         {

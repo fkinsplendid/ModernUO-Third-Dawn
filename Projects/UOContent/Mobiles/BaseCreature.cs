@@ -1361,6 +1361,12 @@ namespace Server.Mobiles
 
             if (master == null)
             {
+                // Uncontrolled monsters attack animals within 7 tiles
+                if (Body.IsMonster && !Controlled && c.Body.IsAnimal && InRange(m, 6))
+                {
+                    return true;
+                }
+
                 // Non-summons will attack summons of non-NPCs
                 return cMaster != null && cMaster is not BaseCreature;
             }
