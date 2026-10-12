@@ -380,7 +380,7 @@ public partial class TownCrier : Mobile, ITownCrierEntryList
         }
 
         var entry = GlobalTownCrierEntryList.Instance.GetRandomEntry();
-        if (count > 0 && entry != null && Utility.RandomBool())
+        if (entry != null && (count == 0 || Utility.RandomBool()))
         {
             return entry;
         }
@@ -440,7 +440,7 @@ public partial class TownCrier : Mobile, ITownCrierEntryList
         {
             _newsTimer = Timer.DelayCall(
                 TimeSpan.FromSeconds(1.0),
-                TimeSpan.FromSeconds(3.0),
+                TimeSpan.FromSeconds(2.0),
                 tce.Lines.Length,
                 () => ShoutNews_Callback(tce)
             );
@@ -493,7 +493,7 @@ public partial class TownCrier : Mobile, ITownCrierEntryList
             {
                 _newsTimer = Timer.DelayCall(
                     TimeSpan.FromSeconds(1.0),
-                    TimeSpan.FromSeconds(3.0),
+                    TimeSpan.FromSeconds(2.0),
                     tce.Lines.Length,
                     () => ShoutNews_Callback(tce)
                 );
