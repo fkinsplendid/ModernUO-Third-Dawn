@@ -6,7 +6,7 @@ namespace Server.Mobiles
     public partial class Phoenix : BaseCreature
     {
         [Constructible]
-        public Phoenix() : base(AIType.AI_Mage, FightMode.Aggressor)
+        public Phoenix() : base(AIType.AI_Mage, FightMode.Evil)
         {
             Body = 5;
             Hue = 0x674;

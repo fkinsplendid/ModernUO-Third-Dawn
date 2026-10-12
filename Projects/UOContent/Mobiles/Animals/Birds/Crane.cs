@@ -6,7 +6,7 @@ namespace Server.Mobiles
     public partial class Crane : BaseCreature
     {
         [Constructible]
-        public Crane() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Crane() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 254;
             BaseSoundID = 0x4D7;

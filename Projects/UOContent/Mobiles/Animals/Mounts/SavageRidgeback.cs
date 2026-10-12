@@ -8,7 +8,7 @@ namespace Server.Mobiles
         public override string DefaultName => "a savage ridgeback";
 
         [Constructible]
-        public SavageRidgeback() : base(188, 0x3EB8, AIType.AI_Melee, FightMode.Aggressor)
+        public SavageRidgeback() : base(188, 0x3EB8, AIType.AI_Melee, FightMode.Evil)
         {
             BaseSoundID = 0x3F3;
 

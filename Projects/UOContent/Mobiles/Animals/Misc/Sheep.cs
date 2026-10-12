@@ -9,7 +9,7 @@ namespace Server.Mobiles
     public partial class Sheep : BaseCreature, ICarvable
     {
         [Constructible]
-        public Sheep() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Sheep() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 0xCF;
             BaseSoundID = 0xD6;

@@ -6,7 +6,7 @@ namespace Server.Mobiles
     public partial class Parrot : BaseCreature
     {
         [Constructible]
-        public Parrot() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Parrot() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 831;
             VirtualArmor = Utility.Random(0, 6);

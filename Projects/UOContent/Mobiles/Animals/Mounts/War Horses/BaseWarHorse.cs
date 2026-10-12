@@ -11,7 +11,7 @@ namespace Server.Mobiles
             int bodyID,
             int itemID,
             AIType aiType = AIType.AI_Melee,
-            FightMode fightMode = FightMode.Aggressor,
+            FightMode fightMode = FightMode.Evil,
             int rangePerception = DefaultRangePerception,
             int rangeFight = 1
         ) : base(

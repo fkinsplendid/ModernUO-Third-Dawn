@@ -8,7 +8,7 @@ namespace Server.Mobiles
         public override string DefaultName => "a swamp dragon";
 
         [Constructible]
-        public ScaledSwampDragon() : base(0x31F, 0x3EBE, AIType.AI_Melee, FightMode.Aggressor)
+        public ScaledSwampDragon() : base(0x31F, 0x3EBE, AIType.AI_Melee, FightMode.Evil)
         {
             SetStr(201, 300);
             SetDex(66, 85);

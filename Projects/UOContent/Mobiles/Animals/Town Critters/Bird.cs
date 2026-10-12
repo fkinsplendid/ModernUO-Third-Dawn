@@ -6,7 +6,7 @@ namespace Server.Mobiles
     public partial class Bird : BaseCreature
     {
         [Constructible]
-        public Bird() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Bird() : base(AIType.AI_Animal, FightMode.Evil)
         {
             if (Utility.RandomBool())
             {
@@ -63,7 +63,7 @@ namespace Server.Mobiles
     public partial class TropicalBird : BaseCreature
     {
         [Constructible]
-        public TropicalBird() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public TropicalBird() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Hue = Utility.RandomBirdHue();
 

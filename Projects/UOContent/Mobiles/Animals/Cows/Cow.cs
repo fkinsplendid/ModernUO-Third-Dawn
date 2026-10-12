@@ -16,7 +16,7 @@ namespace Server.Mobiles
         public int _milk;
 
         [Constructible]
-        public Cow() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Cow() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = Utility.RandomList(0xD8, 0xE7);
             BaseSoundID = 0x78;

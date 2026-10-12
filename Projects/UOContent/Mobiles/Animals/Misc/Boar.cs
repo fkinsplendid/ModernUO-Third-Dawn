@@ -6,7 +6,7 @@ namespace Server.Mobiles
     public partial class Boar : BaseCreature
     {
         [Constructible]
-        public Boar() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Boar() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 0x122;
             BaseSoundID = 0xC4;

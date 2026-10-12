@@ -7,7 +7,7 @@ namespace Server.Mobiles
     public partial class BullFrog : BaseCreature
     {
         [Constructible]
-        public BullFrog() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public BullFrog() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 81;
             Hue = Utility.RandomList(0x5AC, 0x5A3, 0x59A, 0x591, 0x588, 0x57F);

@@ -7,7 +7,7 @@ namespace Server.Mobiles
     public partial class JackRabbit : BaseCreature
     {
         [Constructible]
-        public JackRabbit() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public JackRabbit() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 0xCD;
             Hue = 0x1BB;

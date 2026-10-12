@@ -6,7 +6,7 @@ namespace Server.Mobiles
     public partial class Panther : BaseCreature
     {
         [Constructible]
-        public Panther() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Panther() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 0xD6;
             Hue = 0x901;

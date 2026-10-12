@@ -6,7 +6,7 @@ namespace Server.Mobiles
     public partial class MountainGoat : BaseCreature
     {
         [Constructible]
-        public MountainGoat() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public MountainGoat() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 88;
             BaseSoundID = 0x99;

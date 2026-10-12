@@ -8,7 +8,7 @@ namespace Server.Mobiles
         public override string DefaultName => "a ridable llama";
 
         [Constructible]
-        public RidableLlama() : base(0xDC, 0x3EA6, AIType.AI_Animal, FightMode.Aggressor
+        public RidableLlama() : base(0xDC, 0x3EA6, AIType.AI_Animal, FightMode.Evil
         )
         {
             BaseSoundID = 0x3F3;

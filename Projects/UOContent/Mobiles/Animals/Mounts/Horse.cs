@@ -22,7 +22,7 @@ namespace Server.Mobiles
         public override string DefaultName => "a horse";
 
         [Constructible]
-        public Horse() : base(0xE2, 0x3EA0, AIType.AI_Animal, FightMode.Aggressor)
+        public Horse() : base(0xE2, 0x3EA0, AIType.AI_Animal, FightMode.Evil)
         {
             var random = Utility.Random(4);
 

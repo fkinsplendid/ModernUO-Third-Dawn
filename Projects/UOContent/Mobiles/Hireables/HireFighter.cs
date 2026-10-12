@@ -6,8 +6,13 @@ namespace Server.Mobiles;
 [SerializationGenerator(0)]
 public partial class HireFighter : BaseHire
 {
+    public override bool ShowFameTitle => true; // Shows the "the fighter" title
+    public override bool ClickTitle => true; // Show the proper title
+
+
+
     [Constructible]
-    public HireFighter()
+    public HireFighter() : base(AIType.AI_Melee) // Use the built-in Melee AI type
     {
         SpeechHue = Utility.RandomDyedHue();
         Hue = Race.Human.RandomSkinHue();
@@ -17,19 +22,31 @@ public partial class HireFighter : BaseHire
         HairHue = Race.RandomHairHue();
         Race.RandomFacialHair(this);
 
-        SetStr(91, 91);
-        SetDex(91, 91);
+        // Improve stats for better following and combat
+        SetStr(110, 150);
+        SetDex(110, 150);
         SetInt(50, 50);
 
-        SetDamage(7, 14);
+        SetDamage(45, 65);
 
-        SetSkill(SkillName.Tactics, 36, 67);
-        SetSkill(SkillName.Magery, 22, 22);
-        SetSkill(SkillName.Swords, 64, 100);
-        SetSkill(SkillName.Parry, 60, 82);
-        SetSkill(SkillName.Macing, 36, 67);
-        SetSkill(SkillName.Focus, 36, 67);
-        SetSkill(SkillName.Wrestling, 25, 47);
+        SetSkill(SkillName.Tactics, 99, 100);
+        SetSkill(SkillName.Healing, 99, 100);
+        SetSkill(SkillName.Swords, 99, 100);
+        SetSkill(SkillName.Parry, 99, 100);
+        SetSkill(SkillName.Macing, 99, 100);
+        SetSkill(SkillName.Anatomy, 99, 100);
+        SetSkill(SkillName.Wrestling, 40, 50);
+
+        // Add following-specific properties
+        ActiveSpeed = 0.1; // Faster movement when active
+        PassiveSpeed = 0.1; // Faster movement when passive
+
+        // Improve following settings
+        //CurrentSpeed = 5;
+        //RangePerception = 2;
+        //RangeFight = 2;
+
+        // Rest of the existing constructor code...
 
         Fame = 100;
         Karma = 100;
@@ -139,7 +156,47 @@ public partial class HireFighter : BaseHire
         }
 
         PackGold(25, 100);
+        var pack = new Backpack();
+        AddItem(pack);
+
+        // Add 100 bandages to the backpack
+        pack.DropItem(new Bandage(100));
+
     }
 
-    public override bool ClickTitle => false;
+
+
+public override void OnThink()
+{
+    base.OnThink();
+
+    // If we have a master and we're not in combat
+    if (ControlMaster != null && Combatant == null)
+    {
+        // Get distance to master
+        var distance = GetDistanceToSqrt(ControlMaster);
+
+        // If too far from master, run to catch up
+        if (distance > 4)
+        {
+            CurrentSpeed = 3.0; // Run faster
+            ActiveSpeed = 0.2;  // Also increase active movement speed
+            PassiveSpeed = 0.2; // And passive movement speed
+
+            ControlOrder = OrderType.Come;
+        }
+
+        else
+        {
+            CurrentSpeed = 0.5; // Normal speed when at good distance
+        }
+
+        // If on different map, move to master
+        if (Map != ControlMaster.Map)
+        {
+            Map = ControlMaster.Map;
+            Location = ControlMaster.Location;
+        }
+    }
+}
 }

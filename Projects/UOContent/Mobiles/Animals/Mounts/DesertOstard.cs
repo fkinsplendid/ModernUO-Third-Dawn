@@ -8,7 +8,7 @@ namespace Server.Mobiles
         public override string DefaultName => "a desert ostard";
 
         [Constructible]
-        public DesertOstard() : base(0xD2, 0x3EA3, AIType.AI_Animal, FightMode.Aggressor)
+        public DesertOstard() : base(0xD2, 0x3EA3, AIType.AI_Animal, FightMode.Evil)
         {
             BaseSoundID = 0x270;
 

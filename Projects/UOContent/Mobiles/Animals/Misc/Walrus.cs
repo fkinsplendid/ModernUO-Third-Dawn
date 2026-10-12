@@ -6,7 +6,7 @@ namespace Server.Mobiles
     public partial class Walrus : BaseCreature
     {
         [Constructible]
-        public Walrus() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public Walrus() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 0xDD;
             BaseSoundID = 0xE0;

@@ -7,7 +7,7 @@ namespace Server.Mobiles
     public partial class PolarBear : BaseCreature
     {
         [Constructible]
-        public PolarBear() : base(AIType.AI_Animal, FightMode.Aggressor)
+        public PolarBear() : base(AIType.AI_Animal, FightMode.Evil)
         {
             Body = 213;
             BaseSoundID = 0xA3;
