@@ -242,9 +242,16 @@ public static class SkillCheck
                 }
             }
 
-            if (from is PlayerMobile pm && skill.SkillName == pm.AcceleratedSkill && pm.AcceleratedStart > Core.Now)
+            if (from is PlayerMobile pm)
             {
-                toGain *= Utility.RandomMinMax(2, 5);
+                if (pm.InPowerHour)
+                {
+                    toGain *= 2;
+                }
+                else if (skill.SkillName == pm.AcceleratedSkill && pm.AcceleratedStart > Core.Now)
+                {
+                    toGain *= Utility.RandomMinMax(2, 5);
+                }
             }
 
             if (!from.Player || skills.Total < skills.Cap)

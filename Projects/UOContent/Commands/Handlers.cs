@@ -41,6 +41,7 @@ namespace Server.Commands
             Register("Light", AccessLevel.Counselor, Light_OnCommand);
             Register("Stats", AccessLevel.Counselor, Stats_OnCommand);
             Register("SpeedBoost", AccessLevel.Counselor, SpeedBoost_OnCommand);
+            Register("FullSpellbook", AccessLevel.Administrator, FullSpellbook_OnCommand);
         }
 
         public static void Register(string command, AccessLevel access, CommandEventHandler handler)
@@ -927,6 +928,24 @@ namespace Server.Commands
                         from.SendGump(new StuckMenu(from, mobile, false));
                     }
                 }
+            }
+        }
+
+        [Usage("FullSpellbook")]
+        [Description("Places a fully filled spellbook into your backpack.")]
+        private static void FullSpellbook_OnCommand(CommandEventArgs e)
+        {
+            var from = e.Mobile;
+            var book = new Spellbook(ulong.MaxValue);
+
+            if (!from.AddToBackpack(book))
+            {
+                book.Delete();
+                from.SendMessage("Your backpack is full.");
+            }
+            else
+            {
+                from.SendMessage("A full spellbook has been placed in your backpack.");
             }
         }
     }

@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using ModernUO.CodeGeneratedEvents;
 using Server.Accounting;
 using Server.Collections;
+using Server.Commands;
 using Server.ContextMenus;
 using Server.Engines.BuffIcons;
 using Server.Engines.BulkOrders;
@@ -544,6 +545,101 @@ namespace Server.Mobiles
         [CommandProperty(AccessLevel.GameMaster)]
         public SkillName AcceleratedSkill { get; set; }
 
+        private DateTime _powerHourEnd;
+        private DateTime _lastPowerHour;
+        private TimerExecutionToken _powerHourTimer;
+
+        [CommandProperty(AccessLevel.GameMaster)]
+        public bool InPowerHour => Core.Now < _powerHourEnd;
+
+        [CommandProperty(AccessLevel.GameMaster)]
+        public DateTime PowerHourEnd
+        {
+            get => _powerHourEnd;
+            set => _powerHourEnd = value;
+        }
+
+        [CommandProperty(AccessLevel.GameMaster)]
+        public DateTime LastPowerHour
+        {
+            get => _lastPowerHour;
+            set => _lastPowerHour = value;
+        }
+
+        public void StartPowerHour()
+        {
+            _powerHourEnd = Core.Now + TimeSpan.FromHours(1);
+            SendMessage("Your power hour has begun! Skill gains are doubled for the next hour.");
+            SchedulePowerHourExpiry();
+        }
+
+        public void SchedulePowerHourExpiry()
+        {
+            _powerHourTimer.Cancel();
+            var remaining = _powerHourEnd - Core.Now;
+            if (remaining <= TimeSpan.Zero)
+            {
+                return;
+            }
+
+            Timer.StartTimer(remaining, OnPowerHourExpired, out _powerHourTimer);
+
+            // Send a reminder at the halfway point if more than 5 minutes remain
+            var halfwayDelay = remaining - TimeSpan.FromMinutes(30);
+            if (halfwayDelay > TimeSpan.FromMinutes(5))
+            {
+                Timer.StartTimer(halfwayDelay, () =>
+                {
+                    if (InPowerHour && NetState != null)
+                    {
+                        SendMessage("Power hour reminder: 30 minutes remaining.");
+                    }
+                });
+            }
+        }
+
+        private void OnPowerHourExpired()
+        {
+            _powerHourEnd = DateTime.MinValue;
+            _lastPowerHour = Core.Now;
+            if (NetState != null)
+            {
+                SendMessage("Your power hour has ended.");
+            }
+        }
+
+        [Usage("PowerHour"), Description("Shows your current power hour status.")]
+        private static void PowerHour_OnCommand(CommandEventArgs e)
+        {
+            if (e.Mobile is not PlayerMobile pm)
+            {
+                return;
+            }
+
+            if (pm.InPowerHour)
+            {
+                var remaining = pm._powerHourEnd - Core.Now;
+                pm.SendMessage($"Power hour is active — {(int)remaining.TotalMinutes} minute(s) remaining.");
+            }
+            else
+            {
+                var nextAvailable = pm._lastPowerHour + TimeSpan.FromHours(24);
+                if (pm._lastPowerHour == DateTime.MinValue || Core.Now >= nextAvailable)
+                {
+                    pm.SendMessage("Power hour is not active. It will begin at your next login.");
+                }
+                else
+                {
+                    var wait = nextAvailable - Core.Now;
+                    var hours = (int)wait.TotalHours;
+                    var minutes = wait.Minutes;
+                    pm.SendMessage(hours > 0
+                        ? $"Power hour is not active. Next available in {hours}h {minutes}m."
+                        : $"Power hour is not active. Next available in {minutes} minute(s).");
+                }
+            }
+        }
+
         [CommandProperty(AccessLevel.GameMaster)]
         public override int HitsMax
         {
@@ -948,6 +1044,8 @@ namespace Server.Mobiles
 
         public static void Initialize()
         {
+            CommandSystem.Register("PowerHour", AccessLevel.Player, PowerHour_OnCommand);
+
             EventSink.Logout += OnLogout;
             EventSink.Connected += EventSink_Connected;
             EventSink.Disconnected += EventSink_Disconnected;
@@ -1283,6 +1381,20 @@ namespace Server.Mobiles
             from.ClaimAutoStabledPets();
             AnimalForm.GetContext(from)?.Timer.Start();
             from.ResendBuffs();
+
+            if (from.AccessLevel == AccessLevel.Player)
+            {
+                if (from.InPowerHour)
+                {
+                    var remaining = from._powerHourEnd - Core.Now;
+                    from.SendMessage($"You have {(int)remaining.TotalMinutes + 1} minute(s) of power hour remaining.");
+                    from.SchedulePowerHourExpiry();
+                }
+                else if (Core.Now - from._lastPowerHour >= TimeSpan.FromHours(24))
+                {
+                    from.StartPowerHour();
+                }
+            }
         }
 
         private class ServerLockdownNoticeGump : StaticNoticeGump<ServerLockdownNoticeGump>
@@ -2875,6 +2987,13 @@ namespace Server.Mobiles
 
             switch (version)
             {
+                case 36: // Power hour tracking (correct field order)
+                    {
+                        _powerHourEnd = reader.ReadDateTime();
+                        _lastPowerHour = reader.ReadDateTime();
+                        goto case 34;
+                    }
+                case 35: // Power hour tracking (buggy field order - data at end, skip it)
                 case 34: // Acquired Recipes is now a Set
                 case 33: // Removes champion title
                 case 32: // Removes virtue properties
@@ -3176,6 +3295,14 @@ namespace Server.Mobiles
                     }
             }
 
+            // v35 wrote power hour fields at the end of the stream (wrong position).
+            // Read them here so all bytes are consumed; values are still usable.
+            if (version == 35)
+            {
+                _powerHourEnd = reader.ReadDateTime();
+                _lastPowerHour = reader.ReadDateTime();
+            }
+
             if (!ProfessionInfo.VerifyProfession(Profession))
             {
                 Profession = 0;
@@ -3219,7 +3346,10 @@ namespace Server.Mobiles
         {
             base.Serialize(writer);
 
-            writer.Write(34); // version
+            writer.Write(36); // version
+
+            writer.Write(_powerHourEnd);
+            writer.Write(_lastPowerHour);
 
             if (Stabled == null)
             {
