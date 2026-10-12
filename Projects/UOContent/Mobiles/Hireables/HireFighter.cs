@@ -174,7 +174,7 @@ public override void OnThink()
     if (ControlMaster != null && Combatant == null)
     {
         // Get distance to master
-        var distance = GetDistanceToSqrt(ControlMaster);
+        var distance = this.GetDistanceToSqrt(ControlMaster);
 
         // If too far from master, run to catch up
         if (distance > 4)
