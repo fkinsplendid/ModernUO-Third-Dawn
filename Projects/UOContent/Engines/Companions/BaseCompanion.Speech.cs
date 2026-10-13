@@ -18,7 +18,7 @@ public abstract partial class BaseCompanion
     /// </summary>
     public bool Speak(SpeechContext context, string arg = null, bool urgent = false)
     {
-        if (Deleted || State != CompanionState.Active || IsDeadPet)
+        if (Deleted || State != CompanionState.Active || IsDeadPet && !CompanionSpeech.IsGhostLine(context))
         {
             return false;
         }

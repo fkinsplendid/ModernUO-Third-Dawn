@@ -1,3 +1,4 @@
+using Server.Engines.Companions;
 using Server.Engines.ConPVP;
 using Server.Gumps;
 using Server.Targeting;
@@ -30,6 +31,22 @@ namespace Server.Spells.Eighth
             if (m == Caster)
             {
                 Caster.SendLocalizedMessage(501039); // Thou can not resurrect thyself.
+            }
+            else if (m is BaseCompanion { IsDeadPet: true } companion)
+            {
+                // Companions are people, not pets: the spell works on them.
+                if (!Caster.InRange(companion, TargetRange))
+                {
+                    Caster.SendLocalizedMessage(501042); // Target is not close enough.
+                }
+                else if (CheckBSequence(companion, true))
+                {
+                    SpellHelper.Turn(Caster, companion);
+
+                    companion.PlaySound(0x214);
+                    companion.FixedEffect(0x376A, 10, 16);
+                    companion.ResurrectPet();
+                }
             }
             else if (m is BaseCreature { IsDeadBondedPet: true })
             {

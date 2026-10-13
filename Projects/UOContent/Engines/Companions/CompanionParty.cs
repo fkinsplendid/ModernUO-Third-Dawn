@@ -77,7 +77,7 @@ public sealed class CompanionParty
 
     public static bool IsFighting(BaseCompanion c) => IsInWorld(c) && !c.IsDeadPet;
 
-    /// <summary>True for the owner, any of their companions, and the owner's other pets.</summary>
+    /// <summary>True for the owner, any of their companions, their mounts, and the owner's other pets.</summary>
     public bool IsFriendly(Mobile m)
     {
         if (m == null)
@@ -91,7 +91,8 @@ public sealed class CompanionParty
         }
 
         return m is BaseCompanion c && c.Party == this ||
-               m is BaseCreature { Controlled: true } bc && bc.ControlMaster == Owner;
+               m is BaseCreature { Controlled: true } bc &&
+               (bc.ControlMaster == Owner || bc.ControlMaster is BaseCompanion master && master.Party == this);
     }
 
     public int CountInWorld(bool aliveOnly)

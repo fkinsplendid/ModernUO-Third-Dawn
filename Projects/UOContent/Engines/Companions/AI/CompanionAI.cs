@@ -12,7 +12,8 @@ namespace Server.Engines.Companions;
 /// stops at the first one that wants the turn:
 ///
 ///   finish a spell → follow a party gate → drink a potion → role support (heal, cure, sing,
-///   buff, revive) → fight whatever threatens the party → loot → share → ordinary pet orders.
+///   buff, revive) → get back on their mount → fight whatever threatens the party → loot →
+///   share → ordinary pet orders.
 ///
 /// Threats come from the aggressor lists of the employer and the companions, never from scanning
 /// the area, so a quiet tick costs almost nothing.
@@ -66,20 +67,27 @@ public abstract class CompanionAI : BaseAI
             return false;
         }
 
-        // Ghosts drift after their employer; anyone not working just obeys plain orders.
-        if (Companion.IsDeadPet || Party == null || Companion.State != CompanionState.Active)
+        // Anyone not working just obeys plain orders.
+        if (Party == null || Companion.State != CompanionState.Active)
         {
             return base.Obey();
         }
 
         UpdatePerception();
 
+        if (Companion.IsDeadPet)
+        {
+            return ObeyAsGhost();
+        }
+
+        _diedAt = 0;
+
         if (ContinueCasting() || Mobile.Spell?.IsCasting == true)
         {
             return true;
         }
 
-        if (TryFollowGate() || TrySurvive() || TryRoleSupport())
+        if (TryFollowGate() || TrySurvive() || TryRoleSupport() || TryMount())
         {
             return true;
         }
@@ -342,6 +350,25 @@ public abstract class CompanionAI : BaseAI
         return DoActionCombat();
     }
 
+    /// <summary>
+    /// A kill order only sets the combatant in the base AI; switch to combat as well, or a
+    /// companion that wasn't already fighting just stands about.
+    /// </summary>
+    public override bool DoOrderAttack()
+    {
+        var target = Mobile.ControlTarget;
+
+        if (!Mobile.IsDeadPet && target is { Deleted: false, Alive: true, IsDeadBondedPet: false } &&
+            target.Map == Mobile.Map)
+        {
+            _inCombat = true;
+            Mobile.FocusMob = target;
+            Action = ActionType.Combat;
+        }
+
+        return base.DoOrderAttack();
+    }
+
     /// <summary>Default melee: close in and keep facing the target. Swings happen on their own.</summary>
     public override bool DoActionCombat()
     {
@@ -586,7 +613,15 @@ public abstract class CompanionAI : BaseAI
         Companion.Speak(SpeechContext.ThroughTheGate);
         Mobile.Combatant = null;
         Mobile.Warmode = false;
+
+        var leadingSteed = Companion.IsLeadingSteed();
         Mobile.MoveToWorld(gate.Target, gate.TargetMap);
+
+        if (leadingSteed)
+        {
+            Companion.BringSteed();
+        }
+
         Mobile.PlaySound(0x1FE);
         return true;
     }
@@ -709,7 +744,47 @@ public abstract class CompanionAI : BaseAI
         return false;
     }
 
+    // ---------- Mount ----------
+
+    /// <summary>
+    /// Walks over to their own mount and climbs on, the way a player would. Out of combat they'll
+    /// fetch it from a short way off; in a fight, only if it's right beside them.
+    /// </summary>
+    private bool TryMount()
+    {
+        var steed = Companion.Steed;
+
+        if (Companion.StayOnFoot || !Companion.CanMount(steed) || !Mobile.InRange(steed, _threats.Count > 0 ? 1 : 12))
+        {
+            return false;
+        }
+
+        if (!Mobile.InRange(steed, 1))
+        {
+            MoveTo(steed, true, 1);
+            return true;
+        }
+
+        Mobile.Direction = Mobile.GetDirectionTo(steed);
+        Companion.MountSteed();
+        return true;
+    }
+
     // ---------- Movement ----------
+
+    /// <summary>Hurries to keep up when the employer pulls ahead, as anyone would.</summary>
+    public override MoveResult DoMoveImpl(Direction d, bool badStateOk)
+    {
+        var result = base.DoMoveImpl(d, badStateOk);
+
+        if (result == MoveResult.Success && Mobile.Hits >= Mobile.HitsMax * 0.3 && Employer is { } employer &&
+            employer.Map == Mobile.Map && !Mobile.InRange(employer, 3))
+        {
+            Mobile.CurrentSpeed = Mobile.ActiveSpeed;
+        }
+
+        return result;
+    }
 
     /// <summary>Walks or runs towards an item (corpse, gate). Pathfinds around obstacles.</summary>
     protected bool MoveTo(Item item, bool run)
@@ -949,6 +1024,108 @@ public abstract class CompanionAI : BaseAI
         }
 
         return true;
+    }
+
+    // ---------- Ghosts ----------
+
+    private const int GhostSearchIntervalMs = 3000;
+    private const int GhostSearchRange = 20;
+    private const int PleaIntervalMs = 120000;
+
+    private long _diedAt;
+    private long _nextGhostSearch;
+    private long _nextPlea;
+    private Mobile _resurrector;
+
+    /// <summary>
+    /// A ghost follows its employer. Once the fighting has stopped and it has waited long enough,
+    /// it goes to a wandering healer if one is nearby, or asks a GM, or reminds its employer.
+    /// </summary>
+    private bool ObeyAsGhost()
+    {
+        var now = Core.TickCount;
+
+        if (_diedAt == 0)
+        {
+            _diedAt = now;
+            _resurrector = null;
+        }
+
+        if (_threats.Count > 0 || now - _diedAt < (long)CompanionSettings.GhostPatience.TotalMilliseconds)
+        {
+            return base.Obey();
+        }
+
+        if (now - _nextGhostSearch >= 0)
+        {
+            _nextGhostSearch = now + GhostSearchIntervalMs;
+            _resurrector = FindResurrector();
+        }
+
+        if (_resurrector == null)
+        {
+            if (now - _nextPlea >= 0 && Companion.Speak(SpeechContext.GhostPlea, urgent: true))
+            {
+                _nextPlea = now + PleaIntervalMs;
+            }
+
+            return base.Obey();
+        }
+
+        if (!Mobile.InRange(_resurrector, 2))
+        {
+            MoveTo(_resurrector, true, 2);
+            return true;
+        }
+
+        if (_resurrector is BaseHealer healer)
+        {
+            ResurrectedBy(healer);
+        }
+        else if (now - _nextPlea >= 0 && Companion.Speak(SpeechContext.GhostAsksStaff, urgent: true))
+        {
+            _nextPlea = now + PleaIntervalMs;
+            _resurrector.SendMessage(
+                0x59,
+                $"{Mobile.Name}, a companion of {Employer?.Name}, is asking to be resurrected. Use [res on them."
+            );
+        }
+
+        return true;
+    }
+
+    /// <summary>A free healer within reach who will take us, else a visible GM, else nobody.</summary>
+    private Mobile FindResurrector()
+    {
+        Mobile staff = null;
+
+        foreach (var m in Mobile.Map.GetMobilesInRange(Mobile.Location, GhostSearchRange))
+        {
+            if (m is BaseHealer { Deleted: false, Alive: true } healer and not PricedHealer && Mobile.InLOS(healer) &&
+                healer.CheckResurrect(Mobile))
+            {
+                return healer;
+            }
+
+            if (staff == null && m.AccessLevel >= AccessLevel.GameMaster && m.Alive && Mobile.CanSee(m))
+            {
+                staff = m;
+            }
+        }
+
+        return staff;
+    }
+
+    private void ResurrectedBy(BaseHealer healer)
+    {
+        healer.Direction = healer.GetDirectionTo(Mobile);
+        healer.Say("Return to the world of the living, child.");
+
+        Mobile.PlaySound(0x1F2);
+        Mobile.FixedEffect(0x376A, 10, 16);
+        Companion.ResurrectPet();
+
+        _resurrector = null;
     }
 
     // ---------- Pet orders ----------

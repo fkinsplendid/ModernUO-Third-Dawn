@@ -55,7 +55,7 @@ public sealed class MageCompanionAI : CompanionAI
 
         _gateRefused &= InSeriousTrouble;
 
-        return TryResurrectEmployer() || TryCure() || TryHeal() || Threats.Count == 0 && TryBless();
+        return TryResurrect() || TryCure() || TryHeal() || Threats.Count == 0 && TryBless();
     }
 
     protected override bool TryRoleIdle()
@@ -158,16 +158,49 @@ public sealed class MageCompanionAI : CompanionAI
     private bool NeedsBless(Mobile m) =>
         m?.Alive == true && m.Map == Mobile.Map && Mobile.InRange(m, 10) && m.GetStatMod("[Magic] Str Buff") == null;
 
-    private bool TryResurrectEmployer()
+    /// <summary>
+    /// Once the fighting stops, raises a dead employer (who is asked whether to accept) and then
+    /// any fallen companions.
+    /// </summary>
+    private bool TryResurrect()
     {
-        var employer = Employer;
-
-        if (employer?.Alive != false || Threats.Count > 0 || Magery < 80.0 || Mobile.Mana < 50 ||
-            employer.Map != Mobile.Map || !Mobile.InRange(employer, 12) || Core.TickCount - NextEmployerRes < 0)
+        if (Threats.Count > 0 || Magery < 80.0 || Mobile.Mana < 50)
         {
             return false;
         }
 
+        var employer = Employer;
+
+        if (employer?.Alive == false && Core.TickCount - NextEmployerRes >= 0 && CanReach(employer) &&
+            ApproachAndResurrect(employer, out var cast))
+        {
+            if (cast)
+            {
+                // Don't badger the employer if they decline the offer.
+                NextEmployerRes = Core.TickCount + 30000;
+            }
+
+            return true;
+        }
+
+        foreach (var ally in Party.Members)
+        {
+            if (ally != Companion && CompanionParty.IsInWorld(ally) && ally.IsDeadPet && CanReach(ally) &&
+                ApproachAndResurrect(ally, out _))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool CanReach(Mobile m) => m.Map == Mobile.Map && Mobile.InRange(m, 12);
+
+    /// <summary>The spell needs a touch: walk up to the ghost, then cast. True if the tick was spent.</summary>
+    private bool ApproachAndResurrect(Mobile ghost, out bool cast)
+    {
+        cast = false;
         var spell = new ResurrectionSpell(Mobile);
 
         if (!HasReagents(spell.Info))
@@ -175,20 +208,14 @@ public sealed class MageCompanionAI : CompanionAI
             return false;
         }
 
-        if (!Mobile.InRange(employer, 1))
+        if (!Mobile.InRange(ghost, 1))
         {
-            MoveTo(employer, true, 1);
+            MoveTo(ghost, true, 1);
             return true;
         }
 
-        if (!CastAt(spell, employer))
-        {
-            return false;
-        }
-
-        // The employer is asked whether to accept; don't badger them if they decline.
-        NextEmployerRes = Core.TickCount + 30000;
-        return true;
+        cast = CastAt(spell, ghost);
+        return cast;
     }
 
     /// <summary>Casts if the patient is in range; otherwise walks towards them.</summary>

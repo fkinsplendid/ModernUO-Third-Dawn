@@ -11,13 +11,13 @@ public partial class CompanionWarrior : BaseCompanion
     {
         Role = CompanionRole.Warrior,
         Title = "the warrior",
-        Str = new StatCurve(70, 2.5),
-        Dex = new StatCurve(50, 1.5),
+        Str = new StatCurve(85, 2.0),
+        Dex = new StatCurve(60, 1.5),
         Int = new StatCurve(25, 0.5),
-        BonusHitsPerLevel = 4,
+        BonusHitsPerLevel = 3,
         Skills =
         [
-            SkillName.Swords, SkillName.Macing, SkillName.Fencing, SkillName.Tactics, SkillName.Parry,
+            SkillName.Swords, SkillName.Macing, SkillName.Fencing, new(SkillName.Tactics, 10), new(SkillName.Parry, 5),
             SkillName.Anatomy, SkillName.Healing, SkillName.MagicResist
         ]
     };

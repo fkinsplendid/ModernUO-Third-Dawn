@@ -14,7 +14,7 @@ namespace Server.Engines.Companions;
 /// Companions are never deleted for lack of pay or by dying: unpaid or dismissed companions return
 /// to the guild with their progress intact, and the dead walk beside their employer until revived.
 /// </summary>
-[SerializationGenerator(0)]
+[SerializationGenerator(2)]
 public abstract partial class BaseCompanion : BaseCreature
 {
     [SerializableField(0, setter: "private")]
@@ -56,6 +56,21 @@ public abstract partial class BaseCompanion : BaseCreature
     [SerializableField(9, setter: "private")]
     private List<Item> _issuedGear;
 
+    // What they had on when they died. Death moves it all into the pack; revival puts it back on.
+    [Tidy]
+    [SerializableField(10, setter: "private")]
+    private List<Item> _wornAtDeath;
+
+    // A mount the employer gave them. They own it, ride it, feed it, and grieve when it's killed.
+    [SerializableField(11, setter: "private")]
+    [SerializedCommandProperty(AccessLevel.GameMaster)]
+    private BaseMount _steed;
+
+    // Told to dismount: they leave the steed standing until told to mount up again.
+    [SerializableField(12)]
+    [SerializedCommandProperty(AccessLevel.GameMaster)]
+    private bool _stayOnFoot;
+
     private BaseAI _ai;
     private long _separatedSince;
     private bool _purseWarned;
@@ -66,7 +81,7 @@ public abstract partial class BaseCompanion : BaseCreature
         _personality = (CompanionPersonality)Utility.Random(4);
 
         Female = Utility.RandomBool();
-        Body = Female ? 0x191 : 0x190;
+        Body = LivingBody;
         Name = NameList.RandomName(Female ? "female" : "male");
         Hue = Race.Human.RandomSkinHue();
         Title = Profile.Title;
@@ -79,15 +94,10 @@ public abstract partial class BaseCompanion : BaseCreature
         }
 
         ControlSlots = 1;
-        ActiveSpeed = 0.2;
-        PassiveSpeed = 0.4;
-        CurrentSpeed = 0.4;
+        ActiveSpeed = FootActiveSpeed;
+        PassiveSpeed = FootPassiveSpeed;
+        CurrentSpeed = FootPassiveSpeed;
         SkillsCap = 10000;
-
-        foreach (var skill in Profile.Skills)
-        {
-            Skills[skill].Base = CompanionSettings.SkillFloorFor(1);
-        }
 
         ApplyLevel(true);
         DressForRole();
@@ -214,6 +224,7 @@ public abstract partial class BaseCompanion : BaseCreature
         _purseWarned = false;
 
         MoveToWorld(employer.Location, employer.Map);
+        BringSteed();
         Speak(SpeechContext.Rehired, urgent: true);
         return true;
     }
@@ -261,6 +272,7 @@ public abstract partial class BaseCompanion : BaseCreature
         SetControlMaster(null);
         IsBonded = false;
         IsStabled = true;
+        StowSteed();
         Internalize();
     }
 
@@ -276,6 +288,7 @@ public abstract partial class BaseCompanion : BaseCreature
         Combatant = null;
         Warmode = false;
         IsStabled = true;
+        StowSteed();
         Internalize();
     }
 
@@ -296,6 +309,7 @@ public abstract partial class BaseCompanion : BaseCreature
         _separatedSince = 0;
 
         MoveToWorld(employer.Location, employer.Map);
+        BringSteed();
         Timer.StartTimer(TimeSpan.FromSeconds(Utility.RandomMinMax(2, 6)), GreetEmployer);
     }
 
@@ -311,6 +325,12 @@ public abstract partial class BaseCompanion : BaseCreature
         }
 
         CompanionSystem.Register(this);
+
+        BecomeGhost(IsDeadPet);
+        UpdatePace();
+
+        // Balance changes to stats and skills reach companions hired before them.
+        ApplyLevel(false);
 
         // Nobody is online during a load; whoever was out in the world waits for their employer.
         if (State == CompanionState.Active)
@@ -428,12 +448,12 @@ public abstract partial class BaseCompanion : BaseCreature
         RawInt = Math.Max(RawInt, profile.Int.At(level));
         HitsMaxSeed = RawStr + profile.BonusHitsPerLevel * level;
 
-        var cap = CompanionSettings.SkillCapFor(level);
-        var floor = CompanionSettings.SkillFloorFor(level);
-
-        foreach (var name in profile.Skills)
+        foreach (var (name, bonus) in profile.Skills)
         {
             var skill = Skills[name];
+            var cap = Math.Min(100.0, CompanionSettings.SkillCapFor(level) + bonus);
+            var floor = Math.Min(cap, CompanionSettings.SkillFloorFor(level) + bonus);
+
             skill.Cap = cap;
 
             if (skill.Base < floor)
@@ -442,7 +462,12 @@ public abstract partial class BaseCompanion : BaseCreature
             }
         }
 
-        if (fullHeal || IsDeadPet)
+        // The dead stay dead; a level-up doesn't heal a ghost.
+        if (IsDeadPet)
+        {
+            Hits = 0;
+        }
+        else if (fullHeal)
         {
             Hits = HitsMax;
             Stam = StamMax;
@@ -474,11 +499,14 @@ public abstract partial class BaseCompanion : BaseCreature
         var employer = Employer;
         var moved = 0;
 
+        // The steed goes back first: while ridden it is worn, and deleting the rider would take it too.
+        ReturnSteed(true);
+
         using var belongings = PooledRefList<Item>.Create();
 
         foreach (var item in Items)
         {
-            if (item != Backpack && !IsIssued(item))
+            if (item != Backpack && item is not IMountItem && !IsIssued(item))
             {
                 belongings.Add(item);
             }
@@ -526,6 +554,7 @@ public abstract partial class BaseCompanion : BaseCreature
             return;
         }
 
+        UpdatePace();
         CheckSeparation();
 
         if (!IsDeadPet)
@@ -570,15 +599,35 @@ public abstract partial class BaseCompanion : BaseCreature
         _separatedSince = 0;
         Combatant = null;
         Warmode = false;
+
+        var leadingSteed = IsLeadingSteed();
         MoveToWorld(employer.Location, employer.Map);
+
+        if (leadingSteed)
+        {
+            BringSteed();
+        }
+
         employer.SendMessage(0x59, $"{Name} catches up with you.");
     }
+
+    private int LivingBody => Female ? 0x191 : 0x190;
+
+    private int GhostBody => Female ? 0x193 : 0x192;
 
     public override void OnDeath(Container c)
     {
         base.OnDeath(c);
 
-        if (!IsDeadPet || Party == null)
+        if (!IsDeadPet)
+        {
+            return;
+        }
+
+        BecomeGhost(true);
+        OnRiderDied();
+
+        if (Party == null)
         {
             return;
         }
@@ -593,16 +642,145 @@ public abstract partial class BaseCompanion : BaseCreature
         }
     }
 
+    /// <summary>
+    /// The engine shows a dead pet as its own body with the gear hidden, which on a person just
+    /// looks naked. A companion takes the ghost body instead. The skin hue has to go too: on the
+    /// ghost body it tints the whole figure, and a skin-coloured ghost looks like a naked person.
+    /// </summary>
+    private void BecomeGhost(bool ghost)
+    {
+        Body = ghost ? GhostBody : LivingBody;
+        HueMod = ghost ? 0 : -1;
+
+        RemoveDeathShroud();
+
+        if (ghost)
+        {
+            // The same shroud a dead player wears. First in the list, so it wins the robe slot
+            // over a mage's own robe when the client is sent the paperdoll.
+            var shroud = Issue(new Item(DeathShroudId) { Movable = false, Layer = Layer.OuterTorso });
+            AddItem(shroud);
+            Items.Remove(shroud);
+            Items.Insert(0, shroud);
+        }
+    }
+
+    private const int DeathShroudId = 0x204E;
+
+    private void RemoveDeathShroud()
+    {
+        for (var i = Items.Count - 1; i >= 0; i--)
+        {
+            if (Items[i] is { ItemID: DeathShroudId, Movable: false } shroud && shroud.GetType() == typeof(Item))
+            {
+                shroud.Delete();
+            }
+        }
+    }
+
+    public override void OnBeforeResurrect()
+    {
+        BecomeGhost(false);
+        base.OnBeforeResurrect();
+    }
+
+    public override bool OnBeforeDeath()
+    {
+        if (!base.OnBeforeDeath())
+        {
+            return false;
+        }
+
+        if (IsBonded)
+        {
+            RememberOutfit();
+        }
+
+        return true;
+    }
+
+    private void RememberOutfit()
+    {
+        _wornAtDeath ??= [];
+        _wornAtDeath.Clear();
+
+        foreach (var item in Items)
+        {
+            if (item != Backpack && item.Movable)
+            {
+                _wornAtDeath.Add(item);
+            }
+        }
+
+        this.MarkDirty();
+    }
+
+    /// <summary>
+    /// Puts back on whatever death moved into the pack. Guild-issued clothing whose slot is empty
+    /// goes on too, which also dresses anyone who died before outfits were remembered.
+    /// </summary>
+    private void Redress()
+    {
+        var pack = Backpack;
+
+        if (pack == null)
+        {
+            return;
+        }
+
+        using var outfit = PooledRefList<Item>.Create();
+
+        if (_wornAtDeath != null)
+        {
+            foreach (var item in _wornAtDeath)
+            {
+                outfit.Add(item);
+            }
+        }
+
+        foreach (var item in pack.Items)
+        {
+            if (IsIssued(item) && !outfit.Contains(item))
+            {
+                outfit.Add(item);
+            }
+        }
+
+        for (var i = 0; i < outfit.Count; i++)
+        {
+            var item = outfit[i];
+
+            if (!item.Deleted && item.Parent == pack && item.Layer is not (Layer.Invalid or Layer.Backpack) &&
+                FindItemOnLayer(item.Layer) == null)
+            {
+                EquipItem(item);
+            }
+        }
+
+        _wornAtDeath?.Clear();
+        GearDirty = true;
+        this.MarkDirty();
+    }
+
     public override void OnAfterResurrect()
     {
+        Redress();
         base.OnAfterResurrect();
         Speak(SpeechContext.Revived, urgent: true);
+    }
+
+    public override void OnDelete()
+    {
+        // Ridden or not, the steed outlives its rider: it goes back to the employer.
+        ReturnSteed(true);
+        base.OnDelete();
     }
 
     public override void OnAfterDelete()
     {
         CompanionSystem.Unregister(this);
         _employer = null;
+        _steed = null;
         _ai = null;
         base.OnAfterDelete();
     }

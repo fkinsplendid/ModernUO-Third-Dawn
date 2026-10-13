@@ -19,6 +19,9 @@ public sealed class BardCompanionAI : CompanionAI
     private long _nextSong;
     private long _nextTune;
 
+    // Set when the last look over the fight found nothing worth singing at.
+    private bool _songless;
+
     public BardCompanionAI(BaseCompanion companion) : base(companion)
     {
     }
@@ -34,22 +37,39 @@ public sealed class BardCompanionAI : CompanionAI
 
         var now = Core.TickCount;
 
-        if (Threats.Count == 0 || now - _nextSong < 0)
+        if (Threats.Count == 0)
+        {
+            _songless = false;
+            return false;
+        }
+
+        if (now - _nextSong < 0)
         {
             return false;
         }
 
         var instrument = Instrument;
 
-        if (instrument != null && (TryPeace(instrument) || TryProvoke(instrument) || TryDiscord(instrument)))
+        // Provocation takes two enemies out of the fight with one song, so it comes first;
+        // peace jumps ahead only to save a badly wounded backliner.
+        if (instrument != null && (TryPeace(instrument, true) || TryProvoke(instrument) ||
+                                   TryPeace(instrument, false) || TryDiscord(instrument)))
         {
             _nextSong = now + SongCooldownMs;
+            _songless = false;
+        }
+        else
+        {
+            _songless = true;
         }
 
         return false;
     }
 
-    /// <summary>Fights back if cornered; otherwise stays at the employer's shoulder playing.</summary>
+    /// <summary>
+    /// Fights back if cornered, and draws steel when told to kill or when there's nothing left
+    /// worth singing at; otherwise stays at the employer's shoulder playing.
+    /// </summary>
     public override bool DoActionCombat()
     {
         var attacker = FindThreatAttacking(Mobile, 2);
@@ -57,6 +77,11 @@ public sealed class BardCompanionAI : CompanionAI
         if (attacker != null)
         {
             Mobile.Combatant = attacker;
+            return base.DoActionCombat();
+        }
+
+        if (Mobile.Combatant != null && (Mobile.ControlOrder == OrderType.Attack || _songless || Instrument == null))
+        {
             return base.DoActionCombat();
         }
 
@@ -102,21 +127,35 @@ public sealed class BardCompanionAI : CompanionAI
         return false;
     }
 
+    // A bard who knows their craft doesn't strum at something they can't hope to sway.
+    private const double MinimumChance = 0.3;
+
     private bool InBardRange(Mobile target, SkillName skill) =>
         Mobile.InRange(target, BaseInstrument.GetBardRange(Mobile, skill)) && Mobile.InLOS(target);
 
-    /// <summary>Musicianship roll, then the skill roll against the target's difficulty.</summary>
+    /// <summary>Musicianship above 100 eases every song, exactly as it does for players.</summary>
+    private double AdjustDifficulty(double difficulty)
+    {
+        var music = Mobile.Skills.Musicianship.Value;
+        return music > 100.0 ? difficulty - (music - 100.0) * 0.5 : difficulty;
+    }
+
+    /// <summary>
+    /// Odds of a song landing: the musicianship roll, then the skill roll against
+    /// difficulty ± 25, the same two rolls the player skills make.
+    /// </summary>
+    private double SongChance(SkillName skill, double difficulty)
+    {
+        var music = Math.Clamp(Mobile.Skills.Musicianship.Value / 100.0, 0.0, 1.0);
+        var roll = Math.Clamp((Mobile.Skills[skill].Value - (difficulty - 25.0)) / 50.0, 0.0, 1.0);
+
+        return music * roll;
+    }
+
     private bool PlaySong(BaseInstrument instrument, SkillName skill, double difficulty, Mobile target)
     {
         Mobile.RevealingAction();
         Mobile.Direction = Mobile.GetDirectionTo(target);
-
-        var music = Mobile.Skills.Musicianship.Value;
-
-        if (music > 100.0)
-        {
-            difficulty -= (music - 100.0) * 0.5;
-        }
 
         var success = BaseInstrument.CheckMusicianship(Mobile) &&
                       Mobile.CheckTargetSkill(skill, target, difficulty - 25.0, difficulty + 25.0);
@@ -134,46 +173,76 @@ public sealed class BardCompanionAI : CompanionAI
         return success;
     }
 
-    /// <summary>Calms a creature attacking the bard or mage, or a second attacker on a wounded employer.</summary>
-    private bool TryPeace(BaseInstrument instrument)
+    private double PeaceDifficulty(BaseInstrument instrument, Mobile target) =>
+        AdjustDifficulty(instrument.GetDifficultyFor(target) - 10.0);
+
+    private static bool IsBadlyHurt(Mobile m) => m is { Alive: true } && m.Hits < m.HitsMax * 0.4;
+
+    /// <summary>
+    /// Calms whatever is attacking the bard or mage, or an extra attacker on a wounded employer,
+    /// choosing the one the song is most likely to reach. In an emergency, only attackers of a
+    /// badly wounded bard or mage are considered.
+    /// </summary>
+    private bool TryPeace(BaseInstrument instrument, bool emergencyOnly)
     {
-        var target = FindThreatAttacking(Mobile, 10) ?? FindThreatAttacking(Party[CompanionRole.Mage], 10);
         var employer = Employer;
+        var employerHurt = employer is { Alive: true } && employer.Hits < employer.HitsMax / 2;
+        var mage = Party[CompanionRole.Mage];
 
-        if (target == null && employer is { Alive: true } && employer.Hits < employer.HitsMax / 2)
+        BaseCreature best = null;
+        var bestChance = MinimumChance;
+        var bestDifficulty = 0.0;
+
+        for (var i = 0; i < Threats.Count; i++)
         {
-            for (var i = 0; i < Threats.Count; i++)
+            if (Threats[i] is not BaseCreature { Uncalmable: false, BardPacified: false } creature ||
+                !InBardRange(creature, SkillName.Peacemaking))
             {
-                var threat = Threats[i];
+                continue;
+            }
 
-                if (threat.Combatant == employer && threat != employer.Combatant)
-                {
-                    target = threat;
-                    break;
-                }
+            var victim = creature.Combatant;
+            var worthCalming = emergencyOnly
+                ? (victim == Mobile || victim != null && victim == mage) && IsBadlyHurt(victim)
+                : victim == Mobile || victim != null && victim == mage ||
+                  employerHurt && victim == employer && creature != employer.Combatant;
+
+            if (!worthCalming)
+            {
+                continue;
+            }
+
+            var difficulty = PeaceDifficulty(instrument, creature);
+            var chance = SongChance(SkillName.Peacemaking, difficulty);
+
+            if (chance > bestChance)
+            {
+                best = creature;
+                bestChance = chance;
+                bestDifficulty = difficulty;
             }
         }
 
-        if (target is not BaseCreature { Uncalmable: false, BardPacified: false } creature ||
-            !InBardRange(creature, SkillName.Peacemaking))
+        if (best == null)
         {
             return false;
         }
 
-        var difficulty = instrument.GetDifficultyFor(creature) - 10.0;
-
-        if (PlaySong(instrument, SkillName.Peacemaking, difficulty, creature))
+        if (PlaySong(instrument, SkillName.Peacemaking, bestDifficulty, best))
         {
-            var seconds = Math.Clamp(100 - difficulty / 1.5, 10, 120);
-            creature.Pacify(Mobile, Core.Now + TimeSpan.FromSeconds(seconds));
-            creature.Combatant = null;
-            creature.Warmode = false;
+            var seconds = Math.Clamp(100 - bestDifficulty / 1.5, 10, 120);
+            best.Pacify(Mobile, Core.Now + TimeSpan.FromSeconds(seconds));
+            best.Combatant = null;
+            best.Warmode = false;
         }
 
         return true;
     }
 
-    /// <summary>When outnumbered, sets the strongest enemy on another.</summary>
+    /// <summary>
+    /// When outnumbered, sets one enemy on another. Picks the pairing with the best odds,
+    /// favouring the strongest instigator when the odds are close.
+    /// </summary>
     private bool TryProvoke(BaseInstrument instrument)
     {
         if (Threats.Count < 2)
@@ -181,49 +250,56 @@ public sealed class BardCompanionAI : CompanionAI
             return false;
         }
 
-        BaseCreature strongest = null;
+        BaseCreature bestInstigator = null, bestVictim = null;
+        var bestScore = 0.0;
+        var bestDifficulty = 0.0;
 
         for (var i = 0; i < Threats.Count; i++)
         {
-            if (Threats[i] is BaseCreature { Unprovokable: false, BardProvoked: false, Controlled: false } bc &&
-                InBardRange(bc, SkillName.Provocation) && (strongest == null || bc.HitsMax > strongest.HitsMax))
+            if (Threats[i] is not BaseCreature { Unprovokable: false, BardProvoked: false, Controlled: false } instigator ||
+                !InBardRange(instigator, SkillName.Provocation) || !Mobile.CanBeHarmful(instigator, false))
             {
-                strongest = bc;
+                continue;
             }
-        }
 
-        if (strongest == null)
-        {
-            return false;
-        }
-
-        BaseCreature victim = null;
-        var victimDistance = double.MaxValue;
-
-        for (var i = 0; i < Threats.Count; i++)
-        {
-            if (Threats[i] is BaseCreature { Controlled: false } bc && bc != strongest && InBardRange(bc, SkillName.Provocation))
+            for (var j = 0; j < Threats.Count; j++)
             {
-                var distance = strongest.GetDistanceToSqrt(bc);
-
-                if (distance < victimDistance)
+                if (i == j || Threats[j] is not BaseCreature { Controlled: false } victim ||
+                    !InBardRange(victim, SkillName.Provocation) || !Mobile.CanBeHarmful(victim, false))
                 {
-                    victim = bc;
-                    victimDistance = distance;
+                    continue;
+                }
+
+                var difficulty = AdjustDifficulty(
+                    (instrument.GetDifficultyFor(instigator) + instrument.GetDifficultyFor(victim)) * 0.5 - 5.0
+                );
+                var chance = SongChance(SkillName.Provocation, difficulty);
+
+                if (chance < MinimumChance)
+                {
+                    continue;
+                }
+
+                var score = chance * (1.0 + instigator.HitsMax / 200.0);
+
+                if (score > bestScore)
+                {
+                    bestInstigator = instigator;
+                    bestVictim = victim;
+                    bestScore = score;
+                    bestDifficulty = difficulty;
                 }
             }
         }
 
-        if (victim == null || !Mobile.CanBeHarmful(strongest, false) || !Mobile.CanBeHarmful(victim, false))
+        if (bestInstigator == null)
         {
             return false;
         }
 
-        var difficulty = (instrument.GetDifficultyFor(strongest) + instrument.GetDifficultyFor(victim)) * 0.5 - 5.0;
-
-        if (PlaySong(instrument, SkillName.Provocation, difficulty, victim))
+        if (PlaySong(instrument, SkillName.Provocation, bestDifficulty, bestVictim))
         {
-            strongest.Provoke(Mobile, victim, true);
+            bestInstigator.Provoke(Mobile, bestVictim, true);
         }
 
         return true;
@@ -250,7 +326,12 @@ public sealed class BardCompanionAI : CompanionAI
             return false;
         }
 
-        var difficulty = instrument.GetDifficultyFor(creature) - 10.0;
+        var difficulty = AdjustDifficulty(instrument.GetDifficultyFor(creature) - 10.0);
+
+        if (SongChance(SkillName.Discordance, difficulty) < MinimumChance)
+        {
+            return false;
+        }
 
         if (!PlaySong(instrument, SkillName.Discordance, difficulty, creature))
         {

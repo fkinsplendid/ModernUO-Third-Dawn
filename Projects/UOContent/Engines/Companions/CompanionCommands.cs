@@ -14,6 +14,9 @@ namespace Server.Engines.Companions;
 ///   quiet / hush           stop idle chatter (they still warn you of danger)
 ///   speak freely / chatter resume idle chatter
 ///   gate / town            the mage opens a gate to the nearest town or their marked rune
+///   dismount               get down and leave the mount standing
+///   mount up / ride        climb back on
+///   return your horse      hand their mount back to the employer
 ///   dismiss                send back to the guild (progress is kept)
 /// </summary>
 public static class CompanionCommands
@@ -33,6 +36,41 @@ public static class CompanionCommands
         if (Has(command, "status") || Has(command, "report"))
         {
             employer.SendGump(new CompanionStatusGump(employer));
+            return true;
+        }
+
+        // Before "mount up": "dismount" contains it.
+        if ((Has(command, "return") || Has(command, "give")) &&
+            (Has(command, "horse") || Has(command, "mount") || Has(command, "steed")))
+        {
+            foreach (var c in Targets(companion, party, wholeParty))
+            {
+                if (!wholeParty || c.Steed != null)
+                {
+                    c.HandBackSteed();
+                }
+            }
+
+            return true;
+        }
+
+        if (Has(command, "dismount"))
+        {
+            foreach (var c in Targets(companion, party, wholeParty))
+            {
+                c.Dismount(!wholeParty);
+            }
+
+            return true;
+        }
+
+        if (Has(command, "mount up") || Has(command, "ride") || Has(command, "saddle up"))
+        {
+            foreach (var c in Targets(companion, party, wholeParty))
+            {
+                c.MountUp(!wholeParty);
+            }
+
             return true;
         }
 

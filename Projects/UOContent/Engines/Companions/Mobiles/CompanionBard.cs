@@ -11,14 +11,15 @@ public partial class CompanionBard : BaseCompanion
     {
         Role = CompanionRole.Bard,
         Title = "the bard",
-        Str = new StatCurve(45, 1.5),
-        Dex = new StatCurve(55, 1.5),
-        Int = new StatCurve(45, 1.5),
+        Str = new StatCurve(65, 1.5),
+        Dex = new StatCurve(60, 1.5),
+        Int = new StatCurve(50, 1.5),
         BonusHitsPerLevel = 2,
+        // Every song needs a musicianship roll before the skill roll, so the bard's craft runs ahead of the curve.
         Skills =
         [
-            SkillName.Musicianship, SkillName.Peacemaking, SkillName.Provocation, SkillName.Discordance,
-            SkillName.Fencing, SkillName.Tactics, SkillName.Healing, SkillName.Anatomy
+            new(SkillName.Musicianship, 20), new(SkillName.Peacemaking, 10), new(SkillName.Provocation, 10),
+            new(SkillName.Discordance, 10), SkillName.Fencing, SkillName.Tactics, SkillName.Healing, SkillName.Anatomy
         ]
     };
 

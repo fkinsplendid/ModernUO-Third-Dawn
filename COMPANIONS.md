@@ -31,6 +31,7 @@ All values are in `Distribution/Configuration/modernuo.json` (written on first b
 | `companions.goldShare` | 0.1 | Fraction of looted gold a companion keeps towards their wages |
 | `companions.resurrectFee` | 500 | Guild fee to resurrect a fallen companion |
 | `companions.catchUpDelay` | 00:00:20 | How long a companion is out of sight before catching up |
+| `companions.ghostPatience` | 00:01:00 | How long a ghost waits, once the fighting stops, before seeking a healer or GM |
 
 Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purse`, `Experience`,
 `Personality`, `Quiet`, `State`, `Employer`.
@@ -54,8 +55,9 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
 ### What they do on their own
 - **Fight**: defend you and each other from anything attacking the party.
   - *Warrior*: front line; peels enemies off the mage and bard and taunts them away.
-  - *Bard*: calms (peacemaking) whatever threatens the backline, turns enemies on each other
-    (provocation) when outnumbered, and weakens your target (discordance).
+  - *Bard*: turns enemies on each other (provocation) whenever there are two to pair up,
+    calms (peacemaking) whatever threatens the backline when it can't, and weakens your
+    target (discordance). Peace comes first only to save a badly wounded bard or mage.
   - *Mage*: keeps its distance and casts, holding mana back for healing.
 - **Heal**: bandages (warrior, bard) and spells (mage) — poison first, worst wounds next, you
   slightly ahead of everyone else. Potions when they're in trouble.
@@ -73,13 +75,45 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
 - **Gate out**: a mage (Magery 70+) opens a gate when the party is losing badly, or when
   everyone is weighed down with loot. Step through and they follow. Give the mage a **marked
   recall rune** to set where their gates go; otherwise it's the nearest town moongate.
-- **Catch up**: if they lose you (teleporters, boats, a fast horse) they catch up shortly.
+- **Catch up**: if they lose you (teleporters, boats, a fast horse) they catch up shortly,
+  bringing their mount with them.
 - **Talk**: idle chatter about the surroundings, reactions in combat, banter between them.
   Each has a personality (stoic, cheerful, gruff or witty).
 
+### Mounts
+Give a companion a mount the way you'd give a pet to another player: use **Transfer** (context
+menu, or say `<pet name> transfer`) and target the companion. From then on it's theirs:
+
+- It no longer takes one of your follower slots. Any bond it had with you is broken.
+- They walk over and climb on, ride everywhere, and fight from the saddle as a player does.
+  Mounted, they move at a mounted player's pace, and they hurry to keep up when you pull ahead.
+- They keep it fed, take it along when you log out or dismiss them, and lead it through gates.
+- They turn down a pet that isn't a mount, a second mount, a mount that won't carry them
+  (a unicorn won't take a man, a ki-rin won't take a woman), and any beast they couldn't control
+  at least half the time. With no taming skill that means horses, ostards and llamas
+  are fine, but a nightmare or a ridgeback is not.
+- If they die, the mount throws them and stays with their ghost. It can be killed then. When
+  they're revived they get back on. If it's killed they grieve, and later ask you for another.
+- A poisoned mount isn't ridden until it recovers.
+- Ending the contract gives the mount back to you. If you have no follower room, it's left at
+  the stables for you to claim from any animal trainer.
+
 ### Dying
-A companion who dies becomes a ghost and follows you. Revive them with bandages
-(Healing/Anatomy 80+), let another companion do it, or pay the guildmaster.
+A companion who dies becomes a ghost and follows you, keeping everything they carry. Revive them
+with the **Resurrection** spell, with bandages (Healing/Anatomy 80+), by letting another
+companion do it (a high-level mage casts Resurrection; skilled healers use bandages), or by
+paying the guildmaster.
+
+If nobody raises them, a ghost doesn't just wait. About a minute after the fighting stops it
+goes to the nearest **wandering healer** within sight (any free healer) and is resurrected there.
+If there's no healer but a **GM** is nearby, it goes to them and asks; the GM gets a message
+and can use `[res` on it. Otherwise it follows you and reminds you from time to time.
+
+### Skill
+New hires start capable (about 52 in their trained skills) and are guaranteed grandmaster by
+level 25. Each role is a little ahead in its specialty: the bard's Musicianship (+20) and bard
+skills (+10), the warrior's Tactics (+10) and Parry (+5), the mage's Magery (+10). The bard
+also weighs its odds before playing, and won't waste a song on a creature it can't sway. Skills also rise with use, up to a cap that reaches 100 at level 20.
 
 ### Talking to them
 Address one by name (`Aldric, status`) or everyone at once (`all share`, `companions, quiet`).
@@ -92,6 +126,9 @@ Address one by name (`Aldric, status`) or everyone at once (`all share`, `compan
 | `quiet` / `hush` | Stop idle chatter (they still warn you about danger) |
 | `speak freely` / `chatter` | Resume chatter |
 | `gate` / `town` | The mage opens a gate to town (or their marked rune) |
+| `dismount` | Get down and leave the mount standing where it is (e.g. before a boat) |
+| `mount up` / `ride` | Get back on |
+| `return your horse` / `give me your mount` | Hand their mount back to you (needs follower room) |
 | `dismiss` | Send them back to the guild |
 
 All the usual pet commands still work: `all follow me`, `all guard me`, `all kill`, `all stay`, etc.

@@ -34,6 +34,15 @@ public readonly record struct StatCurve(int Base, double PerLevel)
 }
 
 /// <summary>
+/// A skill a role trains with level. <paramref name="Bonus"/> lifts both the guaranteed floor and the
+/// cap above the normal curve, for the skills the role is known for.
+/// </summary>
+public readonly record struct TrainedSkill(SkillName Name, double Bonus = 0)
+{
+    public static implicit operator TrainedSkill(SkillName name) => new(name);
+}
+
+/// <summary>
 /// Everything that distinguishes one companion role from another, as data.
 /// </summary>
 public sealed class CompanionProfile
@@ -46,5 +55,5 @@ public sealed class CompanionProfile
     public int BonusHitsPerLevel { get; init; }
 
     /// <summary>Skills that are trained with level. Everything else stays at zero.</summary>
-    public SkillName[] Skills { get; init; }
+    public TrainedSkill[] Skills { get; init; }
 }

@@ -13,6 +13,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.  *
  ************************************************************************/
 
+using Server.Engines.Companions;
+
 namespace Server.Mobiles;
 
 public abstract partial class BaseAI
@@ -506,6 +508,13 @@ public abstract partial class BaseAI
 
         var from = Mobile.ControlMaster;
         var to = Mobile.ControlTarget;
+
+        // Handing a mount to one of your own hired companions.
+        if (from?.Deleted == false && to is BaseCompanion companion && !companion.Deleted)
+        {
+            companion.AcceptSteed(Mobile, from);
+            return true;
+        }
 
         if (from?.Deleted == false && to?.Deleted == false && from != to && to.Player)
         {

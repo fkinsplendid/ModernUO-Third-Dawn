@@ -220,8 +220,10 @@ public class CompanionTests : IDisposable
 
             Assert.Equal(3, companion.Level);
             Assert.True(companion.RawInt > intelligence);
-            Assert.Equal(CompanionSettings.SkillCapFor(3), companion.Skills.Magery.Cap);
-            Assert.True(companion.Skills.Magery.Base >= CompanionSettings.SkillFloorFor(3));
+            // Magery is the mage's specialty: +10 over the normal curve.
+            Assert.Equal(CompanionSettings.SkillCapFor(3) + 10, companion.Skills.Magery.Cap);
+            Assert.True(companion.Skills.Magery.Base >= CompanionSettings.SkillFloorFor(3) + 10);
+            Assert.Equal(CompanionSettings.SkillCapFor(3), companion.Skills.EvalInt.Cap);
         }
         finally
         {
@@ -579,6 +581,418 @@ public class CompanionTests : IDisposable
         finally
         {
             companion.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Death_LeavesAGhost_AndRevivalRestoresThem()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionWarrior();
+
+        try
+        {
+            companion.BeginService(employer);
+            var living = companion.Body;
+
+            companion.Kill();
+
+            Assert.True(companion.IsDeadPet);
+            Assert.False(companion.Deleted);
+            Assert.True(companion.Body.IsGhost);
+            Assert.Equal(0, companion.HueMod);
+            Assert.Equal(0x204E, companion.Items[0].ItemID);
+
+            companion.Level = 5;
+            Assert.Equal(0, companion.Hits);
+
+            companion.ResurrectPet();
+
+            Assert.False(companion.IsDeadPet);
+            Assert.Equal(living, companion.Body);
+            Assert.Equal(-1, companion.HueMod);
+
+            foreach (var item in companion.Items)
+            {
+                Assert.NotEqual(0x204E, item.ItemID);
+            }
+        }
+        finally
+        {
+            companion.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Bard_StartsWithItsCraftAheadOfTheCurve()
+    {
+        var companion = new CompanionBard();
+
+        try
+        {
+            var floor = CompanionSettings.SkillFloorFor(1);
+
+            Assert.Equal(floor + 20, companion.Skills.Musicianship.Base);
+            Assert.Equal(floor + 10, companion.Skills.Peacemaking.Base);
+            Assert.Equal(floor, companion.Skills.Fencing.Base);
+            Assert.Equal(Math.Min(100.0, CompanionSettings.SkillCapFor(1) + 20), companion.Skills.Musicianship.Cap);
+        }
+        finally
+        {
+            companion.Delete();
+        }
+    }
+
+    [Fact]
+    public void Revival_PutsTheirClothesBackOn()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionMage();
+
+        try
+        {
+            companion.BeginService(employer);
+            var robe = companion.FindItemOnLayer(Layer.OuterTorso);
+            var hat = companion.FindItemOnLayer(Layer.Helm);
+
+            companion.Kill();
+
+            Assert.Same(companion.Backpack, robe.Parent);
+
+            companion.ResurrectPet();
+
+            Assert.Same(companion, robe.Parent);
+            Assert.Same(companion, hat.Parent);
+            Assert.Same(robe, companion.FindItemOnLayer(Layer.OuterTorso));
+        }
+        finally
+        {
+            companion.Delete();
+            employer.Delete();
+        }
+    }
+
+    // ---------- Mounts ----------
+
+    private static T CreatePet<T>(Mobile owner) where T : BaseCreature, new()
+    {
+        var pet = new T();
+        pet.MoveToWorld(owner.Location, owner.Map);
+        pet.SetControlMaster(owner);
+        pet.ControlTarget = owner;
+        pet.ControlOrder = OrderType.Follow;
+        return pet;
+    }
+
+    private static void Transfer(BaseCreature pet, Mobile to)
+    {
+        pet.ControlTarget = to;
+        pet.ControlOrder = OrderType.Transfer;
+        pet.AIObject.DoOrderTransfer();
+    }
+
+    [Fact]
+    public void Transfer_HandsAHorseToTheCompanion_WhoOwnsAndRidesIt()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionWarrior();
+        var horse = CreatePet<Horse>(employer);
+
+        try
+        {
+            companion.BeginService(employer);
+            var followers = employer.Followers;
+
+            Transfer(horse, companion);
+
+            Assert.Same(horse, companion.Steed);
+            Assert.Same(companion, horse.ControlMaster);
+            Assert.Equal(followers - horse.ControlSlots, employer.Followers);
+            Assert.Equal(OrderType.Follow, horse.ControlOrder);
+
+            Assert.True(companion.CanMount(horse));
+            companion.MountSteed();
+
+            Assert.True(companion.IsRiding);
+            Assert.Same(horse, companion.Mount);
+            Assert.Equal(Map.Internal, horse.Map);
+            Assert.Equal(0.1, companion.ActiveSpeed, 3);
+            Assert.Equal(0.2, companion.PassiveSpeed, 3);
+        }
+        finally
+        {
+            companion.Delete();
+            horse.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Transfer_RefusesPetsThatArentMounts_AndBeastsTheyCantHandle()
+    {
+        var employer = CreateEmployer();
+        employer.FollowersMax = 10;
+        var companion = new CompanionMage();
+        var wolf = CreatePet<GreyWolf>(employer);
+        var nightmare = CreatePet<Nightmare>(employer);
+
+        try
+        {
+            companion.BeginService(employer);
+
+            Transfer(wolf, companion);
+            Transfer(nightmare, companion);
+
+            Assert.Null(companion.Steed);
+            Assert.Same(employer, wolf.ControlMaster);
+            Assert.Same(employer, nightmare.ControlMaster);
+            Assert.Equal(OrderType.Follow, nightmare.ControlOrder);
+        }
+        finally
+        {
+            companion.Delete();
+            wolf.Delete();
+            nightmare.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Dismount_LeavesTheSteedStanding_AndMountUpLetsThemRideAgain()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionBard();
+        var horse = CreatePet<Horse>(employer);
+
+        try
+        {
+            companion.BeginService(employer);
+            Transfer(horse, companion);
+            companion.MountSteed();
+
+            Assert.True(companion.Dismount(true));
+
+            Assert.False(companion.Mounted);
+            Assert.True(companion.StayOnFoot);
+            Assert.Equal(companion.Map, horse.Map);
+            Assert.Equal(OrderType.Stay, horse.ControlOrder);
+            Assert.Equal(0.2, companion.ActiveSpeed, 3);
+
+            companion.MountUp(true);
+
+            Assert.False(companion.StayOnFoot);
+            Assert.Equal(OrderType.Follow, horse.ControlOrder);
+        }
+        finally
+        {
+            companion.Delete();
+            horse.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Death_ThrowsTheRider_AndTheSteedStaysWithTheirGhost()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionWarrior();
+        var horse = CreatePet<Horse>(employer);
+
+        try
+        {
+            companion.BeginService(employer);
+            Transfer(horse, companion);
+            companion.MountSteed();
+
+            companion.Kill();
+
+            Assert.False(horse.Deleted);
+            Assert.Null(horse.Rider);
+            Assert.Equal(companion.Map, horse.Map);
+            Assert.Same(companion, horse.ControlTarget);
+            Assert.Same(horse, companion.Steed);
+            Assert.False(companion.CanMount(horse));
+
+            companion.ResurrectPet();
+
+            Assert.True(companion.CanMount(horse));
+        }
+        finally
+        {
+            companion.Delete();
+            horse.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void KilledSteed_IsForgotten()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionWarrior();
+        var horse = CreatePet<Horse>(employer);
+
+        try
+        {
+            companion.BeginService(employer);
+            Transfer(horse, companion);
+
+            horse.Kill();
+            companion.CheckSteed(Core.TickCount);
+
+            Assert.Null(companion.Steed);
+        }
+        finally
+        {
+            companion.Delete();
+            horse.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Logout_TakesTheSteedAlong_AndBringsItBack()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionWarrior();
+        var horse = CreatePet<Horse>(employer);
+
+        try
+        {
+            companion.BeginService(employer);
+            Transfer(horse, companion);
+            companion.Dismount(true);
+
+            companion.WaitForEmployer();
+            Assert.Equal(Map.Internal, horse.Map);
+
+            companion.RejoinEmployer();
+            Assert.Equal(companion.Map, horse.Map);
+            Assert.True(horse.InRange(companion, 2));
+        }
+        finally
+        {
+            companion.Delete();
+            horse.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void EndContract_GivesTheRiddenSteedBack()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionWarrior();
+        var horse = CreatePet<Horse>(employer);
+
+        try
+        {
+            companion.BeginService(employer);
+            Transfer(horse, companion);
+            companion.MountSteed();
+            companion.ReturnToGuild(SpeechContext.Dismissed);
+
+            companion.EndContract();
+
+            Assert.False(horse.Deleted);
+            Assert.Same(employer, horse.ControlMaster);
+            Assert.Equal(employer.Map, horse.Map);
+            Assert.True(horse.InRange(employer, 12));
+        }
+        finally
+        {
+            companion.Delete();
+            horse.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void EndContract_StablesTheSteed_WhenTheEmployerHasNoRoom()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionWarrior();
+        var horse = CreatePet<Horse>(employer);
+
+        try
+        {
+            companion.BeginService(employer);
+            Transfer(horse, companion);
+            companion.MountSteed();
+            companion.ReturnToGuild(SpeechContext.Dismissed);
+            employer.Followers = employer.FollowersMax;
+
+            companion.EndContract();
+
+            Assert.False(horse.Deleted);
+            Assert.True(horse.IsStabled);
+            Assert.Contains(horse, employer.Stabled);
+        }
+        finally
+        {
+            companion.Delete();
+            horse.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void HandBackSteed_ReturnsItToTheEmployer()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionWarrior();
+        var horse = CreatePet<Horse>(employer);
+
+        try
+        {
+            companion.BeginService(employer);
+            Transfer(horse, companion);
+            companion.MountSteed();
+
+            Assert.True(companion.HandBackSteed());
+
+            Assert.Null(companion.Steed);
+            Assert.False(companion.Mounted);
+            Assert.Same(employer, horse.ControlMaster);
+            Assert.Equal(companion.Map, horse.Map);
+        }
+        finally
+        {
+            companion.Delete();
+            horse.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Serialization_RoundTrip_KeepsTheSteed()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionWarrior();
+        var horse = CreatePet<Horse>(employer);
+
+        try
+        {
+            companion.BeginService(employer);
+            Transfer(horse, companion);
+            companion.StayOnFoot = true;
+
+            var writer = new BufferWriter(true);
+            companion.Serialize(writer);
+
+            var copy = new CompanionWarrior(World.NewMobile);
+            copy.Deserialize(new BufferReader(writer.Buffer));
+            copy.AIObject?._timer.Stop();
+
+            Assert.Same(horse, copy.Steed);
+            Assert.True(copy.StayOnFoot);
+        }
+        finally
+        {
+            companion.Delete();
+            horse.Delete();
             employer.Delete();
         }
     }

@@ -40,6 +40,15 @@ public enum SpeechContext
     ThroughTheGate,
     NoGate,
     CannotCarry,
+    GhostPlea,
+    GhostAsksStaff,
+    SteedGiven,
+    SteedLost,
+    SteedWanted,
+    SteedSick,
+    SteedReturned,
+    Dismount,
+    MountUp,
     Count
 }
 
@@ -251,6 +260,18 @@ public static class CompanionSpeech
             "You can't carry any more. I'll keep it."
         );
 
+        Common(SpeechContext.GhostPlea,
+            "{owner}... I need a healer...",
+            "*a faint voice* Raise me, {owner}...",
+            "It's cold here, {owner}. Find me a healer.",
+            "I'm not done yet, {owner}. Get me back on my feet."
+        );
+        Common(SpeechContext.GhostAsksStaff,
+            "Please... grant me life again.",
+            "You have the power. Raise me, I beg you.",
+            "*the ghost reaches out a pale hand*"
+        );
+
         Flavour(CompanionPersonality.Stoic, SpeechContext.IdleWild, "...", "Keep moving.", "Stay alert.");
         Flavour(CompanionPersonality.Stoic, SpeechContext.Kill, "Done.", "It is finished.");
         Flavour(CompanionPersonality.Stoic, SpeechContext.Victory, "Clear.", "Area secure.");
@@ -289,12 +310,63 @@ public static class CompanionSpeech
         );
         Flavour(CompanionPersonality.Witty, SpeechContext.Kill, "And the crowd goes wild.", "Next contestant!");
         Flavour(CompanionPersonality.Witty, SpeechContext.BanterReply, "Says the one who tripped on a rock earlier.", "Truly, the wisdom of the ages.");
+
+        SteedLines();
+    }
+
+    private static void SteedLines()
+    {
+        Common(SpeechContext.SteedGiven,
+            "A fine animal. I'll take good care of it.",
+            "Now that's more like it. Thank you, {owner}.",
+            "My feet thank you, {owner}.",
+            "Easy there... good. We'll get along, you and I."
+        );
+        Common(SpeechContext.SteedLost,
+            "No! They've killed my mount!",
+            "Poor beast. It deserved better than that.",
+            "My mount... gone.",
+            "Curse them. That was a good animal."
+        );
+        Common(SpeechContext.SteedWanted,
+            "I'd keep pace better with a mount under me, {owner}.",
+            "My feet ache. A horse wouldn't go amiss.",
+            "If you come across a spare mount, I'd be glad of it."
+        );
+        Common(SpeechContext.SteedSick,
+            "My mount's poisoned. I'll not ride it like this.",
+            "The poor thing's sick. I'll walk until it's better."
+        );
+        Common(SpeechContext.SteedReturned,
+            "Here, {owner}. Look after it.",
+            "Back to you. It's been a good mount."
+        );
+        Common(SpeechContext.Dismount,
+            "I'll leave it here.",
+            "Whoa, easy. Stay.",
+            "On foot it is."
+        );
+        Common(SpeechContext.MountUp,
+            "Back in the saddle.",
+            "Right you are.",
+            "Up we go."
+        );
+
+        Flavour(CompanionPersonality.Stoic, SpeechContext.SteedGiven, "It will serve.", "Good. We'll move faster.");
+        Flavour(CompanionPersonality.Cheerful, SpeechContext.SteedGiven, "Oh, how lovely! Does it have a name?");
+        Flavour(CompanionPersonality.Gruff, SpeechContext.SteedLost, "Bah. I'll walk, then.");
+        Flavour(CompanionPersonality.Witty, SpeechContext.SteedGiven, "Finally, someone else can do the walking.");
+        Flavour(CompanionPersonality.Witty, SpeechContext.SteedWanted, "I'm wearing out boots faster than you're paying for them.");
     }
 
     private static void Common(SpeechContext context, params string[] lines) => _common[(int)context] = lines;
 
     private static void Flavour(CompanionPersonality personality, SpeechContext context, params string[] lines) =>
         _flavour[(int)personality][(int)context] = lines;
+
+    /// <summary>The only things a ghost has to say.</summary>
+    public static bool IsGhostLine(SpeechContext context) =>
+        context is SpeechContext.GhostPlea or SpeechContext.GhostAsksStaff;
 
     public static string Pick(SpeechContext context, CompanionPersonality personality)
     {

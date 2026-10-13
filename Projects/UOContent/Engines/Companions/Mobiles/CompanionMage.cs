@@ -15,13 +15,13 @@ public partial class CompanionMage : BaseCompanion
     {
         Role = CompanionRole.Mage,
         Title = "the mage",
-        Str = new StatCurve(35, 1.0),
-        Dex = new StatCurve(35, 1.0),
-        Int = new StatCurve(75, 2.0),
+        Str = new StatCurve(55, 1.0),
+        Dex = new StatCurve(40, 1.0),
+        Int = new StatCurve(85, 1.5),
         BonusHitsPerLevel = 2,
         Skills =
         [
-            SkillName.Magery, SkillName.EvalInt, SkillName.Meditation, SkillName.MagicResist, SkillName.Wrestling
+            new(SkillName.Magery, 10), SkillName.EvalInt, SkillName.Meditation, SkillName.MagicResist, SkillName.Wrestling
         ]
     };
 

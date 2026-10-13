@@ -82,6 +82,7 @@ public abstract partial class BaseCompanion
         }
 
         CheckSupplies();
+        CheckSteed(now);
     }
 
     /// <summary>Announces a shortage at most every few minutes per supply slot.</summary>

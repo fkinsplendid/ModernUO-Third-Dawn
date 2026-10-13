@@ -17,6 +17,7 @@ public static class CompanionSettings
     public static double GoldShare { get; private set; }
     public static int ResurrectFee { get; private set; }
     public static TimeSpan CatchUpDelay { get; private set; }
+    public static TimeSpan GhostPatience { get; private set; }
 
     public static void Configure()
     {
@@ -29,6 +30,7 @@ public static class CompanionSettings
         GoldShare = Math.Clamp(ServerConfiguration.GetOrUpdateSetting("companions.goldShare", 0.1), 0.0, 1.0);
         ResurrectFee = ServerConfiguration.GetOrUpdateSetting("companions.resurrectFee", 500);
         CatchUpDelay = ServerConfiguration.GetOrUpdateSetting("companions.catchUpDelay", TimeSpan.FromSeconds(20));
+        GhostPatience = ServerConfiguration.GetOrUpdateSetting("companions.ghostPatience", TimeSpan.FromMinutes(1));
     }
 
     public static int DailyWageFor(int level) =>
@@ -37,9 +39,12 @@ public static class CompanionSettings
     /// <summary>Experience needed to advance from <paramref name="level"/> to the next.</summary>
     public static int ExperienceToAdvance(int level) => 100 * level * level;
 
-    /// <summary>Highest a trained skill may reach at a level. Reaches 100 a few levels before the cap.</summary>
-    public static double SkillCapFor(int level) => Math.Min(100.0, 45.0 + level * 2.0);
+    /// <summary>Highest a trained skill may reach at a level: 62 at level 1, 100 from level 20.</summary>
+    public static double SkillCapFor(int level) => Math.Min(100.0, 60.0 + level * 2.0);
 
-    /// <summary>Level-ups guarantee at least this much in every trained skill.</summary>
-    public static double SkillFloorFor(int level) => Math.Min(SkillCapFor(level), 30.0 + level * 2.2);
+    /// <summary>
+    /// Level-ups guarantee at least this much in every trained skill: a capable 52 on hire,
+    /// grandmaster by level 25. Use in the field pushes skills above the floor, up to the cap.
+    /// </summary>
+    public static double SkillFloorFor(int level) => Math.Min(SkillCapFor(level), 50.0 + level * 2.0);
 }
