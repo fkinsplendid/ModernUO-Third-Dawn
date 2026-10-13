@@ -357,16 +357,16 @@ namespace Server.Mobiles
                 {
                     SayTo(
                         buyer,
-                        1151638, // The total of your purchase is ~1_val~ gold, which has been drawn from your bank account.  My thanks for the patronage.
-                        totalCost.ToString()
+                        true,
+                        $"The total of thy purchase is {totalCost} gold, which has been withdrawn from your bank account.  My thanks for the patronage."
                     );
                 }
                 else
                 {
                     SayTo(
                         buyer,
-                        1151639, // The total of your purchase is ~1_val~ gold.  My thanks for the patronage.
-                        totalCost.ToString()
+                        true,
+                        $"The total of thy purchase is {totalCost} gold.  My thanks for the patronage."
                     );
                 }
             }
