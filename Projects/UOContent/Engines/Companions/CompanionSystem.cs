@@ -15,13 +15,29 @@ namespace Server.Engines.Companions;
 public static class CompanionSystem
 {
     private static readonly Dictionary<Mobile, CompanionParty> _parties = new();
+    private static readonly TimeSpan SeparationCheckInterval = TimeSpan.FromSeconds(2);
+
     private static TimerExecutionToken _minuteTimer;
+    private static TimerExecutionToken _separationTimer;
 
     public static void Initialize()
     {
         EventSink.Logout += OnLogout;
 
         Timer.StartTimer(TimeSpan.FromMinutes(1.0), TimeSpan.FromMinutes(1.0), OnMinuteElapsed, out _minuteTimer);
+        Timer.StartTimer(SeparationCheckInterval, SeparationCheckInterval, CheckSeparations, out _separationTimer);
+    }
+
+    /// <summary>Runs outside the companions' own AI, which sleeps when no player is near them.</summary>
+    private static void CheckSeparations()
+    {
+        foreach (var party in _parties.Values)
+        {
+            foreach (var companion in party.Members)
+            {
+                companion?.CheckSeparation();
+            }
+        }
     }
 
     public static CompanionParty GetParty(Mobile employer) =>

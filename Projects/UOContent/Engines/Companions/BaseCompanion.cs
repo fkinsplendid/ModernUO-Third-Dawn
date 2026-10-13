@@ -555,7 +555,6 @@ public abstract partial class BaseCompanion : BaseCreature
         }
 
         UpdatePace();
-        CheckSeparation();
 
         if (!IsDeadPet)
         {
@@ -563,26 +562,35 @@ public abstract partial class BaseCompanion : BaseCreature
         }
     }
 
+    private const int SeparationRange = 18;
+    private const int TravelledRange = 40;
+    private const long TravelledCatchUpMs = 3000;
+
     /// <summary>
-    /// Companions on foot cannot follow through teleporters, boats or a galloping horse. After a short
-    /// while out of sight, and when the employer is not fighting, they catch up on their own.
+    /// Brings back a companion who has lost their employer. Called by <see cref="CompanionSystem"/>
+    /// every few seconds rather than from the companion's own AI, because an NPC left behind with no
+    /// player nearby has its AI put to sleep and would otherwise stand there until someone came back.
+    ///
+    /// When the employer has travelled (recall, a gate, a teleporter, another facet) the companion
+    /// would have gone along, so they rejoin almost at once. Otherwise, having been outrun or stuck
+    /// behind something, they turn up a little later, unless they're busy fighting where they are.
     /// </summary>
-    private void CheckSeparation()
+    internal void CheckSeparation() => CheckSeparation(Core.TickCount);
+
+    internal void CheckSeparation(long now)
     {
         var employer = Employer;
 
-        if (employer?.Map == null || employer.Map == Map.Internal)
+        if (Deleted || State != CompanionState.Active || employer?.Map == null || employer.Map == Map.Internal)
         {
             return;
         }
 
-        if (employer.Map == Map && InRange(employer, 18))
+        if (employer.Map == Map && InRange(employer, SeparationRange))
         {
             _separatedSince = 0;
             return;
         }
-
-        var now = Core.TickCount;
 
         if (_separatedSince == 0)
         {
@@ -590,8 +598,10 @@ public abstract partial class BaseCompanion : BaseCreature
             return;
         }
 
-        if (now - _separatedSince < (long)CompanionSettings.CatchUpDelay.TotalMilliseconds ||
-            employer.Combatant != null || Combatant != null)
+        var travelled = employer.Map != Map || !InRange(employer, TravelledRange);
+        var delay = travelled ? TravelledCatchUpMs : (long)CompanionSettings.CatchUpDelay.TotalMilliseconds;
+
+        if (now - _separatedSince < delay || IsFightingHere())
         {
             return;
         }
@@ -610,6 +620,11 @@ public abstract partial class BaseCompanion : BaseCreature
 
         employer.SendMessage(0x59, $"{Name} catches up with you.");
     }
+
+    /// <summary>In a fight that is actually going on: a sleeping AI's combatant doesn't count.</summary>
+    private bool IsFightingHere() =>
+        Combatant is { Deleted: false, Alive: true } foe && foe.Map == Map && InRange(foe, 12) &&
+        Map.GetSector(Location).Active;
 
     private int LivingBody => Female ? 0x191 : 0x190;
 

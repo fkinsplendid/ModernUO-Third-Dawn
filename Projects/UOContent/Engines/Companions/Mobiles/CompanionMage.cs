@@ -21,7 +21,10 @@ public partial class CompanionMage : BaseCompanion
         BonusHitsPerLevel = 2,
         Skills =
         [
-            new(SkillName.Magery, 10), SkillName.EvalInt, SkillName.Meditation, SkillName.MagicResist, SkillName.Wrestling
+            // Poisoning adds to magery for the strength of the poison spell: Regular at hire,
+            // Greater around level 13, now and then Deadly at grandmaster.
+            new(SkillName.Magery, 10), new(SkillName.Poisoning, 20), SkillName.EvalInt, SkillName.Meditation,
+            SkillName.MagicResist, SkillName.Wrestling
         ]
     };
 

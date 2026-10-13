@@ -85,13 +85,7 @@ public sealed class BardCompanionAI : CompanionAI
             return base.DoActionCombat();
         }
 
-        var employer = Employer;
-
-        if (employer?.Map == Mobile.Map && !Mobile.InRange(employer, 2))
-        {
-            MoveTo(employer, true, 2);
-        }
-
+        KeepFormation();
         return true;
     }
 

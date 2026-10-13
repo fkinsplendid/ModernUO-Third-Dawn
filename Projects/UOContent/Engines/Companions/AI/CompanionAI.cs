@@ -18,7 +18,7 @@ namespace Server.Engines.Companions;
 /// Threats come from the aggressor lists of the employer and the companions, never from scanning
 /// the area, so a quiet tick costs almost nothing.
 /// </summary>
-public abstract class CompanionAI : BaseAI
+public abstract partial class CompanionAI : BaseAI
 {
     private const int PerceptionIntervalMs = 400;
     private const int LeashRange = 14;
@@ -32,7 +32,8 @@ public abstract class CompanionAI : BaseAI
     private long _nextPotion;
     private long _nextLadenCall;
     private Corpse _lootCorpse;
-    private Mobile _spellTarget;
+    private long _lootGiveUp;
+    private IPoint3D _spellTarget;
     private SpellInfo _spellReagents;
     private bool _inCombat;
     private bool _warnedLowHealth;
@@ -417,7 +418,12 @@ public abstract class CompanionAI : BaseAI
     /// Starts casting <paramref name="spell"/> at <paramref name="target"/>. Reagents come out of the
     /// companion's own pack, the same as a player's would.
     /// </summary>
-    protected bool CastAt(Spell spell, Mobile target)
+    protected bool CastAt(Spell spell, Mobile target) => BeginCast(spell, target);
+
+    /// <summary>Starts casting a spell aimed at the ground (a field, a teleport).</summary>
+    protected bool CastAtLocation(Spell spell, Point3D location) => BeginCast(spell, new LandTarget(location, Mobile.Map));
+
+    private bool BeginCast(Spell spell, IPoint3D target)
     {
         if (Mobile.Spell != null || Mobile.Target != null || !HasReagents(spell.Info))
         {
@@ -492,8 +498,13 @@ public abstract class CompanionAI : BaseAI
         _spellTarget = null;
         _spellReagents = null;
 
-        if (intended?.Deleted == false && intended.Map == Mobile.Map && Mobile.CanSee(intended) &&
-            Mobile.InLOS(intended) && (target.Range < 0 || Mobile.InRange(intended, target.Range)))
+        var stillThere = intended switch
+        {
+            Mobile m => !m.Deleted && m.Map == Mobile.Map && Mobile.CanSee(m),
+            _        => intended != null
+        };
+
+        if (stillThere && Mobile.InLOS(intended) && (target.Range < 0 || Mobile.InRange(intended, target.Range)))
         {
             ConsumeReagents(reagents);
             target.Invoke(Mobile, intended);
@@ -655,21 +666,36 @@ public abstract class CompanionAI : BaseAI
             {
                 return false;
             }
+
+            _lootGiveUp = now + LootReachMs;
         }
 
         var corpse = _lootCorpse;
+        var location = corpse.GetWorldLocation();
 
-        if (corpse.Deleted || corpse.Map != Mobile.Map || !Mobile.InRange(corpse.GetWorldLocation(), 16))
+        // Nobody stays behind picking over a corpse while the employer walks on.
+        if (corpse.Deleted || corpse.Map != Mobile.Map || !Mobile.InRange(location, 16) ||
+            employer?.Map == Mobile.Map && !employer.InRange(location, LootLeashRange))
         {
             ReleaseCorpse();
             return false;
         }
 
-        if (!Mobile.InRange(corpse.GetWorldLocation(), 1))
+        if (!Mobile.InRange(location, 1))
         {
+            // Across water, up a ledge, behind a fence: give it up rather than walk at it forever.
+            if (now - _lootGiveUp >= 0)
+            {
+                Party.FinishCorpse(corpse);
+                _lootCorpse = null;
+                return false;
+            }
+
             MoveTo(corpse, false);
             return true;
         }
+
+        _lootGiveUp = now + LootReachMs;
 
         if (!Companion.LootOneItem(corpse))
         {
@@ -679,6 +705,9 @@ public abstract class CompanionAI : BaseAI
 
         return true;
     }
+
+    private const int LootReachMs = 15000;
+    private const int LootLeashRange = 12;
 
     private void ReleaseCorpse()
     {
@@ -829,8 +858,12 @@ public abstract class CompanionAI : BaseAI
 
     private const int ReviveChannelMs = 6000;
 
+    private const int ReviveReachMs = 20000;
+
     private BaseCompanion _reviving;
     private long _reviveDone;
+    private long _reviveGiveUp;
+    private long _nextReviveAttempt;
 
     /// <summary>Earliest tick at which to offer the dead employer resurrection again.</summary>
     protected long NextEmployerRes { get; set; }
@@ -968,6 +1001,11 @@ public abstract class CompanionAI : BaseAI
             return true;
         }
 
+        if (Core.TickCount - _nextReviveAttempt < 0)
+        {
+            return false;
+        }
+
         foreach (var ally in Party.Members)
         {
             if (ally != Companion && CompanionParty.IsInWorld(ally) && ally.IsDeadPet && ally.Map == Mobile.Map &&
@@ -976,6 +1014,7 @@ public abstract class CompanionAI : BaseAI
                 bandage.Consume();
                 _reviving = ally;
                 _reviveDone = Core.TickCount + ReviveChannelMs;
+                _reviveGiveUp = Core.TickCount + ReviveReachMs;
                 Mobile.Say($"Hold on, {ally.Name}. I've got you.");
                 return true;
             }
@@ -996,6 +1035,14 @@ public abstract class CompanionAI : BaseAI
 
         if (!Mobile.InRange(patient, Bandage.Range))
         {
+            // Can't get to them; leave it to a healer or the employer.
+            if (Core.TickCount - _reviveGiveUp >= 0)
+            {
+                _reviving = null;
+                _nextReviveAttempt = Core.TickCount + ReviveReachMs;
+                return false;
+            }
+
             MoveTo(patient, true, Bandage.Range);
             _reviveDone = Core.TickCount + ReviveChannelMs;
             return true;
@@ -1031,11 +1078,14 @@ public abstract class CompanionAI : BaseAI
     private const int GhostSearchIntervalMs = 3000;
     private const int GhostSearchRange = 20;
     private const int PleaIntervalMs = 120000;
+    private const int ResurrectorReachMs = 20000;
 
     private long _diedAt;
     private long _nextGhostSearch;
     private long _nextPlea;
     private Mobile _resurrector;
+    private Mobile _unreachableResurrector;
+    private long _resurrectorGiveUp;
 
     /// <summary>
     /// A ghost follows its employer. Once the fighting has stopped and it has waited long enough,
@@ -1059,7 +1109,13 @@ public abstract class CompanionAI : BaseAI
         if (now - _nextGhostSearch >= 0)
         {
             _nextGhostSearch = now + GhostSearchIntervalMs;
-            _resurrector = FindResurrector();
+            var found = FindResurrector();
+
+            if (found != _resurrector)
+            {
+                _resurrector = found;
+                _resurrectorGiveUp = now + ResurrectorReachMs;
+            }
         }
 
         if (_resurrector == null)
@@ -1074,6 +1130,20 @@ public abstract class CompanionAI : BaseAI
 
         if (!Mobile.InRange(_resurrector, 2))
         {
+            var employer = Employer;
+
+            // Can't get there, or the employer is moving on: go back to following them.
+            if (now - _resurrectorGiveUp >= 0 || employer?.Map == Mobile.Map && !employer.InRange(Mobile, 12))
+            {
+                if (now - _resurrectorGiveUp >= 0)
+                {
+                    _unreachableResurrector = _resurrector;
+                }
+
+                _resurrector = null;
+                return base.Obey();
+            }
+
             MoveTo(_resurrector, true, 2);
             return true;
         }
@@ -1101,6 +1171,11 @@ public abstract class CompanionAI : BaseAI
 
         foreach (var m in Mobile.Map.GetMobilesInRange(Mobile.Location, GhostSearchRange))
         {
+            if (m == _unreachableResurrector)
+            {
+                continue;
+            }
+
             if (m is BaseHealer { Deleted: false, Alive: true } healer and not PricedHealer && Mobile.InLOS(healer) &&
                 healer.CheckResurrect(Mobile))
             {

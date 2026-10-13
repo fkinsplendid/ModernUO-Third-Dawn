@@ -58,7 +58,20 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
   - *Bard*: turns enemies on each other (provocation) whenever there are two to pair up,
     calms (peacemaking) whatever threatens the backline when it can't, and weakens your
     target (discordance). Peace comes first only to save a badly wounded bard or mage.
-  - *Mage*: keeps its distance and casts, holding mana back for healing.
+  - *Mage*: fights like a Third Dawn mage, holding a quarter of its mana back for healing:
+    - *Defence*: teleports clear of melee when hurt or swarmed, or paralyzes a lone attacker the
+      warrior isn't dealing with. Keeps one defensive spell up: Magic Reflection against
+      spellcasters, otherwise Protection while being hit.
+    - *Summons*: dispels enemy summons it has a fair chance against; Mass Dispel for several.
+    - *Control*: puts an Energy Field (or Wall of Stone) in front of a brute charging it, and a
+      Paralyze Field in the path of a pack nobody has engaged. Walls never cut off the party.
+    - *Poison*: Poison Field on groups, and the Poison spell on every enemy in reach that isn't
+      already poisoned (skipping the immune, and anything that resists twice). Mages train
+      Poisoning, which strengthens the spell: Regular on hire, Greater around level 13, now and
+      then Deadly at grandmaster. Strength drops off beyond three tiles.
+    - Then the strongest damage spell it has the mana and reagents for. It won't break a
+      paralysis nobody is fighting. Out of mana, it meditates where it stands, and between fights
+      whenever the party stops.
 - **Heal**: bandages (warrior, bard) and spells (mage) — poison first, worst wounds next, you
   slightly ahead of everyone else. Potions when they're in trouble.
 - **Revive**: skilled healers (Healing and Anatomy 80+) bring fallen companions back after a
@@ -75,8 +88,15 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
 - **Gate out**: a mage (Magery 70+) opens a gate when the party is losing badly, or when
   everyone is weighed down with loot. Step through and they follow. Give the mage a **marked
   recall rune** to set where their gates go; otherwise it's the nearest town moongate.
-- **Catch up**: if they lose you (teleporters, boats, a fast horse) they catch up shortly,
-  bringing their mount with them.
+- **Keep their own space**: walking or riding, each has a place around you: the warrior at
+  your right flank, the bard behind on your right, the mage behind on your left. They keep one
+  clear tile between themselves, you and each other, mounted or not, but always stay within two
+  tiles of you so you can hand them things. When you stop they stay where they are instead of
+  shuffling, and in corridors they fall in behind you.
+- **Catch up**: if you recall, gate, take a teleporter or change facet, they rejoin you within a
+  few seconds. If they're simply outrun or stuck behind something, they find their way back, or
+  turn up after `companions.catchUpDelay` (20 seconds) unless they're busy fighting where they
+  are. They bring their mount with them.
 - **Talk**: idle chatter about the surroundings, reactions in combat, banter between them.
   Each has a personality (stoic, cheerful, gruff or witty).
 
@@ -112,7 +132,7 @@ and can use `[res` on it. Otherwise it follows you and reminds you from time to 
 ### Skill
 New hires start capable (about 52 in their trained skills) and are guaranteed grandmaster by
 level 25. Each role is a little ahead in its specialty: the bard's Musicianship (+20) and bard
-skills (+10), the warrior's Tactics (+10) and Parry (+5), the mage's Magery (+10). The bard
+skills (+10), the warrior's Tactics (+10) and Parry (+5), the mage's Magery (+10) and Poisoning (+20). The bard
 also weighs its odds before playing, and won't waste a song on a creature it can't sway. Skills also rise with use, up to a cap that reaches 100 at level 20.
 
 ### Talking to them

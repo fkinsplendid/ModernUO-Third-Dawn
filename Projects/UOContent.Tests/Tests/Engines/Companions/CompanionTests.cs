@@ -996,4 +996,289 @@ public class CompanionTests : IDisposable
             employer.Delete();
         }
     }
+
+    // ---------- Formation ----------
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void Formation_GivesEveryoneTheirOwnSpace_WhicheverWayTheEmployerHeads(int space)
+    {
+        var roles = new[] { CompanionRole.Warrior, CompanionRole.Bard, CompanionRole.Mage };
+
+        for (var heading = 0; heading < 8; heading++)
+        {
+            var spots = new (int X, int Y)[roles.Length];
+
+            for (var i = 0; i < roles.Length; i++)
+            {
+                spots[i] = CompanionAI.FormationOffset(roles[i], (Direction)heading, space);
+                Assert.Equal(space, Math.Max(Math.Abs(spots[i].X), Math.Abs(spots[i].Y)));
+            }
+
+            for (var i = 0; i < spots.Length; i++)
+            {
+                for (var j = i + 1; j < spots.Length; j++)
+                {
+                    var apart = Math.Max(Math.Abs(spots[i].X - spots[j].X), Math.Abs(spots[i].Y - spots[j].Y));
+                    Assert.True(apart >= space, $"{roles[i]} and {roles[j]} are {apart} apart heading {(Direction)heading}");
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void Formation_MageAndBardWalkBehind_WarriorAtTheSide()
+    {
+        // Heading north: behind is south (+Y), right is east (+X).
+        Assert.Equal((2, 0), CompanionAI.FormationOffset(CompanionRole.Warrior, Direction.North, 2));
+        Assert.Equal((2, 2), CompanionAI.FormationOffset(CompanionRole.Bard, Direction.North, 2));
+        Assert.Equal((-2, 2), CompanionAI.FormationOffset(CompanionRole.Mage, Direction.North, 2));
+    }
+
+    // ---------- Separation ----------
+
+    [Fact]
+    public void Separation_AfterRecallOrTeleport_RejoinsAlmostAtOnce()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionWarrior();
+
+        try
+        {
+            companion.BeginService(employer);
+            employer.MoveToWorld(new Point3D(Origin.X + 200, Origin.Y, Origin.Z), Map.Felucca);
+
+            var start = Core.TickCount + 60000;
+            companion.CheckSeparation(start);
+            companion.CheckSeparation(start + 1000);
+            Assert.False(companion.InRange(employer, 18));
+
+            companion.CheckSeparation(start + 3500);
+            Assert.True(companion.InRange(employer, 1));
+        }
+        finally
+        {
+            companion.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Separation_OnAnotherFacet_RejoinsAlmostAtOnce()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionMage();
+
+        try
+        {
+            companion.BeginService(employer);
+            employer.MoveToWorld(new Point3D(1000, 1000, 0), Map.Trammel);
+
+            var start = Core.TickCount + 60000;
+            companion.CheckSeparation(start);
+            companion.CheckSeparation(start + 3500);
+
+            Assert.Equal(Map.Trammel, companion.Map);
+        }
+        finally
+        {
+            companion.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Separation_WhenOutrun_CatchesUpAfterTheDelay_AndBringsTheirMount()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionBard();
+        var horse = CreatePet<Horse>(employer);
+
+        try
+        {
+            companion.BeginService(employer);
+            Transfer(horse, companion);
+            companion.MountSteed();
+            employer.MoveToWorld(new Point3D(Origin.X + 25, Origin.Y, Origin.Z), Map.Felucca);
+
+            var start = Core.TickCount + 60000;
+            var delay = (long)CompanionSettings.CatchUpDelay.TotalMilliseconds;
+            companion.CheckSeparation(start);
+            companion.CheckSeparation(start + 3500);
+            Assert.False(companion.InRange(employer, 18));
+
+            companion.CheckSeparation(start + delay + 1);
+            Assert.True(companion.InRange(employer, 1));
+            Assert.True(companion.IsRiding);
+        }
+        finally
+        {
+            companion.Delete();
+            horse.Delete();
+            employer.Delete();
+        }
+    }
+
+    // ---------- Mage ----------
+
+    [Fact]
+    public void Mage_FallsBackToASpellItHasReagentsFor()
+    {
+        var employer = CreateEmployer();
+        var mage = new CompanionMage();
+        var target = new Horse();
+
+        try
+        {
+            mage.BeginService(employer);
+            target.MoveToWorld(employer.Location, employer.Map);
+
+            // No mandrake: no mind blast or lightning. No nightshade: no poison.
+            mage.Backpack.ConsumeTotal(typeof(MandrakeRoot), mage.Backpack.GetAmount(typeof(MandrakeRoot)));
+            mage.Backpack.ConsumeTotal(typeof(Nightshade), mage.Backpack.GetAmount(typeof(Nightshade)));
+
+            var ai = (MageCompanionAI)mage.AIObject;
+
+            for (var i = 0; i < 20; i++)
+            {
+                Assert.IsType<Server.Spells.Third.FireballSpell>(ai.ChooseAttack(target));
+            }
+
+            // Fireball is black pearl alone; magic arrow is sulfurous ash alone.
+            mage.Backpack.ConsumeTotal(typeof(BlackPearl), mage.Backpack.GetAmount(typeof(BlackPearl)));
+
+            Assert.IsType<Server.Spells.First.MagicArrowSpell>(ai.ChooseAttack(target));
+
+            mage.Backpack.ConsumeTotal(typeof(SulfurousAsh), mage.Backpack.GetAmount(typeof(SulfurousAsh)));
+
+            Assert.Null(ai.ChooseAttack(target));
+        }
+        finally
+        {
+            mage.Delete();
+            target.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Mage_IsTrainedInPoisoning_StrongEnoughForRegularPoisonOnHire()
+    {
+        var mage = new CompanionMage();
+
+        try
+        {
+            var floor = CompanionSettings.SkillFloorFor(1);
+
+            Assert.Equal(floor + 20, mage.Skills.Poisoning.Base);
+
+            // The poison spell is Regular strength above 130.2 (magery plus poisoning), at close range.
+            Assert.True(mage.Skills.Magery.Value + mage.Skills.Poisoning.Value > 130.2);
+        }
+        finally
+        {
+            mage.Delete();
+        }
+    }
+
+    [Fact]
+    public void Mage_OnlyPoisonsWhatPoisonWillHurt()
+    {
+        // The test host skips startup, where the poison levels are registered.
+        if (Poison.Lethal == null)
+        {
+            PoisonImpl.Configure();
+        }
+
+        var employer = CreateEmployer();
+        var mage = new CompanionMage();
+        var horse = new Horse();
+        var lich = new Lich();
+
+        try
+        {
+            mage.BeginService(employer);
+            var ai = (MageCompanionAI)mage.AIObject;
+
+            Assert.True(ai.IsPoisonable(horse));
+            Assert.False(ai.IsPoisonable(lich));
+
+            horse.Paralyzed = true;
+            Assert.False(ai.IsPoisonable(horse));
+            horse.Paralyzed = false;
+
+            horse.Poison = Poison.Lesser;
+            Assert.False(ai.IsPoisonable(horse));
+        }
+        finally
+        {
+            mage.Delete();
+            horse.Delete();
+            lich.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Mage_WeighsDispelOddsLikeTheSpell()
+    {
+        var employer = CreateEmployer();
+        var mage = new CompanionMage();
+        var vortex = new EnergyVortex();
+
+        try
+        {
+            mage.BeginService(employer);
+            var ai = (MageCompanionAI)mage.AIObject;
+
+            mage.Skills.Magery.Base = 62.0;
+            Assert.Equal(0.05, ai.DispelChance(vortex), 3);
+
+            mage.Skills.Magery.Base = 100.0;
+            Assert.Equal(1.0, ai.DispelChance(vortex), 3);
+        }
+        finally
+        {
+            mage.Delete();
+            vortex.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Mage_NeverWallsOffTheParty_OrFieldsItself()
+    {
+        var employer = CreateEmployer();
+        var mage = new CompanionMage();
+        var warrior = new CompanionWarrior();
+
+        try
+        {
+            mage.BeginService(employer);
+            warrior.BeginService(employer);
+            employer.MoveToWorld(new Point3D(Origin.X - 6, Origin.Y, Origin.Z), Map.Felucca);
+            mage.MoveToWorld(Origin, Map.Felucca);
+            warrior.MoveToWorld(new Point3D(Origin.X + 4, Origin.Y, Origin.Z), Map.Felucca);
+
+            var ai = (MageCompanionAI)mage.AIObject;
+            var onWarrior = new Point3D(Origin.X + 4, Origin.Y, Origin.Z);
+
+            // A wall there would trap the warrior; a poison field wouldn't touch them.
+            Assert.False(ai.FieldIsClear(onWarrior, 2, 1, true));
+            Assert.True(ai.FieldIsClear(onWarrior, 2, -1, true));
+
+            // Nothing at the mage's own feet.
+            Assert.False(ai.FieldIsClear(new Point3D(Origin.X + 1, Origin.Y, Origin.Z), 2, -1, true));
+
+            // Clear ground well away from everyone.
+            Assert.True(ai.FieldIsClear(new Point3D(Origin.X, Origin.Y + 6, Origin.Z), 2, 1, true));
+        }
+        finally
+        {
+            mage.Delete();
+            warrior.Delete();
+            employer.Delete();
+        }
+    }
 }

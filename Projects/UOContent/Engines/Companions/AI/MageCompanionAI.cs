@@ -18,7 +18,7 @@ namespace Server.Engines.Companions;
 /// fights, keeps its distance in combat, raises a fallen employer, and opens a gate out when the
 /// fight is lost or the party is weighed down with loot. Every spell costs real reagents.
 /// </summary>
-public sealed class MageCompanionAI : CompanionAI
+public sealed partial class MageCompanionAI : CompanionAI
 {
     private const double GateSkill = 70.0;
     private const int GateWaitMs = 8000;
@@ -55,11 +55,18 @@ public sealed class MageCompanionAI : CompanionAI
 
         _gateRefused &= InSeriousTrouble;
 
-        return TryResurrect() || TryCure() || TryHeal() || Threats.Count == 0 && TryBless();
+        return TryResurrect() || TryEscapeMelee() || TryCure() || TryHeal() || TryShield() ||
+               Threats.Count == 0 && TryBless();
     }
 
     protected override bool TryRoleIdle()
     {
+        // Between fights a mage sits in a trance whenever the party stands still. Walking breaks it.
+        if (Mobile.Mana < Mobile.ManaMax * 0.9)
+        {
+            Meditate();
+        }
+
         var party = Party;
 
         if (!party.WantsTownGate || Core.TickCount - party.NextTownGate < 0)
@@ -237,7 +244,10 @@ public sealed class MageCompanionAI : CompanionAI
 
     // ---------- Combat ----------
 
-    /// <summary>Keeps out of melee, stays near the employer, and casts when mana allows.</summary>
+    /// <summary>
+    /// Keeps out of melee, stays near the employer, and casts when mana allows. Out of mana and
+    /// with nothing on top of them, they meditate where they stand, as a player mage would.
+    /// </summary>
     public override bool DoActionCombat()
     {
         var target = Mobile.Combatant;
@@ -246,6 +256,13 @@ public sealed class MageCompanionAI : CompanionAI
         {
             Mobile.Combatant = null;
             return true;
+        }
+
+        // Out of reach, out of sight, or held by a paralyze that a spell would break: turn on
+        // something else instead.
+        if ((!InSpellRange(target) || target.Paralyzed) && FindFreeThreat() is { } other)
+        {
+            Mobile.Combatant = target = other;
         }
 
         var adjacent = FindThreatAttacking(Mobile, 1);
@@ -261,40 +278,106 @@ public sealed class MageCompanionAI : CompanionAI
 
         Mobile.Direction = Mobile.GetDirectionTo(target);
 
-        // Keep a quarter of the mana pool for healing.
-        if (Mobile.Spell == null && Mobile.Mana > Mobile.ManaMax / 4 && Mobile.InRange(target, 10) && Mobile.InLOS(target))
+        if (Mobile.Spell != null || TryTactics(target))
         {
-            var spell = ChooseAttack(target);
+            return true;
+        }
 
-            if (spell != null)
-            {
-                CastAt(spell, target);
-            }
+        // Held fast and nobody on it: a spell would only set it free. Catch breath instead.
+        if (target.Paralyzed && !IsEngaged(target))
+        {
+            Meditate();
+            return true;
+        }
+
+        // Keep a quarter of the mana pool for healing.
+        var spell = Mobile.Mana > Mobile.ManaMax / 4 && InSpellRange(target) ? ChooseAttack(target) : null;
+
+        if (spell != null)
+        {
+            CastAt(spell, target);
+        }
+        else if (adjacent == null)
+        {
+            Meditate();
         }
 
         return true;
     }
 
-    private Spell ChooseAttack(Mobile target)
-    {
-        var magery = Magery;
-        var mana = Mobile.Mana;
+    private const int SpellRange = 10;
 
-        if (magery >= 50.0 && mana >= 9 && !target.Poisoned && target.Hits > target.HitsMax / 2 && Utility.RandomDouble() < 0.2)
+    /// <summary>The nearest threat in spell range that isn't held by paralysis.</summary>
+    private Mobile FindFreeThreat()
+    {
+        Mobile best = null;
+        var bestDistance = double.MaxValue;
+
+        for (var i = 0; i < Threats.Count; i++)
         {
-            return new PoisonSpell(Mobile);
+            var threat = Threats[i];
+            var distance = Mobile.GetDistanceToSqrt(threat);
+
+            if (distance < bestDistance && !threat.Paralyzed && InSpellRange(threat))
+            {
+                best = threat;
+                bestDistance = distance;
+            }
         }
 
-        return magery switch
+        return best;
+    }
+
+    private bool InSpellRange(Mobile target) => Mobile.InRange(target, SpellRange) && Mobile.InLOS(target);
+
+    /// <summary>
+    /// The strongest damage spell this mage knows and can pay for, in mana and in reagents. Runs
+    /// down the list rather than giving up when the pack is out of one reagent. Poison is decided
+    /// separately, before this.
+    /// </summary>
+    internal Spell ChooseAttack(Mobile target)
+    {
+        var magery = Magery;
+        Spell spell = null;
+
+        if (magery >= 90.0 && Utility.RandomDouble() < 0.3)
         {
-            >= 90.0 when mana >= 40 && Utility.RandomDouble() < 0.3 => new FlameStrikeSpell(Mobile),
-            >= 80.0 when mana >= 20                                 => new EnergyBoltSpell(Mobile),
-            >= 60.0 when mana >= 14 && target.Int < Mobile.Int      => new MindBlastSpell(Mobile),
-            >= 40.0 when mana >= 11                                 => new LightningSpell(Mobile),
-            >= 20.0 when mana >= 9                                  => new FireballSpell(Mobile),
-            _ when mana >= 4                                        => new MagicArrowSpell(Mobile),
-            _                                                       => null
-        };
+            spell ??= Affordable(new FlameStrikeSpell(Mobile));
+        }
+
+        if (magery >= 80.0)
+        {
+            spell ??= Affordable(new EnergyBoltSpell(Mobile));
+        }
+
+        if (magery >= 60.0 && target.Int < Mobile.Int)
+        {
+            spell ??= Affordable(new MindBlastSpell(Mobile));
+        }
+
+        if (magery >= 40.0)
+        {
+            spell ??= Affordable(new LightningSpell(Mobile));
+        }
+
+        if (magery >= 20.0)
+        {
+            spell ??= Affordable(new FireballSpell(Mobile));
+        }
+
+        return spell ?? Affordable(new MagicArrowSpell(Mobile));
+    }
+
+    private Spell Affordable(Spell spell) => Mobile.Mana >= spell.GetMana() && HasReagents(spell.Info) ? spell : null;
+
+    /// <summary>Tries for a meditative trance. The skill itself decides whether it takes.</summary>
+    private void Meditate()
+    {
+        if (!Mobile.Meditating && Mobile.Mana < Mobile.ManaMax && Mobile.Spell == null && Mobile.Target == null &&
+            Core.TickCount - Mobile.NextSkillTime >= 0)
+        {
+            Mobile.UseSkill(SkillName.Meditation);
+        }
     }
 
     // ---------- Gates ----------
