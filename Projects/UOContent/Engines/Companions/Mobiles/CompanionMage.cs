@@ -51,7 +51,8 @@ public partial class CompanionMage : BaseCompanion
 
     protected override BaseAI CreateAI() => new MageCompanionAI(this);
 
-    protected override bool IsSupply(Item item) => item is BaseReagent || base.IsSupply(item);
+    // Runes are never looted, so any here were handed over to mark or gate with: keep them.
+    protected override bool IsSupply(Item item) => item is BaseReagent or RecallRune || base.IsSupply(item);
 
     /// <summary>Spells clear the hands, so no weapons; armour only if it allows meditation.</summary>
     public override double ScoreWeapon(BaseWeapon weapon) => -1;
@@ -65,6 +66,7 @@ public partial class CompanionMage : BaseCompanion
         AddItem(Issue(new WizardsHat(Utility.RandomBlueHue())));
         AddItem(Issue(new Sandals()));
         AddItem(Issue(new Spellbook(ulong.MaxValue) { LootType = LootType.Blessed }));
+        IssueRunebook();
 
         foreach (var (_, _, create) in _reagents)
         {

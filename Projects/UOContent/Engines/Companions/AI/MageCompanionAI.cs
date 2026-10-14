@@ -1,4 +1,5 @@
 using System;
+using Server.Gumps;
 using Server.Items;
 using Server.Regions;
 using Server.Spells;
@@ -14,20 +15,37 @@ using Server.Spells.Third;
 namespace Server.Engines.Companions;
 
 /// <summary>
-/// Healer first, artillery second. Cures and heals the party unprompted, blesses them between
-/// fights, keeps its distance in combat, raises a fallen employer, and opens a gate out when the
+/// Healer first, artillery second. Cures and heals the party unprompted, blesses them in the lulls
+/// of a hunt, keeps its distance in combat, raises a fallen employer, and opens a gate out when the
 /// fight is lost or the party is weighed down with loot. Every spell costs real reagents.
 /// </summary>
 public sealed partial class MageCompanionAI : CompanionAI
 {
-    private const double GateSkill = 70.0;
+    // About an even chance per cast at these levels (Gate 60-100, Resurrection 70-110 pre-ML).
+    // A fizzle still costs the reagents, so a mage tries a few times before giving up.
+    internal const double GateSkill = 80.0;
+    internal const double ResurrectSkill = 90.0;
     private const int GateWaitMs = 8000;
+    private const int MaxGateAttempts = 3;
+    private const int ResurrectRetryMs = 2000;
+
+    // Blessings are kept up through the lulls of a hunt, not while strolling about town.
+    private const int BlessAfterFightMs = 60000;
     private static readonly TimeSpan TownGateCooldown = TimeSpan.FromMinutes(10);
 
     private long _gateDeadline;
     private bool _gateIsEscape;
     private string _gateDestination;
     private bool _gateRefused;
+    private Spell _gateSpell;
+    private int _gateFizzles;
+    private bool _retryTownGate;
+    private GateDestination? _gateTarget;
+    private Spell _resurrectSpell;
+    private Mobile _resurrectTarget;
+    private Spell _markSpell;
+    private RecallRune _markRune;
+    private string _markName;
     private long _nextBlessCheck;
 
     public MageCompanionAI(BaseCompanion companion) : base(companion)
@@ -43,6 +61,9 @@ public sealed partial class MageCompanionAI : CompanionAI
             CheckGateOpened();
         }
 
+        CheckResurrectLanded();
+        CheckMarkLanded();
+
         if (Mobile.Spell != null)
         {
             return false;
@@ -53,7 +74,15 @@ public sealed partial class MageCompanionAI : CompanionAI
             return true;
         }
 
-        _gateRefused &= InSeriousTrouble;
+        if (!InSeriousTrouble)
+        {
+            _gateRefused = false;
+
+            if (_gateIsEscape && _gateDeadline == 0)
+            {
+                _gateFizzles = 0;
+            }
+        }
 
         return TryResurrect() || TryEscapeMelee() || TryCure() || TryHeal() || TryShield() ||
                Threats.Count == 0 && TryBless();
@@ -61,6 +90,20 @@ public sealed partial class MageCompanionAI : CompanionAI
 
     protected override bool TryRoleIdle()
     {
+        if (_retryTownGate && _gateDeadline == 0 && Mobile.Spell == null)
+        {
+            _retryTownGate = false;
+
+            if (OpenGate(false, _gateTarget))
+            {
+                return true;
+            }
+
+            _gateFizzles = 0;
+            _gateTarget = null;
+            Mobile.Say(GateRefusal());
+        }
+
         // Between fights a mage sits in a trance whenever the party stands still. Walking breaks it.
         if (Mobile.Mana < Mobile.ManaMax * 0.9)
         {
@@ -82,11 +125,9 @@ public sealed partial class MageCompanionAI : CompanionAI
 
         party.WantsTownGate = false;
         party.NextTownGate = Core.TickCount + (long)TownGateCooldown.TotalMilliseconds;
+        _gateFizzles = 0;
         return OpenGate(false);
     }
-
-    /// <summary>Opens a gate to town on the employer's request. Returns false if it can't.</summary>
-    public bool RequestTownGate() => Mobile.Spell == null && OpenGate(false);
 
     // ---------- Healing ----------
 
@@ -137,7 +178,8 @@ public sealed partial class MageCompanionAI : CompanionAI
     {
         var now = Core.TickCount;
 
-        if (now - _nextBlessCheck < 0 || Magery < 40.0 || Mobile.Mana < Mobile.ManaMax / 2)
+        if (now - _nextBlessCheck < 0 || Magery < 40.0 || Mobile.Mana < Mobile.ManaMax / 2 ||
+            !FoughtWithin(BlessAfterFightMs))
         {
             return false;
         }
@@ -171,7 +213,7 @@ public sealed partial class MageCompanionAI : CompanionAI
     /// </summary>
     private bool TryResurrect()
     {
-        if (Threats.Count > 0 || Magery < 80.0 || Mobile.Mana < 50)
+        if (Threats.Count > 0 || Magery < ResurrectSkill || Mobile.Mana < 50 || _resurrectSpell != null)
         {
             return false;
         }
@@ -222,7 +264,45 @@ public sealed partial class MageCompanionAI : CompanionAI
         }
 
         cast = CastAt(spell, ghost);
+
+        if (cast)
+        {
+            _resurrectSpell = spell;
+            _resurrectTarget = ghost;
+        }
+
         return cast;
+    }
+
+    /// <summary>
+    /// Once a Resurrection has run its course, checks whether it took. A fizzle (no offer sent, still
+    /// a ghost) is tried again shortly, rather than waiting as if the employer had declined.
+    /// </summary>
+    private void CheckResurrectLanded()
+    {
+        if (_resurrectSpell == null || _resurrectSpell.State != SpellState.None || Mobile.Spell == _resurrectSpell)
+        {
+            return;
+        }
+
+        var ghost = _resurrectTarget;
+        _resurrectSpell = null;
+        _resurrectTarget = null;
+
+        if (ghost == null || ghost.Deleted)
+        {
+            return;
+        }
+
+        if (ghost == Employer && !ghost.Alive && !ghost.HasGump<ResurrectGump>())
+        {
+            NextEmployerRes = Core.TickCount + ResurrectRetryMs;
+            Companion.Speak(SpeechContext.Fizzle, urgent: true);
+        }
+        else if (ghost is BaseCompanion { IsDeadPet: true })
+        {
+            Companion.Speak(SpeechContext.Fizzle, urgent: true);
+        }
     }
 
     /// <summary>Casts if the patient is in range; otherwise walks towards them.</summary>
@@ -378,167 +458,5 @@ public sealed partial class MageCompanionAI : CompanionAI
         {
             Mobile.UseSkill(SkillName.Meditation);
         }
-    }
-
-    // ---------- Gates ----------
-
-    private bool TryEscapeGate()
-    {
-        if (_gateRefused || Party.ActiveGate != null)
-        {
-            return false;
-        }
-
-        if (OpenGate(true))
-        {
-            return true;
-        }
-
-        _gateRefused = true;
-        Companion.Speak(SpeechContext.NoGate, urgent: true);
-        return false;
-    }
-
-    private bool OpenGate(bool escape)
-    {
-        if (_gateDeadline != 0 || Party.ActiveGate != null || Magery < GateSkill || Mobile.Mana < 40 ||
-            !FindGateDestination(out var location, out var map, out var name) || !CanGate(location, map))
-        {
-            return false;
-        }
-
-        var spell = new GateTravelSpell(Mobile, new RunebookEntry(null, location, map, name));
-
-        if (!CastAt(spell, null))
-        {
-            return false;
-        }
-
-        _gateDeadline = Core.TickCount + GateWaitMs;
-        _gateIsEscape = escape;
-        _gateDestination = name;
-        return true;
-    }
-
-    /// <summary>Once the spell lands, the gate at our feet becomes the party's way out.</summary>
-    private void CheckGateOpened()
-    {
-        foreach (var item in Mobile.Map.GetItemsInRange<GateTravelMoongate>(Mobile.Location, 1))
-        {
-            _gateDeadline = 0;
-            Party.ActiveGate = item;
-            Companion.Speak(_gateIsEscape ? SpeechContext.GateEscape : SpeechContext.GateTown, _gateDestination, urgent: true);
-            return;
-        }
-
-        if (Core.TickCount - _gateDeadline >= 0)
-        {
-            _gateDeadline = 0;
-
-            if (_gateIsEscape)
-            {
-                _gateRefused = true;
-                Companion.Speak(SpeechContext.NoGate, urgent: true);
-            }
-        }
-    }
-
-    /// <summary>
-    /// A marked rune the employer has given the mage takes priority. Otherwise the nearest public
-    /// moongate on this facet, landing a couple of tiles off it.
-    /// </summary>
-    private bool FindGateDestination(out Point3D location, out Map map, out string name)
-    {
-        map = Mobile.Map;
-        name = null;
-        location = Point3D.Zero;
-
-        var pack = Mobile.Backpack;
-
-        if (pack != null)
-        {
-            foreach (var item in pack.Items)
-            {
-                if (item is RecallRune { Marked: true } rune && rune.TargetMap == map)
-                {
-                    location = rune.Target;
-                    name = string.IsNullOrEmpty(rune.Description) ? "home" : rune.Description;
-                    return true;
-                }
-            }
-        }
-
-        var list = map == Map.Trammel ? PMList.Trammel :
-            map == Map.Felucca ? PMList.Felucca :
-            map == Map.Ilshenar ? PMList.Ilshenar : null;
-
-        if (list == null)
-        {
-            return false;
-        }
-
-        PMEntry nearest = null;
-        var nearestDistance = double.MaxValue;
-
-        foreach (var entry in list.Entries)
-        {
-            var distance = Mobile.GetDistanceToSqrt(entry.Location);
-
-            if (distance < nearestDistance)
-            {
-                nearest = entry;
-                nearestDistance = distance;
-            }
-        }
-
-        if (nearest == null || !FindStandingSpot(map, nearest.Location, out location))
-        {
-            return false;
-        }
-
-        name = Region.Find(nearest.Location, map)?.Name ?? "town";
-        return true;
-    }
-
-    /// <summary>
-    /// The checks Gate Travel makes when the spell lands, made before casting so a gate that
-    /// would fail never burns reagents.
-    /// </summary>
-    private bool CanGate(Point3D location, Map map) =>
-        map == Mobile.Map &&
-        SpellHelper.CheckTravel(Mobile, TravelCheckType.GateFrom, out _) &&
-        SpellHelper.CheckTravel(Mobile, map, location, TravelCheckType.GateTo, out _) &&
-        !SpellHelper.CheckCombat(Mobile) &&
-        map.CanSpawnMobile(location.X, location.Y, location.Z) &&
-        !SpellHelper.CheckMulti(location, map);
-
-    private static bool FindStandingSpot(Map map, Point3D center, out Point3D spot)
-    {
-        for (var radius = 2; radius <= 4; radius++)
-        {
-            for (var dx = -radius; dx <= radius; dx++)
-            {
-                for (var dy = -radius; dy <= radius; dy++)
-                {
-                    if (Math.Abs(dx) != radius && Math.Abs(dy) != radius)
-                    {
-                        continue;
-                    }
-
-                    var x = center.X + dx;
-                    var y = center.Y + dy;
-                    var z = map.GetAverageZ(x, y);
-
-                    if (map.CanSpawnMobile(x, y, z))
-                    {
-                        spot = new Point3D(x, y, z);
-                        return true;
-                    }
-                }
-            }
-        }
-
-        spot = Point3D.Zero;
-        return false;
     }
 }

@@ -72,6 +72,9 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
     - Then the strongest damage spell it has the mana and reagents for. It won't break a
       paralysis nobody is fighting. Out of mana, it meditates where it stands, and between fights
       whenever the party stops.
+    - *Bless*: keeps you and the party blessed during a hunt, recasting in the lulls between
+      fights. Once a minute passes with no fighting it stops, so a walk through town costs no
+      reagents.
 - **Heal**: bandages (warrior, bard) and spells (mage) — poison first, worst wounds next, you
   slightly ahead of everyone else. Potions when they're in trouble.
 - **Revive**: skilled healers (Healing and Anatomy 80+) bring fallen companions back after a
@@ -85,9 +88,21 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
   whichever companion uses them; gear goes to whichever companion it suits. Near a banker in
   town, they deposit straight into your bank box.
 - **Ask for supplies**: they tell you when bandages, reagents or the bard's instrument run low.
-- **Gate out**: a mage (Magery 70+) opens a gate when the party is losing badly, or when
-  everyone is weighed down with loot. Step through and they follow. Give the mage a **marked
-  recall rune** to set where their gates go; otherwise it's the nearest town moongate.
+- **Gate out**: a mage (Magery 80+) opens a gate when the party is losing badly, or when
+  everyone is weighed down with loot. Step through and they follow. Where the gate leads:
+  - Every mage carries its **own runebook**, issued by the guild and empty at first. Give it
+    a blank rune and say `mark` (or `mark Minoc mine` to name it): it marks where it stands
+    and files the rune in the book. Hand it an already-marked rune and that goes in the book
+    too. The book holds 16; past that, runes stay loose in its pack.
+  - Its gates go to the book's **usual** place: the first one filed, or whichever you pick
+    with `usual <place>`. Say `gate to <place>` for any other (partial names work: "gate to
+    minoc" finds "Minoc Mine Entrance"). It only gates within the land it's in.
+  - With an empty book, the nearest town moongate (`gate to town` always means this).
+  - **If the mage dies, the runebook burns with it**, every place in it lost. It's raised with
+    a fresh, empty book. Keep your mage alive.
+  - The book can't be taken from the mage's pack. Blank runes are kept, not shared back. At 80 Magery about half of gate casts
+  fizzle; the mage tries up to three times, spending reagents on each. Resurrection (Magery
+  90+) fizzles as often at first, and the mage tries again a moment later.
 - **Keep their own space**: walking or riding, each has a place around you: the warrior at
   your right flank, the bard behind on your right, the mage behind on your left. They keep one
   clear tile between themselves, you and each other, mounted or not, but always stay within two
@@ -140,12 +155,17 @@ Address one by name (`Aldric, status`) or everyone at once (`all share`, `compan
 
 | Say | Effect |
 |---|---|
-| `status` / `report` | Party status window: level, experience, health, purse, wages |
+| `status` / `report` | Party status window: level, experience, health, purse, wages. The button by each name shows their skills |
+| `skills` / `spells` | That companion's skills, highest first. A mage also shows its chance to cast Recall, Mark, Gate Travel and Resurrection, and the places it can gate to |
 | `share` / `spoils` / `loot` | Hand over everything worth handing over now |
 | `pack` / `inventory` | Open their backpack (you can also use the context menu) |
 | `quiet` / `hush` | Stop idle chatter (they still warn you about danger) |
 | `speak freely` / `chatter` | Resume chatter |
-| `gate` / `town` | The mage opens a gate to town (or their marked rune) |
+| `gate` / `town` | The mage opens a gate to its usual place (or the nearest town if its runebook is empty) |
+| `gate to <place>` | The mage opens a gate to a runebook entry or rune by name |
+| `destinations` / `where can you gate` | The mage lists the places it can gate to |
+| `mark` / `mark <name>` | The mage marks a blank rune where it stands, naming it if you say a name, and files it in its runebook |
+| `usual <place>` | The mage's gates lead to that runebook entry from now on (`usual` alone says which it is) |
 | `dismount` | Get down and leave the mount standing where it is (e.g. before a boat) |
 | `mount up` / `ride` | Get back on |
 | `return your horse` / `give me your mount` | Hand their mount back to you (needs follower room) |

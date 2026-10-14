@@ -485,10 +485,19 @@ public abstract partial class BaseCompanion : BaseCreature
     protected T Issue<T>(T item) where T : Item
     {
         (_issuedGear ??= []).Add(item);
+        this.MarkDirty();
         return item;
     }
 
     public bool IsIssued(Item item) => _issuedGear?.Contains(item) == true;
+
+    /// <summary>Destroys a piece of the guild's kit, taking it off the list.</summary>
+    protected void DestroyIssued(Item item)
+    {
+        _issuedGear?.Remove(item);
+        item.Delete();
+        this.MarkDirty();
+    }
 
     /// <summary>
     /// Ends the contract for good. Everything the companion owns that the guild didn't issue,

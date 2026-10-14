@@ -9,11 +9,16 @@ namespace Server.Engines.Companions;
 /// Address one by name ("Aldric, status") or the whole party ("all share", "companions, quiet").
 ///
 ///   status / report        party status window
+///   skills / spells        that companion's skills (a mage also shows its casting odds)
 ///   share / spoils / loot  hand over everything worth handing over
 ///   pack / inventory       open the companion's backpack
 ///   quiet / hush           stop idle chatter (they still warn you of danger)
 ///   speak freely / chatter resume idle chatter
-///   gate / town            the mage opens a gate to the nearest town or their marked rune
+///   gate / town            the mage opens a gate to its usual destination
+///   gate to <place>        the mage opens a gate to a runebook entry or rune by name
+///   destinations           the mage lists the places it can gate to
+///   mark [name]            the mage marks a blank rune where it stands (filed in its runebook)
+///   usual <place>          the mage's gates lead to that runebook entry unless told otherwise
 ///   dismount               get down and leave the mount standing
 ///   mount up / ride        climb back on
 ///   return your horse      hand their mount back to the employer
@@ -36,6 +41,14 @@ public static class CompanionCommands
         if (Has(command, "status") || Has(command, "report"))
         {
             employer.SendGump(new CompanionStatusGump(employer));
+            return true;
+        }
+
+        if (Has(command, "skills") || Has(command, "spells") || Has(command, "abilities"))
+        {
+            employer.SendGump(
+                wholeParty ? new CompanionStatusGump(employer) : new CompanionSkillsGump(employer, companion)
+            );
             return true;
         }
 
@@ -115,16 +128,74 @@ public static class CompanionCommands
             return true;
         }
 
+        // Mark first: the name given to a rune may well contain "gate" or "town".
+        if (Verb(command, out var rest) == "mark")
+        {
+            var mage = wholeParty ? party?[CompanionRole.Mage] : companion;
+
+            if (mage?.AIObject is MageCompanionAI ai && CompanionParty.IsFighting(mage))
+            {
+                ai.RequestMark(rest);
+            }
+            else
+            {
+                companion.Say(mage is CompanionMage ? "I can't do that right now." : "Marking runes is a mage's work.");
+            }
+
+            return true;
+        }
+
+        if (Verb(command, out rest) is "usual" or "default")
+        {
+            var mage = party?[CompanionRole.Mage];
+
+            if (mage?.AIObject is MageCompanionAI ai && CompanionParty.IsFighting(mage))
+            {
+                ai.RequestUsual(rest);
+            }
+            else
+            {
+                companion.Say("We've no mage with us to open gates.");
+            }
+
+            return true;
+        }
+
+        if (Has(command, "destinations") || Has(command, "where") && Has(command, "gate"))
+        {
+            var mage = party?[CompanionRole.Mage];
+
+            if (mage?.AIObject is MageCompanionAI ai && CompanionParty.IsFighting(mage))
+            {
+                ai.SayDestinations();
+            }
+            else
+            {
+                companion.Say("We've no mage with us to open gates.");
+            }
+
+            return true;
+        }
+
         if (Has(command, "gate") || Has(command, "town"))
         {
             var mage = party?[CompanionRole.Mage];
 
-            if (mage?.AIObject is MageCompanionAI ai && CompanionParty.IsFighting(mage) && ai.RequestTownGate())
+            if (mage?.AIObject is not MageCompanionAI ai || !CompanionParty.IsFighting(mage))
             {
+                companion.Say("I can't open a gate right now.");
                 return true;
             }
 
-            (CompanionParty.IsFighting(mage) ? mage : companion).Say("I can't open a gate right now.");
+            // "gate to minoc mine" names the place; a bare "gate" or "town" goes the usual way.
+            var at = command.IndexOf("gate to ", StringComparison.OrdinalIgnoreCase);
+            var refusal = ai.RequestGate(at >= 0 ? command[(at + 8)..].Trim() : null);
+
+            if (refusal != null)
+            {
+                mage.Say(refusal);
+            }
+
             return true;
         }
 
@@ -168,6 +239,16 @@ public static class CompanionCommands
     }
 
     private static bool Has(string command, string keyword) => command.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>The command's first word, lower case, and the rest of it ("mark Minoc mine").</summary>
+    private static string Verb(string command, out string rest)
+    {
+        var text = command.TrimStart(' ', ',', ':', '!', '.');
+        var space = text.IndexOf(' ');
+
+        rest = space < 0 ? "" : text[(space + 1)..].Trim();
+        return (space < 0 ? text : text[..space]).TrimEnd(',', '!', '.', '?').ToLowerInvariant();
+    }
 
     private static void SetQuiet(BaseCompanion companion, CompanionParty party, bool wholeParty, bool quiet)
     {

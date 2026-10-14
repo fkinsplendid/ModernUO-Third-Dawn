@@ -1281,4 +1281,252 @@ public class CompanionTests : IDisposable
             employer.Delete();
         }
     }
+
+    [Fact]
+    public void SkillsWindow_CastChance_MatchesThirdDawnSpellOdds()
+    {
+        var companion = new CompanionMage();
+
+        try
+        {
+            // Pre-ML, Mark (sixth circle) runs 50-90 and Gate Travel (seventh) 60-100.
+            Assert.Equal(0.5, MageCompanionAI.CastChance(new Server.Spells.Sixth.MarkSpell(companion), 70.0), 3);
+            Assert.Equal(0.25, MageCompanionAI.CastChance(new Server.Spells.Seventh.GateTravelSpell(companion), 70.0), 3);
+            Assert.Equal(0.0, MageCompanionAI.CastChance(new Server.Spells.Seventh.GateTravelSpell(companion), 40.0), 3);
+            Assert.Equal(1.0, MageCompanionAI.CastChance(new Server.Spells.Sixth.MarkSpell(companion), 100.0), 3);
+        }
+        finally
+        {
+            companion.Delete();
+        }
+    }
+
+    [Fact]
+    public void Mark_NeedsABlankRune_ThenCastsOnIt()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionMage();
+
+        try
+        {
+            companion.BeginService(employer);
+
+            // The usual test spot is in the dungeon block, where Mark is forbidden. Britain will do.
+            companion.MoveToWorld(new Point3D(1450, 1650, 10), Map.Trammel);
+            companion.Skills.Magery.Cap = 100.0;
+            companion.Skills.Magery.Base = 100.0;
+            companion.Mana = companion.ManaMax;
+            companion.Backpack.DropItem(new BlackPearl(10));
+            companion.Backpack.DropItem(new Bloodmoss(10));
+            companion.Backpack.DropItem(new MandrakeRoot(10));
+
+            var ai = (MageCompanionAI)companion.AIObject;
+
+            // No blank rune yet.
+            ai.RequestMark(null);
+            Assert.Null(companion.Spell);
+
+            companion.Backpack.DropItem(new RecallRune());
+            ai.RequestMark(null);
+            Assert.IsType<Server.Spells.Sixth.MarkSpell>(companion.Spell);
+        }
+        finally
+        {
+            companion.Delete();
+            employer.Delete();
+        }
+    }
+
+    // ---------- Gate destinations ----------
+
+    private static readonly Point3D Britain = new(1450, 1650, 10);
+
+    private static RecallRune MarkedRune(string name, Point3D at, Map map)
+    {
+        var rune = new RecallRune { Marked = true, Target = at, TargetMap = map, Description = name };
+        return rune;
+    }
+
+    /// <summary>Hands the mage marked runes, which it files into its own runebook.</summary>
+    private static void FileRunes(CompanionMage mage, params (string Name, Point3D At)[] places)
+    {
+        foreach (var (name, at) in places)
+        {
+            Assert.True(mage.FileRune(MarkedRune(name, at, Map.Trammel)));
+        }
+    }
+
+    private static CompanionMage HireMageInBritain(PlayerMobile employer)
+    {
+        var mage = new CompanionMage();
+        mage.BeginService(employer);
+        mage.MoveToWorld(Britain, Map.Trammel);
+        return mage;
+    }
+
+    [Fact]
+    public void Mage_IsIssuedAnEmptyRunebook_ThatTheEmployerCannotTake()
+    {
+        var employer = CreateEmployer();
+        var mage = HireMageInBritain(employer);
+
+        try
+        {
+            var book = mage.Runebook;
+
+            Assert.NotNull(book);
+            Assert.Empty(book.Entries);
+            Assert.Same(mage.Backpack, book.Parent);
+            Assert.False(mage.CheckNonlocalLift(employer, book));
+        }
+        finally
+        {
+            mage.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void FiledRunes_GoIntoTheBook_FirstBecomesTheDefault()
+    {
+        var employer = CreateEmployer();
+        var mage = HireMageInBritain(employer);
+
+        try
+        {
+            var ai = (MageCompanionAI)mage.AIObject;
+            var rune = MarkedRune("Minoc Mine Entrance", new Point3D(2500, 500, 0), Map.Trammel);
+            mage.Backpack.DropItem(rune);
+
+            Assert.True(mage.FileRune(rune));
+            Assert.True(rune.Deleted);
+
+            FileRunes(mage, ("Yew Gate", new Point3D(500, 1000, 0)));
+
+            Assert.Equal(2, mage.Runebook.Entries.Count);
+            Assert.True(ai.FindGateDestination(out var place));
+            Assert.Equal("Minoc Mine Entrance", place.Name);
+
+            ai.RequestUsual("yew");
+
+            Assert.True(ai.FindGateDestination(out place));
+            Assert.Equal("Yew Gate", place.Name);
+        }
+        finally
+        {
+            mage.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void FullRunebook_LeavesTheRuneLoose_AndGatesPreferTheBookDefault()
+    {
+        var employer = CreateEmployer();
+        var mage = HireMageInBritain(employer);
+
+        try
+        {
+            var ai = (MageCompanionAI)mage.AIObject;
+
+            for (var i = 0; i < CompanionMage.RunebookCapacity; i++)
+            {
+                FileRunes(mage, ($"Spot {i}", new Point3D(1000 + i, 1000, 0)));
+            }
+
+            var extra = MarkedRune("Overflow", new Point3D(1200, 1200, 0), Map.Trammel);
+            mage.Backpack.DropItem(extra);
+
+            Assert.False(mage.FileRune(extra));
+            Assert.False(extra.Deleted);
+            Assert.True(ai.FindGateDestination(out var place));
+            Assert.Equal("Spot 0", place.Name);
+        }
+        finally
+        {
+            mage.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void GateTo_MatchesRunebookEntriesByName()
+    {
+        var employer = CreateEmployer();
+        var mage = HireMageInBritain(employer);
+
+        try
+        {
+            var ai = (MageCompanionAI)mage.AIObject;
+
+            FileRunes(
+                mage,
+                ("Minoc Mine Entrance", new Point3D(2500, 500, 0)),
+                ("Minoc", new Point3D(2510, 560, 0)),
+                ("Shame dungeon", new Point3D(510, 1560, 0))
+            );
+
+            Assert.Equal("Minoc", ai.FindNamedDestination("minoc")?.Name);
+            Assert.Equal("Minoc Mine Entrance", ai.FindNamedDestination("minoc mine")?.Name);
+            Assert.Equal("Minoc Mine Entrance", ai.FindNamedDestination("mine minoc")?.Name);
+            Assert.Equal("Shame dungeon", ai.FindNamedDestination("SHAME")?.Name);
+            Assert.Null(ai.FindNamedDestination("despise"));
+        }
+        finally
+        {
+            mage.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Death_DestroysTheRunebook_RevivalIssuesAnEmptyOne()
+    {
+        var employer = CreateEmployer();
+        var mage = HireMageInBritain(employer);
+
+        try
+        {
+            FileRunes(mage, ("Minoc", new Point3D(2510, 560, 0)));
+            var book = mage.Runebook;
+
+            mage.Kill();
+
+            Assert.True(mage.IsDeadPet);
+            Assert.True(book.Deleted);
+            Assert.Null(mage.Runebook);
+            Assert.False(mage.IsIssued(book));
+
+            mage.ResurrectPet();
+
+            Assert.NotNull(mage.Runebook);
+            Assert.NotSame(book, mage.Runebook);
+            Assert.Empty(mage.Runebook.Entries);
+        }
+        finally
+        {
+            mage.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Mage_KeepsRunes_WhenSharing()
+    {
+        var mage = new CompanionMage();
+        var warrior = new CompanionWarrior();
+        var rune = new RecallRune();
+
+        try
+        {
+            Assert.True(mage.IsOwnSupply(rune));
+            Assert.False(warrior.IsOwnSupply(rune));
+        }
+        finally
+        {
+            rune.Delete();
+            mage.Delete();
+            warrior.Delete();
+        }
+    }
 }

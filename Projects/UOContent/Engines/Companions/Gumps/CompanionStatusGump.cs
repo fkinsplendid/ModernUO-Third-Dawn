@@ -3,7 +3,10 @@ using Server.Network;
 
 namespace Server.Engines.Companions;
 
-/// <summary>One row per hired companion: level, experience, health, wages and where they are.</summary>
+/// <summary>
+/// One row per hired companion: level, experience, health, wages and where they are, with a
+/// button for their skills.
+/// </summary>
 public class CompanionStatusGump : DynamicGump
 {
     private const int Width = 520;
@@ -64,7 +67,8 @@ public class CompanionStatusGump : DynamicGump
             var xp = c.ExperienceToNextLevel > 0 ? $"{c.Experience * 100 / c.ExperienceToNextLevel}%" : "max";
             var days = c.DailyWage > 0 ? c.Purse / (double)c.DailyWage : 0;
 
-            builder.AddHtml(20, y, 300, 20, $"{c.Name} {c.Title}", "#FFFFFF", 4);
+            builder.AddButton(20, y, 4011, 4013, 1 + (int)c.Role);
+            builder.AddHtml(55, y, 265, 20, $"{c.Name} {c.Title}", "#FFFFFF", 4);
             builder.AddHtml(330, y, Width - 350, 20, where, c.IsDeadPet ? "#FF4040" : "#80FF80", 4, align: TextAlignment.Right);
 
             builder.AddHtml(20, y + 20, 250, 20, $"Level {c.Level}  (next: {xp})   Kills: {c.Kills}", "#C0C0C0");
@@ -84,5 +88,16 @@ public class CompanionStatusGump : DynamicGump
 
     public override void OnResponse(NetState sender, in RelayInfo info)
     {
+        var role = (CompanionRole)(info.ButtonID - 1);
+
+        if (info.ButtonID == 0 || role > CompanionRole.Mage || _employer.Deleted)
+        {
+            return;
+        }
+
+        if (CompanionSystem.GetCompanion(_employer, role) is { } companion)
+        {
+            _employer.SendGump(new CompanionSkillsGump(_employer, companion));
+        }
     }
 }

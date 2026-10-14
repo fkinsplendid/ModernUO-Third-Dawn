@@ -1,0 +1,133 @@
+COMPANIONS UPDATE - 14 October 2026
+===================================
+
+What's new for players, and how to use it. Say the commands out loud
+near your companions, starting with a companion's name ("Aldric, skills")
+or "all" for the whole party. The full guide is in COMPANIONS.md.
+
+
+1. SEEING YOUR COMPANIONS' SKILLS
+---------------------------------
+
+  <name> skills       Opens that companion's skills window.
+  (also: spells, abilities)
+
+  all status          The party window now has a button next to each
+                      name that opens their skills. The skills window
+                      has a back button to the party window.
+
+The skills window lists every skill they have trained, highest first,
+as current value against cap (e.g. Magery 82.4 / 100).
+
+For a mage it also shows:
+
+  - Chance to cast Recall, Mark, Gate Travel and Resurrection, in
+    colour: green is a reliable cast (75%+), yellow is a gamble, red is
+    not yet possible.
+  - Whether the mage will cast them for you, or the Magery it needs.
+  - Every place the mage can open a gate to (see section 4).
+
+
+2. THE MAGE NO LONGER WASTES REAGENTS ON BLESS
+----------------------------------------------
+
+The mage used to keep Bless up on everyone at all times, even walking
+around town. Now it only blesses during a hunt: in the quiet moments
+between fights. Once a minute passes with no fighting, it stops.
+
+Nothing to do. You should just need fewer reagents.
+
+
+3. GATE AND RESURRECTION: NEW SKILL LEVELS AND RETRIES
+------------------------------------------------------
+
+  Gate Travel    now needs Magery 80 (was 70)
+  Resurrection   now needs Magery 90 (was 80)
+
+At these levels about half of casts fizzle, and a fizzle still uses
+up the reagents, just as it does for a player. So the mage tries again:
+
+  - Gates: up to 3 attempts ("Blast, it fizzled! Again..."), then it
+    gives up and says so.
+  - Resurrection on you: if it fizzles, the mage tries again a couple
+    of seconds later. If you decline the offer, it waits 30 seconds
+    before asking again.
+
+Note: a mage with Magery between 70 and 79 can't open gates any more
+until it reaches 80. Check with "<name> skills".
+
+
+4. THE MAGE'S RUNEBOOK
+----------------------
+
+Every mage now carries its own runebook, given by the guild. It starts
+empty. You fill it by giving the mage recall runes.
+
+  Filling the book
+    Give the mage a blank recall rune, then say:
+
+      <name> mark                 Marks the spot where the mage stands.
+      <name> mark Minoc mine      Same, and names the place.
+
+    The mage marks the rune and files it in the book. It needs Magery
+    50+ to have any chance, plus black pearl, blood moss and mandrake
+    root. In a fight, in a dungeon, inside a house or anywhere Mark
+    isn't allowed, it tells you why and spends nothing. If the spell
+    fizzles, the rune stays blank; just ask again.
+
+    You can also hand over runes you've already marked yourself. They
+    go straight into the mage's book.
+
+    The book holds 16 places. After that, new runes stay loose in the
+    mage's pack.
+
+  Opening gates
+      <name> gate                 Gate to the mage's usual place.
+      <name> gate to minoc        Gate to a named place in the book.
+      <name> gate to town         Gate to the nearest town moongate.
+
+    Names don't have to be exact: "gate to minoc" finds "Minoc", and
+    "gate to mine minoc" finds "Minoc Mine Entrance". The mage can only
+    gate within the land it's in (Trammel, Felucca, Ilshenar).
+
+    When the party is losing badly, the mage opens an escape gate to
+    its usual place by itself.
+
+  The usual place
+      <name> usual                Says which place is the usual.
+      <name> usual yew gate       Makes that place the usual.
+
+    The first place filed in the book becomes the usual one. With an
+    empty book, gates go to the nearest town.
+
+  Seeing what's in the book
+      <name> destinations         The mage lists every place it knows.
+      (also: "where can you gate")
+
+    The skills window lists them too.
+
+  IF THE MAGE DIES, THE RUNEBOOK BURNS.
+    The book and every place in it are gone for good. When the mage is
+    raised it gets a new, empty book from the guild and you start
+    again. Keep your mage alive!
+
+  Other things to know
+    - You can't take the book out of the mage's pack.
+    - Runebooks can't be opened while a companion carries them, which
+      is why you pick the usual place by voice.
+    - The mage keeps blank runes when it shares loot.
+    - The mage only uses its own book. If you give it yours, it hands
+      it back with the loot.
+
+
+QUICK REFERENCE
+---------------
+
+  <name> skills             Skills window (mage: cast chances, places)
+  all status                Party window, with a skills button per name
+  <name> mark [name]        Mark a blank rune and file it in the book
+  <name> gate               Gate to the usual place
+  <name> gate to <place>    Gate to a named place
+  <name> gate to town       Gate to the nearest town
+  <name> usual [place]      Say or change the usual place
+  <name> destinations       List the places the mage can gate to

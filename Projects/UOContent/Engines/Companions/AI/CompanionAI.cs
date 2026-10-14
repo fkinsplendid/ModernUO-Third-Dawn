@@ -36,6 +36,7 @@ public abstract partial class CompanionAI : BaseAI
     private IPoint3D _spellTarget;
     private SpellInfo _spellReagents;
     private bool _inCombat;
+    private long _lastThreatSeen;
     private bool _warnedLowHealth;
     private bool _warnedEmployerHurt;
 
@@ -49,6 +50,9 @@ public abstract partial class CompanionAI : BaseAI
 
     /// <summary>Everything currently fighting the party, gathered at most every few hundred ms.</summary>
     protected List<Mobile> Threats => _threats;
+
+    /// <summary>True if anything has threatened the party within the last <paramref name="ms"/> milliseconds.</summary>
+    protected bool FoughtWithin(int ms) => _lastThreatSeen != 0 && Core.TickCount - _lastThreatSeen < ms;
 
     /// <summary>Combined health of the employer and living companions, 0 to 1.</summary>
     protected double PartyHealth { get; private set; } = 1.0;
@@ -174,6 +178,11 @@ public abstract partial class CompanionAI : BaseAI
                 partyHits += member.Hits;
                 partyMax += member.HitsMax;
             }
+        }
+
+        if (_threats.Count > 0)
+        {
+            _lastThreatSeen = now;
         }
 
         var enemyHits = 0;
@@ -420,6 +429,9 @@ public abstract partial class CompanionAI : BaseAI
     /// </summary>
     protected bool CastAt(Spell spell, Mobile target) => BeginCast(spell, target);
 
+    /// <summary>Starts casting a spell aimed at an item in the companion's own pack (Mark on a rune).</summary>
+    protected bool CastOnItem(Spell spell, Item target) => BeginCast(spell, target);
+
     /// <summary>Starts casting a spell aimed at the ground (a field, a teleport).</summary>
     protected bool CastAtLocation(Spell spell, Point3D location) => BeginCast(spell, new LandTarget(location, Mobile.Map));
 
@@ -500,11 +512,15 @@ public abstract partial class CompanionAI : BaseAI
 
         var stillThere = intended switch
         {
-            Mobile m => !m.Deleted && m.Map == Mobile.Map && Mobile.CanSee(m),
-            _        => intended != null
+            Mobile m  => !m.Deleted && m.Map == Mobile.Map && Mobile.CanSee(m),
+            Item item => !item.Deleted && item.IsChildOf(Mobile.Backpack),
+            _         => intended != null
         };
 
-        if (stillThere && Mobile.InLOS(intended) && (target.Range < 0 || Mobile.InRange(intended, target.Range)))
+        // An item in our own pack is always in reach; its location is relative to the pack.
+        var inReach = intended is Item || target.Range < 0 || Mobile.InRange(intended, target.Range);
+
+        if (stillThere && Mobile.InLOS(intended) && inReach)
         {
             ConsumeReagents(reagents);
             target.Invoke(Mobile, intended);

@@ -39,6 +39,7 @@ public enum SpeechContext
     GateTown,
     ThroughTheGate,
     NoGate,
+    Fizzle,
     CannotCarry,
     GhostPlea,
     GhostAsksStaff,
@@ -254,6 +255,12 @@ public static class CompanionSpeech
             "Something blocks my gate magic here!",
             "I can't open a gate in this place. Fall back!",
             "The gate won't form. Run!"
+        );
+        Common(SpeechContext.Fizzle,
+            "Blast, it fizzled! Again...",
+            "The words slipped. Once more!",
+            "Hold on, let me try that again.",
+            "Curses, lost the thread of it. Again!"
         );
         Common(SpeechContext.CannotCarry,
             "Your pack's too heavy, {owner}. I'll hold onto this for now.",
