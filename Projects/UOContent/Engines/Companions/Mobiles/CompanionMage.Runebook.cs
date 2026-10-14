@@ -69,6 +69,7 @@ public partial class CompanionMage
 
         if (dropped is RecallRune { Marked: true, Deleted: false } rune)
         {
+            (AIObject as MageCompanionAI)?.NameRune(rune, null);
             var place = MageCompanionAI.PlaceName(rune.Description);
 
             if (FileRune(rune))

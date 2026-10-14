@@ -1529,4 +1529,121 @@ public class CompanionTests : IDisposable
             warrior.Delete();
         }
     }
+
+    [Theory]
+    [InlineData("rune", null)]
+    [InlineData("this rune", null)]
+    [InlineData("here please", null)]
+    [InlineData("Minoc mine", "Minoc mine")]
+    [InlineData("this rune as Minoc mine", "Minoc mine")]
+    [InlineData("the rune, called Yew gate.", "Yew gate")]
+    [InlineData("it as the Shame entrance", "Shame entrance")]
+    public void MarkName_IgnoresFillerWords(string said, string expected) =>
+        Assert.Equal(expected, MageCompanionAI.CleanRuneName(said));
+
+    [Fact]
+    public void NameRune_KeepsNamesUniqueInTheBook()
+    {
+        var employer = CreateEmployer();
+        var mage = HireMageInBritain(employer);
+
+        try
+        {
+            var ai = (MageCompanionAI)mage.AIObject;
+            FileRunes(mage, ("Minoc", new Point3D(2510, 560, 0)));
+
+            var rune = MarkedRune(null, new Point3D(2520, 560, 0), Map.Trammel);
+            ai.NameRune(rune, "minoc");
+
+            Assert.Equal("minoc 2", rune.Description);
+            rune.Delete();
+        }
+        finally
+        {
+            mage.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void DescribeWhereabouts_GivesABearingFromTheNearestTown()
+    {
+        // The test host loads no region data; stand up a town to measure from.
+        var town = new Server.Regions.TownRegion(
+            "Testville",
+            Map.Trammel,
+            50,
+            new Rectangle3D(new Point3D(2000, 2000, -128), new Point3D(2100, 2100, 128))
+        ) { GoLocation = new Point3D(2050, 2050, 0) };
+        town.Register();
+
+        try
+        {
+            Assert.Equal("Testville", MageCompanionAI.DescribeWhereabouts(new Point3D(2050, 2050, 0), Map.Trammel));
+            Assert.Equal("Outside Testville", MageCompanionAI.DescribeWhereabouts(new Point3D(2050, 2130, 0), Map.Trammel));
+            Assert.Equal("North of Testville", MageCompanionAI.DescribeWhereabouts(new Point3D(2060, 1850, 0), Map.Trammel));
+            Assert.Equal("South-east of Testville", MageCompanionAI.DescribeWhereabouts(new Point3D(2200, 2200, 0), Map.Trammel));
+        }
+        finally
+        {
+            town.Unregister();
+        }
+    }
+
+    [Fact]
+    public void Companions_StepAroundPoisonFields()
+    {
+        var employer = CreateEmployer();
+        var mage = HireMageInBritain(employer);
+        var fields = new System.Collections.Generic.List<Item>();
+
+        void PoisonAt(int dx, int dy)
+        {
+            var field = new Server.Spells.Fifth.PoisonField(0x3915, Point3D.Zero, mage, Map.Trammel, TimeSpan.FromMinutes(1), 0);
+            field.MoveToWorld(new Point3D(Britain.X + dx, Britain.Y + dy, Britain.Z), Map.Trammel);
+            fields.Add(field);
+        }
+
+        try
+        {
+            var ai = (CompanionAI)mage.AIObject;
+            var d = Direction.East | Direction.Running;
+
+            Assert.True(ai.AvoidFields(ref d));
+            Assert.Equal(Direction.East | Direction.Running, d);
+
+            // Poison straight ahead: veer north-east, still running.
+            PoisonAt(1, 0);
+            d = Direction.East | Direction.Running;
+            Assert.True(ai.AvoidFields(ref d));
+            Assert.Equal(Direction.Right | Direction.Running, d);
+
+            // North-east too: veer south-east.
+            PoisonAt(1, -1);
+            d = Direction.East;
+            Assert.True(ai.AvoidFields(ref d));
+            Assert.Equal(Direction.Down, d);
+
+            // A wall of it: wait.
+            PoisonAt(1, 1);
+            d = Direction.East;
+            Assert.False(ai.AvoidFields(ref d));
+            Assert.Equal(MoveResult.Blocked, ai.DoMoveImpl(Direction.East, false));
+
+            // Standing in it: any way out will do.
+            mage.Location = new Point3D(Britain.X + 1, Britain.Y, Britain.Z);
+            d = Direction.East;
+            Assert.True(ai.AvoidFields(ref d));
+        }
+        finally
+        {
+            foreach (var field in fields)
+            {
+                field.Delete();
+            }
+
+            mage.Delete();
+            employer.Delete();
+        }
+    }
 }

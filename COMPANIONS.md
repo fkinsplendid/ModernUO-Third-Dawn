@@ -92,7 +92,10 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
   everyone is weighed down with loot. Step through and they follow. Where the gate leads:
   - Every mage carries its **own runebook**, issued by the guild and empty at first. Give it
     a blank rune and say `mark` (or `mark Minoc mine` to name it): it marks where it stands
-    and files the rune in the book. Hand it an already-marked rune and that goes in the book
+    and files the rune in the book. Unnamed, the mage writes where it is: the region's name,
+    "Outside Minoc" near a town, or "North-east of Minoc" in the wilds. Filler is ignored
+    ("mark this rune as Minoc mine" names it "Minoc mine"); a name already in the book gets a
+    number ("Minoc 2"). Hand it an already-marked rune and that goes in the book
     too. The book holds 16; past that, runes stay loose in its pack.
   - Its gates go to the book's **usual** place: the first one filed, or whichever you pick
     with `usual <place>`. Say `gate to <place>` for any other (partial names work: "gate to
@@ -103,6 +106,8 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
   - The book can't be taken from the mage's pack. Blank runes are kept, not shared back. At 80 Magery about half of gate casts
   fizzle; the mage tries up to three times, spending reagents on each. Resurrection (Magery
   90+) fizzles as often at first, and the mage tries again a moment later.
+- **Mind the fields**: no companion walks into a fire, poison or paralysis field, theirs or
+  the enemy's. They step around it, or wait if it blocks the way; caught in one, they walk out.
 - **Keep their own space**: walking or riding, each has a place around you: the warrior at
   your right flank, the bard behind on your right, the mage behind on your left. They keep one
   clear tile between themselves, you and each other, mounted or not, but always stay within two

@@ -3,6 +3,9 @@ using Server.Items;
 using Server.Mobiles;
 using Server.Regions;
 using Server.Spells;
+using Server.Spells.Fifth;
+using Server.Spells.Fourth;
+using Server.Spells.Sixth;
 using Server.Targeting;
 
 namespace Server.Engines.Companions;
@@ -817,9 +820,18 @@ public abstract partial class CompanionAI : BaseAI
 
     // ---------- Movement ----------
 
-    /// <summary>Hurries to keep up when the employer pulls ahead, as anyone would.</summary>
+    /// <summary>
+    /// Hurries to keep up when the employer pulls ahead, as anyone would. Never steps into a fire,
+    /// poison or paralysis field: sidesteps it if a neighbouring step is clear, otherwise waits.
+    /// Standing in one already, any step out will do.
+    /// </summary>
     public override MoveResult DoMoveImpl(Direction d, bool badStateOk)
     {
+        if (!AvoidFields(ref d))
+        {
+            return MoveResult.Blocked;
+        }
+
         var result = base.DoMoveImpl(d, badStateOk);
 
         if (result == MoveResult.Success && Mobile.Hits >= Mobile.HitsMax * 0.3 && Employer is { } employer &&
@@ -829,6 +841,64 @@ public abstract partial class CompanionAI : BaseAI
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Turns a step that would land in a field to the left or right, keeping the pace. False if
+    /// all three are fields. Any step goes when already standing in one.
+    /// </summary>
+    internal bool AvoidFields(ref Direction d)
+    {
+        if (IsFieldAt(Mobile.Location) || !IsFieldAt(Step(d)))
+        {
+            return true;
+        }
+
+        var running = d & Direction.Running;
+        var left = (Direction)(((int)d - 1) & 7) | running;
+        var right = (Direction)(((int)d + 1) & 7) | running;
+
+        if (!IsFieldAt(Step(left)))
+        {
+            d = left;
+            return true;
+        }
+
+        if (!IsFieldAt(Step(right)))
+        {
+            d = right;
+            return true;
+        }
+
+        return false;
+    }
+
+    private Point3D Step(Direction d)
+    {
+        var p = Mobile.Location;
+        Server.Movement.Movement.Offset(d, ref p);
+        return p;
+    }
+
+    /// <summary>A field that hurts or holds whoever walks into it, friend or foe.</summary>
+    protected bool IsFieldAt(Point3D p)
+    {
+        var map = Mobile.Map;
+
+        if (map == null || map == Map.Internal)
+        {
+            return false;
+        }
+
+        foreach (var item in map.GetItemsAt(p))
+        {
+            if (item is PoisonField or FireFieldItem or ParalyzeField)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>Walks or runs towards an item (corpse, gate). Pathfinds around obstacles.</summary>

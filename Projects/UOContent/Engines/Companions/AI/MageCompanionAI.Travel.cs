@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Server.Items;
+using Server.Regions;
 using Server.Spells;
 using Server.Spells.Seventh;
 using Server.Spells.Sixth;
@@ -463,7 +464,7 @@ public sealed partial class MageCompanionAI
 
         _markSpell = spell;
         _markRune = rune;
-        _markName = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
+        _markName = CleanRuneName(name);
     }
 
     private string MarkRefusal(MarkSpell spell, out RecallRune rune)
@@ -509,6 +510,159 @@ public sealed partial class MageCompanionAI
         }
 
         return null;
+    }
+
+    private static readonly HashSet<string> _fillerWords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "a", "an", "the", "this", "that", "it", "my", "our", "rune", "runes", "here", "spot", "place",
+        "location", "please", "now", "for", "me", "us", "as", "called", "named", "and", "name"
+    };
+
+    /// <summary>
+    /// The name in "mark this rune as Minoc mine", without the filler around it. Null if nothing is
+    /// left ("mark rune", "mark here").
+    /// </summary>
+    internal static string CleanRuneName(string said)
+    {
+        if (string.IsNullOrWhiteSpace(said))
+        {
+            return null;
+        }
+
+        var words = said.Trim().TrimEnd('.', '!', '?').Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var start = 0;
+
+        while (start < words.Length && _fillerWords.Contains(words[start].Trim(',', ':')))
+        {
+            start++;
+        }
+
+        return start < words.Length ? string.Join(' ', words, start, words.Length - start).Trim(',', ':', ' ') : null;
+    }
+
+    /// <summary>
+    /// Names a marked rune before it goes in the book: the name given, else its own description,
+    /// else where it leads in words. Mark only names runes in the few regions that carry a rune
+    /// name, so most need the mage to write one, as a player would. Numbered if already taken.
+    /// </summary>
+    internal void NameRune(RecallRune rune, string name)
+    {
+        var description = name ??
+                          (string.IsNullOrWhiteSpace(rune.Description) ? null : rune.Description.Trim()) ??
+                          DescribeWhereabouts(rune.Target, rune.TargetMap);
+
+        rune.Description = UniqueName(description);
+    }
+
+    /// <summary>
+    /// A place in words: the named region it's in, else the direction from the nearest town
+    /// ("North-east of Minoc"), or "Outside Minoc" within a short walk of its edge.
+    /// </summary>
+    internal static string DescribeWhereabouts(Point3D at, Map map)
+    {
+        if (map == null || map == Map.Internal)
+        {
+            return null;
+        }
+
+        for (var region = Region.Find(at, map); region != null; region = region.Parent)
+        {
+            if (!string.IsNullOrWhiteSpace(region.Name) && region != map.DefaultRegion)
+            {
+                return region.Name;
+            }
+        }
+
+        Region town = null;
+        var townDistance = double.MaxValue;
+
+        foreach (var region in map.Regions.Values)
+        {
+            if (region is TownRegion && !string.IsNullOrWhiteSpace(region.Name) && region.GoLocation != Point3D.Zero)
+            {
+                var distance = DistanceToArea(at, region);
+
+                if (distance < townDistance)
+                {
+                    town = region;
+                    townDistance = distance;
+                }
+            }
+        }
+
+        if (town == null)
+        {
+            return null;
+        }
+
+        if (townDistance <= OutsideTownRange)
+        {
+            return $"Outside {town.Name}";
+        }
+
+        var dx = at.X - town.GoLocation.X;
+        var dy = at.Y - town.GoLocation.Y;
+
+        // Map Y grows southwards.
+        var northSouth = dy < 0 ? "North" : "South";
+        var eastWest = dx > 0 ? "East" : "West";
+
+        var bearing = Math.Abs(dx) > 2 * Math.Abs(dy) ? eastWest :
+            Math.Abs(dy) > 2 * Math.Abs(dx) ? northSouth :
+            $"{northSouth}-{eastWest.ToLowerInvariant()}";
+
+        return $"{bearing} of {town.Name}";
+    }
+
+    private const int OutsideTownRange = 40;
+
+    /// <summary>Tiles from <paramref name="at"/> to the nearest edge of the region; 0 inside it.</summary>
+    private static double DistanceToArea(Point3D at, Region region)
+    {
+        var best = double.MaxValue;
+
+        foreach (var rect in region.Area)
+        {
+            var dx = Math.Max(Math.Max(rect.Start.X - at.X, 0), at.X - (rect.End.X - 1));
+            var dy = Math.Max(Math.Max(rect.Start.Y - at.Y, 0), at.Y - (rect.End.Y - 1));
+            best = Math.Min(best, Math.Sqrt(dx * dx + dy * dy));
+        }
+
+        return best;
+    }
+
+    /// <summary>Adds a number if the book already holds a place of that name ("Minoc 2").</summary>
+    private string UniqueName(string name)
+    {
+        if (name == null)
+        {
+            return null;
+        }
+
+        var known = new List<GateDestination>();
+        KnownDestinations(known);
+
+        var candidate = name;
+
+        for (var n = 2; Contains(known, candidate); n++)
+        {
+            candidate = $"{name} {n}";
+        }
+
+        return candidate;
+
+        static bool Contains(List<GateDestination> places, string name)
+        {
+            foreach (var place in places)
+            {
+                if (place.Name.InsensitiveEquals(name))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     private RecallRune FindBlankRune()
@@ -560,10 +714,7 @@ public sealed partial class MageCompanionAI
             return;
         }
 
-        if (name != null)
-        {
-            rune.Description = name;
-        }
+        NameRune(rune, name);
 
         var place = PlaceName(rune.Description);
 
