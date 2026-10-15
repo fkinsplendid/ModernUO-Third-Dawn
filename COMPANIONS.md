@@ -108,6 +108,9 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
   - Asked for a gate, the mage only uses its own runes. `town` or `gate to town` opens one to
     the nearest public moongate ("Yew moongate"). When it gates on its own (escaping a lost
     fight, or heading to town laden with loot) and has no rune to use, it picks the nearest moongate.
+  - Say `runebook` to read the book over the mage's shoulder: each place with a hint of where it
+    is ("Outside Britain"). Write over a name and press save to rename it, or press the button
+    beside a place to make it the usual. You can't travel with the mage's book yourself.
   - **If the mage dies, the runebook burns with it**, every place in it lost. It's raised with
     a fresh, empty book. Keep your mage alive.
   - The book can't be taken from the mage's pack. Blank runes are kept, not shared back. At 80 Magery about half of gate casts
@@ -177,6 +180,7 @@ Address one by name (`Aldric, status`) or everyone at once (`all share`, `compan
 | `gate <place>` / `gate to <place>` | The mage opens a gate to a runebook entry or rune by name |
 | `town` / `gate to town` | The mage opens a gate to the nearest public moongate |
 | `destinations` / `where can you gate` | The mage lists the places it can gate to |
+| `runebook` / `runes` | Read the mage's runebook: rename places and pick the usual one (also a button on the mage's skills window) |
 | `mark` / `mark <name>` | The mage marks a blank rune where it stands, naming it if you say a name, and files it in its runebook |
 | `usual <place>` | The mage's gates lead to that runebook entry from now on (`usual` alone says which it is) |
 | `dismount` | Get down and leave the mount standing where it is (e.g. before a boat) |

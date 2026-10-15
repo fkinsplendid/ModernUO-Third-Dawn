@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Server;
 using Server.Engines.Companions;
+using Server.Gumps;
 using Server.Items;
 using Server.Mobiles;
 using Xunit;
@@ -1609,6 +1611,58 @@ public class CompanionTests : IDisposable
             mage.Delete();
             employer.Delete();
         }
+    }
+
+    [Fact]
+    public void RunebookGump_RenamesPlaces_AndPicksTheUsual()
+    {
+        var employer = CreateEmployer();
+        var mage = HireMageInBritain(employer);
+
+        try
+        {
+            employer.MoveToWorld(mage.Location, mage.Map);
+            FileRunes(mage, ("rune", new Point3D(1312, 1081, 0)), ("rune brit bank", new Point3D(1435, 1699, 2)));
+
+            var book = mage.Runebook;
+            var gump = new CompanionRunebookGump(employer, mage, book);
+
+            // Rename the second place; a blank answer leaves the first alone.
+            RespondTo(gump, 1, ("", 0), ("Britain west bank", 1));
+
+            Assert.Equal("rune", book.Entries[0].Description);
+            Assert.Equal("Britain west bank", book.Entries[1].Description);
+            Assert.Same(book.Entries[0], book.Default);
+
+            // The second "make usual" button.
+            RespondTo(new CompanionRunebookGump(employer, mage, book), 101, ("Despise", 0), ("Britain west bank", 1));
+
+            Assert.Equal("Despise", book.Entries[0].Description);
+            Assert.Same(book.Entries[1], book.Default);
+            Assert.Equal("Britain west bank", ((MageCompanionAI)mage.AIObject).FindNamedDestination("west bank")?.Name);
+        }
+        finally
+        {
+            mage.Delete();
+            employer.Delete();
+        }
+    }
+
+    private static void RespondTo(BaseGump gump, int button, params (string Text, ushort Id)[] entries)
+    {
+        var block = new List<byte>();
+        var ids = new ushort[entries.Length];
+        var ranges = new Range[entries.Length];
+
+        for (var i = 0; i < entries.Length; i++)
+        {
+            var bytes = System.Text.Encoding.BigEndianUnicode.GetBytes(entries[i].Text);
+            ids[i] = entries[i].Id;
+            ranges[i] = new Range(block.Count, block.Count + bytes.Length);
+            block.AddRange(bytes);
+        }
+
+        gump.OnResponse(null, new RelayInfo(button, [], ids, ranges, block.ToArray()));
     }
 
     [Fact]

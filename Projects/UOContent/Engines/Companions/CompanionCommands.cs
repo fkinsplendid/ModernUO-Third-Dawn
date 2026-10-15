@@ -18,6 +18,7 @@ namespace Server.Engines.Companions;
 ///   gate [to] <place>      the mage opens a gate to a runebook entry or rune by name
 ///   town / gate to town    the mage opens a gate to the nearest public moongate
 ///   destinations           the mage lists the places it can gate to
+///   runebook / runes       read the mage's runebook: rename places, pick the usual one
 ///   mark [name]            the mage marks a blank rune where it stands (filed in its runebook)
 ///   usual <place>          the mage's gates lead to that runebook entry unless told otherwise
 ///   dismount               get down and leave the mount standing
@@ -159,6 +160,13 @@ public static class CompanionCommands
                 companion.Say("We've no mage with us to open gates.");
             }
 
+            return true;
+        }
+
+        if (Has(command, "runebook") || Has(command, "runes"))
+        {
+            var mage = wholeParty ? party?[CompanionRole.Mage] : companion;
+            CompanionRunebookGump.DisplayTo(employer, mage ?? companion);
             return true;
         }
 

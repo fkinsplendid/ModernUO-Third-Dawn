@@ -87,6 +87,8 @@ public class CompanionSkillsGump : DynamicGump
 
             y += 10;
             builder.AddHtml(20, y, Width - 40, 20, "Gate destinations", "#FFC000");
+            builder.AddHtml(Width - 160, y, 100, 20, "Runebook", "#FFFFFF", align: TextAlignment.Right);
+            builder.AddButton(Width - 50, y - 2, 4011, 4013, 2);
             y += LineHeight;
 
             for (var i = 0; i < destinations.Count && i < MaxDestinationLines; i++)
@@ -106,12 +108,21 @@ public class CompanionSkillsGump : DynamicGump
         builder.AddButton(Width - 50, height - 35, 4014, 4016, 1);
     }
 
-    /// <summary>The back button returns to the party status window.</summary>
+    /// <summary>The back button returns to the party status window; a mage's runebook button opens the book.</summary>
     public override void OnResponse(NetState sender, in RelayInfo info)
     {
-        if (info.ButtonID == 1 && !_employer.Deleted)
+        if (_employer.Deleted)
+        {
+            return;
+        }
+
+        if (info.ButtonID == 1)
         {
             _employer.SendGump(new CompanionStatusGump(_employer));
+        }
+        else if (info.ButtonID == 2)
+        {
+            CompanionRunebookGump.DisplayTo(_employer, _companion);
         }
     }
 
