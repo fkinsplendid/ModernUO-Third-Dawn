@@ -14,8 +14,9 @@ namespace Server.Engines.Companions;
 ///   pack / inventory       open the companion's backpack
 ///   quiet / hush           stop idle chatter (they still warn you of danger)
 ///   speak freely / chatter resume idle chatter
-///   gate / town            the mage opens a gate to its usual destination
-///   gate to <place>        the mage opens a gate to a runebook entry or rune by name
+///   gate                   the mage opens a gate to its usual runebook destination
+///   gate [to] <place>      the mage opens a gate to a runebook entry or rune by name
+///   town / gate to town    the mage opens a gate to the nearest public moongate
 ///   destinations           the mage lists the places it can gate to
 ///   mark [name]            the mage marks a blank rune where it stands (filed in its runebook)
 ///   usual <place>          the mage's gates lead to that runebook entry unless told otherwise
@@ -187,9 +188,7 @@ public static class CompanionCommands
                 return true;
             }
 
-            // "gate to minoc mine" names the place; a bare "gate" or "town" goes the usual way.
-            var at = command.IndexOf("gate to ", StringComparison.OrdinalIgnoreCase);
-            var refusal = ai.RequestGate(at >= 0 ? command[(at + 8)..].Trim() : null);
+            var refusal = ai.RequestGate(GatePlace(command) ?? (Has(command, "town") ? "town" : null));
 
             if (refusal != null)
             {
@@ -236,6 +235,41 @@ public static class CompanionCommands
         command = null;
         wholeParty = false;
         return false;
+    }
+
+    private static readonly HashSet<string> _gateFillerWords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "to", "us", "me", "for", "a", "the", "back", "over", "into", "please"
+    };
+
+    /// <summary>
+    /// The place named after "gate": "gate to minoc mine", "gate us to minoc mine" and "gate minoc
+    /// mine" all name "minoc mine". Null for a bare "gate", which goes the usual way.
+    /// </summary>
+    internal static string GatePlace(string command)
+    {
+        var words = command.Split([' ', ',', '!', '.', '?'], StringSplitOptions.RemoveEmptyEntries);
+        var start = Array.FindIndex(words, w => w.InsensitiveEquals("gate")) + 1;
+
+        if (start == 0)
+        {
+            return null;
+        }
+
+        while (start < words.Length && _gateFillerWords.Contains(words[start]))
+        {
+            start++;
+        }
+
+        // "gate us to minoc, please"
+        var end = words.Length;
+
+        while (end > start && _gateFillerWords.Contains(words[end - 1]))
+        {
+            end--;
+        }
+
+        return start < end ? string.Join(' ', words, start, end - start) : null;
     }
 
     private static bool Has(string command, string keyword) => command.Contains(keyword, StringComparison.OrdinalIgnoreCase);

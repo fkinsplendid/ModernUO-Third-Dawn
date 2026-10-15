@@ -98,9 +98,12 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
     number ("Minoc 2"). Hand it an already-marked rune and that goes in the book
     too. The book holds 16; past that, runes stay loose in its pack.
   - Its gates go to the book's **usual** place: the first one filed, or whichever you pick
-    with `usual <place>`. Say `gate to <place>` for any other (partial names work: "gate to
-    minoc" finds "Minoc Mine Entrance"). It only gates within the land it's in.
-  - With an empty book, the nearest town moongate (`gate to town` always means this).
+    with `usual <place>`. Say `gate <place>` or `gate to <place>` for any other (partial names
+    work: "gate minoc" finds "Minoc Mine Entrance"). It only gates within the land it's in, and
+    never to a place you're already standing at (within about a screen).
+  - Asked for a gate, the mage only uses its own runes. `town` or `gate to town` opens one to
+    the nearest public moongate ("Yew moongate"). When it gates on its own (escaping a lost
+    fight, or heading to town laden with loot) and has no rune to use, it picks the nearest moongate.
   - **If the mage dies, the runebook burns with it**, every place in it lost. It's raised with
     a fresh, empty book. Keep your mage alive.
   - The book can't be taken from the mage's pack. Blank runes are kept, not shared back. At 80 Magery about half of gate casts
@@ -166,8 +169,9 @@ Address one by name (`Aldric, status`) or everyone at once (`all share`, `compan
 | `pack` / `inventory` | Open their backpack (you can also use the context menu) |
 | `quiet` / `hush` | Stop idle chatter (they still warn you about danger) |
 | `speak freely` / `chatter` | Resume chatter |
-| `gate` / `town` | The mage opens a gate to its usual place (or the nearest town if its runebook is empty) |
-| `gate to <place>` | The mage opens a gate to a runebook entry or rune by name |
+| `gate` | The mage opens a gate to its usual place |
+| `gate <place>` / `gate to <place>` | The mage opens a gate to a runebook entry or rune by name |
+| `town` / `gate to town` | The mage opens a gate to the nearest public moongate |
 | `destinations` / `where can you gate` | The mage lists the places it can gate to |
 | `mark` / `mark <name>` | The mage marks a blank rune where it stands, naming it if you say a name, and files it in its runebook |
 | `usual <place>` | The mage's gates lead to that runebook entry from now on (`usual` alone says which it is) |

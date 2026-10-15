@@ -1484,6 +1484,73 @@ public class CompanionTests : IDisposable
     }
 
     [Fact]
+    public void HandedRune_KeepsItsName()
+    {
+        var employer = CreateEmployer();
+        var mage = HireMageInBritain(employer);
+
+        try
+        {
+            var rune = MarkedRune("brit bank w", new Point3D(1420, 1690, 0), Map.Trammel);
+            employer.Backpack.DropItem(rune);
+            mage.OnDragDrop(employer, rune);
+
+            Assert.Equal("brit bank w", mage.Runebook.Entries[0].Description);
+        }
+        finally
+        {
+            mage.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Theory]
+    [InlineData(" gate to brit bank", "brit bank")]
+    [InlineData(" gate brit bank", "brit bank")]
+    [InlineData(", gate us to Minoc mine, please", "Minoc mine")]
+    [InlineData(" gate to yew gate", "yew gate")]
+    [InlineData(" gate to town", "town")]
+    [InlineData(" gate", null)]
+    [InlineData(" gate please", null)]
+    [InlineData(" town", null)]
+    public void GatePlace_ReadsTheNameAfterGate(string command, string expected)
+    {
+        Assert.Equal(expected, CompanionCommands.GatePlace(command));
+    }
+
+    [Fact]
+    public void RequestedGate_NeverFallsBackToAMoongate()
+    {
+        var employer = CreateEmployer();
+        var mage = HireMageInBritain(employer);
+
+        try
+        {
+            var ai = (MageCompanionAI)mage.AIObject;
+            mage.Skills.Magery.Base = 100;
+
+            // Her only rune leads here, so a bare "gate" has nowhere to go.
+            FileRunes(mage, ("Britain Bank", new Point3D(mage.X + 5, mage.Y, mage.Z)));
+
+            Assert.False(ai.FindGateDestination(out _, false));
+            Assert.Equal("We're already at Britain Bank. Name somewhere else.", ai.RequestGate(null));
+            Assert.Null(mage.Spell);
+
+            // Unknown places are refused, not swapped for a moongate.
+            Assert.StartsWith("I don't know a place called", ai.RequestGate("brit west"));
+            Assert.Null(mage.Spell);
+
+            // The moongate is only for when it's asked for.
+            Assert.EndsWith("moongate", ai.FindNamedDestination("town")?.Name);
+        }
+        finally
+        {
+            mage.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
     public void GateTo_MatchesRunebookEntriesByName()
     {
         var employer = CreateEmployer();

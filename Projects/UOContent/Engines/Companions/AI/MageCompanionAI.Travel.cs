@@ -39,11 +39,12 @@ public sealed partial class MageCompanionAI
 
         if (string.IsNullOrWhiteSpace(query))
         {
-            if (!FindGateDestination(out destination))
+            // Asked for, a gate goes only where the mage holds a mark. Moongates need "gate to town".
+            if (!FindGateDestination(out destination, false))
             {
                 return UsualDestination() is { } usual && IsHere(usual)
                     ? $"We're already at {usual.Name}. Name somewhere else."
-                    : "I don't know of anywhere to open a gate to from here.";
+                    : "I've no marked rune to gate to. Name a place, or say \"gate to town\".";
             }
         }
         else if (FindNamedDestination(query) is { } named)
@@ -71,6 +72,7 @@ public sealed partial class MageCompanionAI
         }
 
         _gateFizzles = 0;
+        _gateRequested = true;
         return OpenGate(false, destination) ? null : GateRefusal();
     }
 
@@ -154,6 +156,8 @@ public sealed partial class MageCompanionAI
             return false;
         }
 
+        _gateRequested = false;
+
         if (OpenGate(true))
         {
             return true;
@@ -216,7 +220,7 @@ public sealed partial class MageCompanionAI
             _gateFizzles = 0;
             _gateTarget = null;
             Party.ActiveGate = item;
-            Companion.Speak(_gateIsEscape ? SpeechContext.GateEscape : SpeechContext.GateTown, _gateDestination, urgent: true);
+            AnnounceGate();
             return;
         }
 
@@ -254,10 +258,27 @@ public sealed partial class MageCompanionAI
     }
 
     /// <summary>
-    /// The usual destination: the runebook's default entry, else the newest loose marked rune,
-    /// else the nearest public moongate. Only places on this facet, and never where we already are.
+    /// Says where the gate leads. Never left unsaid, even straight after another line: the employer
+    /// needs to know before stepping through.
     /// </summary>
-    internal bool FindGateDestination(out GateDestination destination)
+    private void AnnounceGate()
+    {
+        if (_gateRequested)
+        {
+            Mobile.Say($"The gate's open. It leads to {_gateDestination}.");
+        }
+        else if (!Companion.Speak(_gateIsEscape ? SpeechContext.GateEscape : SpeechContext.GateTown, _gateDestination, urgent: true))
+        {
+            Mobile.Say($"Gate's open to {_gateDestination}!");
+        }
+    }
+
+    /// <summary>
+    /// The usual destination: the runebook's default entry, else the newest loose marked rune,
+    /// else (with <paramref name="moongates"/>) the nearest public moongate. Only places on this
+    /// facet, and never where we already are.
+    /// </summary>
+    internal bool FindGateDestination(out GateDestination destination, bool moongates = true)
     {
         if (UsualDestination() is { } usual && !IsHere(usual))
         {
@@ -272,7 +293,8 @@ public sealed partial class MageCompanionAI
             return true;
         }
 
-        return FindNearestMoongate(out destination) && !IsHere(destination);
+        destination = default;
+        return moongates && FindNearestMoongate(out destination) && !IsHere(destination);
     }
 
     /// <summary>The runebook's default entry, if it lies on this facet.</summary>
@@ -323,7 +345,7 @@ public sealed partial class MageCompanionAI
     /// Every place the mage holds a mark for: runebook entries first (the book's default flagged),
     /// then loose marked runes, in pack order.
     /// </summary>
-    internal void KnownDestinations(List<GateDestination> known)
+    internal void KnownDestinations(List<GateDestination> known, RecallRune except = null)
     {
         var pack = Mobile.Backpack;
 
@@ -347,7 +369,7 @@ public sealed partial class MageCompanionAI
 
         foreach (var item in pack.Items)
         {
-            if (item is RecallRune { Marked: true } rune && rune.TargetMap != null)
+            if (item is RecallRune { Marked: true } rune && rune.TargetMap != null && rune != except)
             {
                 known.Add(new GateDestination(rune.Target, rune.TargetMap, PlaceName(rune.Description)));
             }
@@ -449,7 +471,7 @@ public sealed partial class MageCompanionAI
             return false;
         }
 
-        destination = new GateDestination(location, map, Region.Find(nearest.Location, map)?.Name ?? "town");
+        destination = new GateDestination(location, map, MoongateName(nearest.Location, map));
         return true;
     }
 
@@ -577,7 +599,7 @@ public sealed partial class MageCompanionAI
                           (string.IsNullOrWhiteSpace(rune.Description) ? null : rune.Description.Trim()) ??
                           DescribeWhereabouts(rune.Target, rune.TargetMap);
 
-        rune.Description = UniqueName(description);
+        rune.Description = UniqueName(description, rune);
     }
 
     /// <summary>
@@ -593,28 +615,18 @@ public sealed partial class MageCompanionAI
 
         for (var region = Region.Find(at, map); region != null; region = region.Parent)
         {
+            if (region.Name == MoongateRegionName)
+            {
+                return MoongateName(at, map);
+            }
+
             if (!string.IsNullOrWhiteSpace(region.Name) && region != map.DefaultRegion)
             {
                 return region.Name;
             }
         }
 
-        Region town = null;
-        var townDistance = double.MaxValue;
-
-        foreach (var region in map.Regions.Values)
-        {
-            if (region is TownRegion && !string.IsNullOrWhiteSpace(region.Name) && region.GoLocation != Point3D.Zero)
-            {
-                var distance = DistanceToArea(at, region);
-
-                if (distance < townDistance)
-                {
-                    town = region;
-                    townDistance = distance;
-                }
-            }
-        }
+        var town = NearestTown(at, map, out var townDistance);
 
         if (town == null)
         {
@@ -642,6 +654,35 @@ public sealed partial class MageCompanionAI
 
     private const int OutsideTownRange = 40;
 
+    // Every public moongate stands in a region of this name, which says nothing about where it is.
+    private const string MoongateRegionName = "Moongates";
+
+    /// <summary>"Yew moongate": a public moongate named after the town it serves.</summary>
+    private static string MoongateName(Point3D at, Map map) =>
+        NearestTown(at, map, out _) is { } town ? $"{town.Name} moongate" : "the moongate";
+
+    private static Region NearestTown(Point3D at, Map map, out double distance)
+    {
+        Region town = null;
+        distance = double.MaxValue;
+
+        foreach (var region in map.Regions.Values)
+        {
+            if (region is TownRegion && !string.IsNullOrWhiteSpace(region.Name) && region.GoLocation != Point3D.Zero)
+            {
+                var d = DistanceToArea(at, region);
+
+                if (d < distance)
+                {
+                    town = region;
+                    distance = d;
+                }
+            }
+        }
+
+        return town;
+    }
+
     /// <summary>Tiles from <paramref name="at"/> to the nearest edge of the region; 0 inside it.</summary>
     private static double DistanceToArea(Point3D at, Region region)
     {
@@ -657,8 +698,11 @@ public sealed partial class MageCompanionAI
         return best;
     }
 
-    /// <summary>Adds a number if the book already holds a place of that name ("Minoc 2").</summary>
-    private string UniqueName(string name)
+    /// <summary>
+    /// Adds a number if the book already holds a place of that name ("Minoc 2"). The rune being
+    /// named is already in the pack, so it doesn't count against itself.
+    /// </summary>
+    private string UniqueName(string name, RecallRune naming)
     {
         if (name == null)
         {
@@ -666,7 +710,7 @@ public sealed partial class MageCompanionAI
         }
 
         var known = new List<GateDestination>();
-        KnownDestinations(known);
+        KnownDestinations(known, naming);
 
         var candidate = name;
 

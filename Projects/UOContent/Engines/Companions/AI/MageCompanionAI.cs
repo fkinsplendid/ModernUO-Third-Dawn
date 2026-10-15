@@ -40,6 +40,7 @@ public sealed partial class MageCompanionAI : CompanionAI
     private Spell _gateSpell;
     private int _gateFizzles;
     private bool _retryTownGate;
+    private bool _gateRequested;
     private GateDestination? _gateTarget;
     private Spell _resurrectSpell;
     private Mobile _resurrectTarget;
@@ -126,6 +127,7 @@ public sealed partial class MageCompanionAI : CompanionAI
         party.WantsTownGate = false;
         party.NextTownGate = Core.TickCount + (long)TownGateCooldown.TotalMilliseconds;
         _gateFizzles = 0;
+        _gateRequested = false;
         return OpenGate(false);
     }
 
