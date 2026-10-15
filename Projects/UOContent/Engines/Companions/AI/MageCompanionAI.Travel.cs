@@ -21,6 +21,9 @@ public sealed partial class MageCompanionAI
     private const int GateMana = 40;
     private const string UnnamedPlace = "an unnamed spot";
 
+    /// <summary>A destination this close is where we already are; a gate there would just lead next door.</summary>
+    private const int AlreadyHereRange = 24;
+
     /// <summary>
     /// Opens a gate on the employer's request: to the place named in <paramref name="query"/> if
     /// given, otherwise to the usual destination. Returns why not, or null once casting.
@@ -38,7 +41,9 @@ public sealed partial class MageCompanionAI
         {
             if (!FindGateDestination(out destination))
             {
-                return "I don't know of anywhere to open a gate to from here.";
+                return UsualDestination() is { } usual && IsHere(usual)
+                    ? $"We're already at {usual.Name}. Name somewhere else."
+                    : "I don't know of anywhere to open a gate to from here.";
             }
         }
         else if (FindNamedDestination(query) is { } named)
@@ -53,6 +58,11 @@ public sealed partial class MageCompanionAI
         if (destination.Map != Mobile.Map)
         {
             return $"{destination.Name} lies in another land. I can't gate there from here.";
+        }
+
+        if (IsHere(destination))
+        {
+            return $"We're already at {destination.Name}.";
         }
 
         if (Magery < GateSkill)
@@ -173,7 +183,7 @@ public sealed partial class MageCompanionAI
             return false;
         }
 
-        if (!CanGate(place.Location, place.Map))
+        if (IsHere(place) || !CanGate(place.Location, place.Map))
         {
             return false;
         }
@@ -245,20 +255,14 @@ public sealed partial class MageCompanionAI
 
     /// <summary>
     /// The usual destination: the runebook's default entry, else the newest loose marked rune,
-    /// else the nearest public moongate. Only places on this facet.
+    /// else the nearest public moongate. Only places on this facet, and never where we already are.
     /// </summary>
     internal bool FindGateDestination(out GateDestination destination)
     {
-        var known = new List<GateDestination>();
-        KnownDestinations(known);
-
-        foreach (var place in known)
+        if (UsualDestination() is { } usual && !IsHere(usual))
         {
-            if (place.IsDefault && place.Map == Mobile.Map)
-            {
-                destination = place;
-                return true;
-            }
+            destination = usual;
+            return true;
         }
 
         // A book with no default set doesn't choose for us; a loose rune does.
@@ -268,10 +272,31 @@ public sealed partial class MageCompanionAI
             return true;
         }
 
-        return FindNearestMoongate(out destination);
+        return FindNearestMoongate(out destination) && !IsHere(destination);
     }
 
-    /// <summary>The newest marked rune lying loose in the pack, on this facet.</summary>
+    /// <summary>The runebook's default entry, if it lies on this facet.</summary>
+    private GateDestination? UsualDestination()
+    {
+        var known = new List<GateDestination>();
+        KnownDestinations(known);
+
+        foreach (var place in known)
+        {
+            if (place.IsDefault && place.Map == Mobile.Map)
+            {
+                return place;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>True if <paramref name="place"/> is close enough that a gate there would go nowhere.</summary>
+    private bool IsHere(GateDestination place) =>
+        place.Map == Mobile.Map && Mobile.InRange(place.Location, AlreadyHereRange);
+
+    /// <summary>The newest marked rune lying loose in the pack, on this facet and not leading here.</summary>
     private GateDestination? LooseRuneDestination()
     {
         GateDestination? newest = null;
@@ -284,7 +309,8 @@ public sealed partial class MageCompanionAI
 
         foreach (var item in pack.Items)
         {
-            if (item is RecallRune { Marked: true } rune && rune.TargetMap == Mobile.Map)
+            if (item is RecallRune { Marked: true } rune && rune.TargetMap == Mobile.Map &&
+                !Mobile.InRange(rune.Target, AlreadyHereRange))
             {
                 newest = new GateDestination(rune.Target, rune.TargetMap, PlaceName(rune.Description));
             }

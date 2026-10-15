@@ -1450,6 +1450,40 @@ public class CompanionTests : IDisposable
     }
 
     [Fact]
+    public void Gates_NeverLeadToWhereWeAlreadyStand()
+    {
+        var employer = CreateEmployer();
+        var mage = HireMageInBritain(employer);
+
+        try
+        {
+            var ai = (MageCompanionAI)mage.AIObject;
+            var here = new Point3D(mage.X + 5, mage.Y, mage.Z);
+
+            FileRunes(mage, ("Britain Bank", here), ("Minoc", new Point3D(2510, 560, 0)));
+
+            // The usual place is a few tiles away, so it's skipped for the nearest moongate instead.
+            Assert.True(ai.FindGateDestination(out var place));
+            Assert.NotEqual("Britain Bank", place.Name);
+            Assert.Equal("We're already at Britain Bank.", ai.RequestGate("britain bank"));
+
+            // A loose rune leading here is skipped too.
+            mage.Backpack.DropItem(MarkedRune("Next door", here, Map.Trammel));
+            Assert.True(ai.FindGateDestination(out place));
+            Assert.NotEqual("Next door", place.Name);
+
+            ai.RequestUsual("minoc");
+            Assert.True(ai.FindGateDestination(out place));
+            Assert.Equal("Minoc", place.Name);
+        }
+        finally
+        {
+            mage.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
     public void GateTo_MatchesRunebookEntriesByName()
     {
         var employer = CreateEmployer();
