@@ -13,8 +13,8 @@ internal readonly record struct GateDestination(Point3D Location, Map Map, strin
 
 /// <summary>
 /// Gate Travel and Mark: where the mage can take the party, and how it learns new places. The
-/// mage knows the entries of its own runebook, any loose marked runes (when the book is full),
-/// and the public moongates.
+/// mage knows the entries of its own runebook and any loose marked runes (when the book is full).
+/// A gate only ever leads to a marked place: without a rune, there's no gate.
 /// </summary>
 public sealed partial class MageCompanionAI
 {
@@ -39,12 +39,11 @@ public sealed partial class MageCompanionAI
 
         if (string.IsNullOrWhiteSpace(query))
         {
-            // Asked for, a gate goes only where the mage holds a mark. Moongates need "gate to town".
-            if (!FindGateDestination(out destination, false))
+            if (!FindGateDestination(out destination))
             {
                 return UsualDestination() is { } usual && IsHere(usual)
                     ? $"We're already at {usual.Name}. Name somewhere else."
-                    : "I've no marked rune to gate to. Name a place, or say \"gate to town\".";
+                    : "I've no marked rune to gate to. Give me a blank rune and I'll mark somewhere.";
             }
         }
         else if (FindNamedDestination(query) is { } named)
@@ -133,7 +132,7 @@ public sealed partial class MageCompanionAI
 
         if (known.Count == 0)
         {
-            return "My runebook's empty, so it's the nearest town or nowhere. Give me blank runes to mark.";
+            return "My runebook's empty, so I can't gate anywhere. Give me blank runes to mark.";
         }
 
         var names = new List<string>(known.Count);
@@ -144,7 +143,7 @@ public sealed partial class MageCompanionAI
             names.Add(place.Map == Mobile.Map ? name : $"{name} (another land)");
         }
 
-        return $"I can gate to {string.Join(", ", names)}, or the nearest town.";
+        return $"I can gate to {string.Join(", ", names)}.";
     }
 
     // ---------- Gates ----------
@@ -164,7 +163,7 @@ public sealed partial class MageCompanionAI
         }
 
         _gateRefused = true;
-        Companion.Speak(SpeechContext.NoGate, urgent: true);
+        Companion.Speak(FindGateDestination(out _) ? SpeechContext.NoGate : SpeechContext.NoRuneToGate, urgent: true);
         return false;
     }
 
@@ -274,11 +273,10 @@ public sealed partial class MageCompanionAI
     }
 
     /// <summary>
-    /// The usual destination: the runebook's default entry, else the newest loose marked rune,
-    /// else (with <paramref name="moongates"/>) the nearest public moongate. Only places on this
-    /// facet, and never where we already are.
+    /// The usual destination: the runebook's default entry, else the newest loose marked rune.
+    /// Only places on this facet, and never where we already are.
     /// </summary>
-    internal bool FindGateDestination(out GateDestination destination, bool moongates = true)
+    internal bool FindGateDestination(out GateDestination destination)
     {
         if (UsualDestination() is { } usual && !IsHere(usual))
         {
@@ -294,7 +292,7 @@ public sealed partial class MageCompanionAI
         }
 
         destination = default;
-        return moongates && FindNearestMoongate(out destination) && !IsHere(destination);
+        return false;
     }
 
     /// <summary>The runebook's default entry, if it lies on this facet.</summary>
@@ -378,7 +376,7 @@ public sealed partial class MageCompanionAI
 
     /// <summary>
     /// The known place that best matches what the employer said: an exact name first, then one
-    /// starting with it, then one containing every word of it. "Town" means the nearest moongate.
+    /// starting with it, then one containing every word of it.
     /// </summary>
     internal GateDestination? FindNamedDestination(string query)
     {
@@ -401,11 +399,6 @@ public sealed partial class MageCompanionAI
                 best = place;
                 bestScore = score;
             }
-        }
-
-        if (best == null && query.InsensitiveEquals("town") && FindNearestMoongate(out var moongate))
-        {
-            return moongate;
         }
 
         return best;
@@ -436,44 +429,6 @@ public sealed partial class MageCompanionAI
 
     internal static string PlaceName(string description) =>
         string.IsNullOrWhiteSpace(description) ? UnnamedPlace : description.Trim();
-
-    /// <summary>The nearest public moongate on this facet, landing a couple of tiles off it.</summary>
-    private bool FindNearestMoongate(out GateDestination destination)
-    {
-        destination = default;
-        var map = Mobile.Map;
-
-        var list = map == Map.Trammel ? PMList.Trammel :
-            map == Map.Felucca ? PMList.Felucca :
-            map == Map.Ilshenar ? PMList.Ilshenar : null;
-
-        if (list == null)
-        {
-            return false;
-        }
-
-        PMEntry nearest = null;
-        var nearestDistance = double.MaxValue;
-
-        foreach (var entry in list.Entries)
-        {
-            var distance = Mobile.GetDistanceToSqrt(entry.Location);
-
-            if (distance < nearestDistance)
-            {
-                nearest = entry;
-                nearestDistance = distance;
-            }
-        }
-
-        if (nearest == null || !FindStandingSpot(map, nearest.Location, out var location))
-        {
-            return false;
-        }
-
-        destination = new GateDestination(location, map, MoongateName(nearest.Location, map));
-        return true;
-    }
 
     /// <summary>
     /// The checks Gate Travel makes when the spell lands, made before casting so a gate that
@@ -810,35 +765,5 @@ public sealed partial class MageCompanionAI
     {
         spell.GetCastSkills(out var min, out var max);
         return Math.Clamp((skill - min) / (max - min), 0.0, 1.0);
-    }
-
-    private static bool FindStandingSpot(Map map, Point3D center, out Point3D spot)
-    {
-        for (var radius = 2; radius <= 4; radius++)
-        {
-            for (var dx = -radius; dx <= radius; dx++)
-            {
-                for (var dy = -radius; dy <= radius; dy++)
-                {
-                    if (Math.Abs(dx) != radius && Math.Abs(dy) != radius)
-                    {
-                        continue;
-                    }
-
-                    var x = center.X + dx;
-                    var y = center.Y + dy;
-                    var z = map.GetAverageZ(x, y);
-
-                    if (map.CanSpawnMobile(x, y, z))
-                    {
-                        spot = new Point3D(x, y, z);
-                        return true;
-                    }
-                }
-            }
-        }
-
-        spot = Point3D.Zero;
-        return false;
     }
 }

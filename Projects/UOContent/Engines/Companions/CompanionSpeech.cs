@@ -39,6 +39,7 @@ public enum SpeechContext
     GateTown,
     ThroughTheGate,
     NoGate,
+    NoRuneToGate,
     Fizzle,
     CannotCarry,
     GhostPlea,
@@ -255,6 +256,11 @@ public static class CompanionSpeech
             "Something blocks my gate magic here!",
             "I can't open a gate in this place. Fall back!",
             "The gate won't form. Run!"
+        );
+        Common(SpeechContext.NoRuneToGate,
+            "I've no rune to gate us out. Run!",
+            "No marked place to gate to. Fall back!",
+            "If only I'd a rune for this. Run for it!"
         );
         Common(SpeechContext.Fizzle,
             "Blast, it fizzled! Again...",

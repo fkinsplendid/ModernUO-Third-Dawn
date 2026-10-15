@@ -14,9 +14,8 @@ namespace Server.Engines.Companions;
 ///   pack / inventory       open the companion's backpack
 ///   quiet / hush           stop idle chatter (they still warn you of danger)
 ///   speak freely / chatter resume idle chatter
-///   gate                   the mage opens a gate to its usual runebook destination
+///   gate / town            the mage opens a gate to its usual runebook destination
 ///   gate [to] <place>      the mage opens a gate to a runebook entry or rune by name
-///   town / gate to town    the mage opens a gate to the nearest public moongate
 ///   destinations           the mage lists the places it can gate to
 ///   runebook / runes       read the mage's runebook: rename places, pick the usual one
 ///   mark [name]            the mage marks a blank rune where it stands (filed in its runebook)
@@ -196,7 +195,7 @@ public static class CompanionCommands
                 return true;
             }
 
-            var refusal = ai.RequestGate(GatePlace(command) ?? (Has(command, "town") ? "town" : null));
+            var refusal = ai.RequestGate(GatePlace(command));
 
             if (refusal != null)
             {

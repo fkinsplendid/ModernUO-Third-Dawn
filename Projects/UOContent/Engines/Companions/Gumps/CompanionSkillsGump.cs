@@ -38,7 +38,7 @@ public class CompanionSkillsGump : DynamicGump
         var destinations = new List<GateDestination>();
         (_companion.AIObject as MageCompanionAI)?.KnownDestinations(destinations);
 
-        // One line per place, plus the nearest moongate, which is always known.
+        // One line per place, plus a line for an empty book or the places that didn't fit.
         var destinationLines = Math.Min(destinations.Count, MaxDestinationLines) + 1;
         var height = 95 + Math.Max(skills.Count, 1) * LineHeight;
 
@@ -102,7 +102,8 @@ public class CompanionSkillsGump : DynamicGump
             }
 
             var more = destinations.Count - MaxDestinationLines;
-            builder.AddHtml(30, y, Width - 60, 20, more > 0 ? $"...{more} more, and the nearest town" : "The nearest town", "#A0A0A0");
+            var footer = destinations.Count == 0 ? "None. Hand the mage a blank rune to mark." : more > 0 ? $"...and {more} more" : "";
+            builder.AddHtml(30, y, Width - 60, 20, footer, "#A0A0A0");
         }
 
         builder.AddButton(Width - 50, height - 35, 4014, 4016, 1);

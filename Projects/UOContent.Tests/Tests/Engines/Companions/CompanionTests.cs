@@ -1525,18 +1525,16 @@ public class CompanionTests : IDisposable
 
             FileRunes(mage, ("Britain Bank", here), ("Minoc", new Point3D(2510, 560, 0)));
 
-            // The usual place is a few tiles away, so it's skipped for the nearest moongate instead.
-            Assert.True(ai.FindGateDestination(out var place));
-            Assert.NotEqual("Britain Bank", place.Name);
+            // The usual place is a few tiles away, so there's nowhere to gate to.
+            Assert.False(ai.FindGateDestination(out _));
             Assert.Equal("We're already at Britain Bank.", ai.RequestGate("britain bank"));
 
             // A loose rune leading here is skipped too.
             mage.Backpack.DropItem(MarkedRune("Next door", here, Map.Trammel));
-            Assert.True(ai.FindGateDestination(out place));
-            Assert.NotEqual("Next door", place.Name);
+            Assert.False(ai.FindGateDestination(out _));
 
             ai.RequestUsual("minoc");
-            Assert.True(ai.FindGateDestination(out place));
+            Assert.True(ai.FindGateDestination(out var place));
             Assert.Equal("Minoc", place.Name);
         }
         finally
@@ -1582,7 +1580,7 @@ public class CompanionTests : IDisposable
     }
 
     [Fact]
-    public void RequestedGate_NeverFallsBackToAMoongate()
+    public void Gates_OnlyEverLeadToRunes()
     {
         var employer = CreateEmployer();
         var mage = HireMageInBritain(employer);
@@ -1595,7 +1593,7 @@ public class CompanionTests : IDisposable
             // Her only rune leads here, so a bare "gate" has nowhere to go.
             FileRunes(mage, ("Britain Bank", new Point3D(mage.X + 5, mage.Y, mage.Z)));
 
-            Assert.False(ai.FindGateDestination(out _, false));
+            Assert.False(ai.FindGateDestination(out _));
             Assert.Equal("We're already at Britain Bank. Name somewhere else.", ai.RequestGate(null));
             Assert.Null(mage.Spell);
 
@@ -1603,8 +1601,12 @@ public class CompanionTests : IDisposable
             Assert.StartsWith("I don't know a place called", ai.RequestGate("brit west"));
             Assert.Null(mage.Spell);
 
-            // The moongate is only for when it's asked for.
-            Assert.EndsWith("moongate", ai.FindNamedDestination("town")?.Name);
+            // No moongates, not even when asked for "town".
+            Assert.Null(ai.FindNamedDestination("town"));
+
+            // Nor for an escape: an empty book means no gate.
+            mage.Runebook.Entries.Clear();
+            Assert.False(ai.FindGateDestination(out _));
         }
         finally
         {

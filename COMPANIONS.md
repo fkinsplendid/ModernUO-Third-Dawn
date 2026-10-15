@@ -105,9 +105,8 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
     with `usual <place>`. Say `gate <place>` or `gate to <place>` for any other (partial names
     work: "gate minoc" finds "Minoc Mine Entrance"). It only gates within the land it's in, and
     never to a place you're already standing at (within about a screen).
-  - Asked for a gate, the mage only uses its own runes. `town` or `gate to town` opens one to
-    the nearest public moongate ("Yew moongate"). When it gates on its own (escaping a lost
-    fight, or heading to town laden with loot) and has no rune to use, it picks the nearest moongate.
+  - **A gate only ever leads to a marked rune.** No rune, no gate: a mage with an empty book
+    can't gate the party out of a lost fight or back to town, so mark somewhere safe early.
   - Say `runebook` to read the book over the mage's shoulder: each place with a hint of where it
     is ("Outside Britain"). Write over a name and press save to rename it, or press the button
     beside a place to make it the usual. You can't travel with the mage's book yourself.
@@ -176,9 +175,8 @@ Address one by name (`Aldric, status`) or everyone at once (`all share`, `compan
 | `pack` / `inventory` | Open their backpack (you can also use the context menu) |
 | `quiet` / `hush` | Stop idle chatter (they still warn you about danger) |
 | `speak freely` / `chatter` | Resume chatter |
-| `gate` | The mage opens a gate to its usual place |
+| `gate` / `town` | The mage opens a gate to its usual place |
 | `gate <place>` / `gate to <place>` | The mage opens a gate to a runebook entry or rune by name |
-| `town` / `gate to town` | The mage opens a gate to the nearest public moongate |
 | `destinations` / `where can you gate` | The mage lists the places it can gate to |
 | `runebook` / `runes` | Read the mage's runebook: rename places and pick the usual one (also a button on the mage's skills window) |
 | `mark` / `mark <name>` | The mage marks a blank rune where it stands, naming it if you say a name, and files it in its runebook |
