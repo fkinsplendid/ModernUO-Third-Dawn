@@ -127,7 +127,11 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
   turn up after `companions.catchUpDelay` (20 seconds) unless they're busy fighting where they
   are. They bring their mount with them.
 - **Talk**: idle chatter about the surroundings, reactions in combat, banter between them.
-  Each has a personality (stoic, cheerful, gruff or witty).
+  Each has a personality (stoic, cheerful, gruff or witty) and talks about its own trade (the
+  bard hums, the mage frets about reagents). They remark on arriving in a town, dungeon or
+  shrine and chat about local lore while there, shout battle cries suited to the foe (undead,
+  dragons, orcs, spiders and more), boast after felling something notable, notice dawn and dusk,
+  complain when you stand about too long, and cheer when you're raised from the dead.
 
 ### Mounts
 Give a companion a mount the way you'd give a pet to another player: use **Transfer** (context

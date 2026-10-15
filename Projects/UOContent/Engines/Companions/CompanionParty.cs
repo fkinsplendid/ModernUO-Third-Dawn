@@ -39,6 +39,19 @@ public sealed class CompanionParty
     /// <summary>Someone is weighed down with loot; the mage should offer a gate to town.</summary>
     public bool WantsTownGate { get; set; }
 
+    /// <summary>Tick count before which no other companion joins in on a shared moment (a revival cheer).</summary>
+    public long NextCheer { get; set; }
+
+    // Places someone has remarked on, and when, so arriving somewhere gets one remark, not three.
+    private readonly Dictionary<string, long> _placeRemarks = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly long PlaceRemarkCooldownMs = (long)TimeSpan.FromMinutes(30).TotalMilliseconds;
+
+    /// <summary>True if nobody in the party has remarked on <paramref name="place"/> lately.</summary>
+    public bool CanRemarkOn(string place, long now) =>
+        !_placeRemarks.TryGetValue(place, out var last) || now - last >= PlaceRemarkCooldownMs;
+
+    public void RemarkedOn(string place, long now) => _placeRemarks[place] = now;
+
     public bool IsEmpty
     {
         get

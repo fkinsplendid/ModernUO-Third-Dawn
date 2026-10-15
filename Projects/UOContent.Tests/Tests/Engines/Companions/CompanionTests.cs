@@ -329,6 +329,67 @@ public class CompanionTests : IDisposable
     }
 
     [Fact]
+    public void Speech_EveryMomentHasSomethingToSay()
+    {
+        for (var context = SpeechContext.Hired; context < SpeechContext.Count; context++)
+        {
+            for (var personality = CompanionPersonality.Stoic; personality <= CompanionPersonality.Witty; personality++)
+            {
+                for (var role = CompanionRole.Warrior; role <= CompanionRole.Mage; role++)
+                {
+                    Assert.False(string.IsNullOrEmpty(CompanionSpeech.Pick(context, personality, role)), $"{context}");
+                }
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData("a lich lord", "lich lord")]
+    [InlineData("an ancient wyrm", "ancient wyrm")]
+    [InlineData("Meraktus", "Meraktus")]
+    public void Speech_DropsArticlesFromFoeNames(string name, string expected)
+    {
+        Assert.Equal(expected, CompanionSpeech.BareName(name));
+    }
+
+    [Fact]
+    public void Speech_RecognisesKindsOfFoe()
+    {
+        var foes = new Mobile[] { new Skeleton(), new LichLord(), new Dragon(), new GiantSpider(), new Ettin(), new Corpser(), new Brigand() };
+
+        try
+        {
+            Assert.Equal(
+                [FoeKind.Undead, FoeKind.Undead, FoeKind.Dragon, FoeKind.Crawler, FoeKind.Giant, FoeKind.None, FoeKind.Human],
+                Array.ConvertAll(foes, CompanionSpeech.KindOf)
+            );
+
+            foreach (var foe in foes)
+            {
+                var kind = CompanionSpeech.KindOf(foe);
+                Assert.True(kind == FoeKind.None || CompanionSpeech.BattleCry(kind) != null && CompanionSpeech.KillLine(kind) != null);
+            }
+        }
+        finally
+        {
+            foreach (var foe in foes)
+            {
+                foe.Delete();
+            }
+        }
+    }
+
+    [Fact]
+    public void Speech_HasArrivalLinesForKnownAndUnknownPlaces()
+    {
+        Assert.Contains("Trinsic", CompanionSpeech.ArrivalLine("Trinsic", false));
+        Assert.NotNull(CompanionSpeech.PlaceIdleLine("Destard"));
+        Assert.NotNull(CompanionSpeech.ArrivalLine("Some Unheard-of Dungeon", true));
+        Assert.NotNull(CompanionSpeech.ArrivalLine("Shrine of Compassion", false));
+        Assert.Null(CompanionSpeech.PlaceIdleLine("Some Unheard-of Dungeon"));
+    }
+
+    [Fact]
     public void ShareLoot_TakesCutForWages_GivesRestToEmployer()
     {
         var employer = CreateEmployer();

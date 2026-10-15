@@ -401,7 +401,7 @@ public abstract partial class BaseCompanion : BaseCreature
 
         if (victim.LastKiller == this)
         {
-            Speak(SpeechContext.Kill, victim.Name);
+            SpeakKill(victim);
         }
     }
 

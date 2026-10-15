@@ -42,6 +42,7 @@ public abstract partial class CompanionAI : BaseAI
     private long _lastThreatSeen;
     private bool _warnedLowHealth;
     private bool _warnedEmployerHurt;
+    private bool _warnedPoisoned;
 
     protected CompanionAI(BaseCompanion companion) : base(companion) => Companion = companion;
 
@@ -251,6 +252,15 @@ public abstract partial class CompanionAI : BaseAI
             return;
         }
 
+        if (!Mobile.Poisoned)
+        {
+            _warnedPoisoned = false;
+        }
+        else if (!_warnedPoisoned)
+        {
+            _warnedPoisoned = Companion.Speak(SpeechContext.Poisoned, urgent: true);
+        }
+
         if (!_warnedLowHealth && Mobile.Hits < Mobile.HitsMax * 0.3)
         {
             _warnedLowHealth = Companion.Speak(SpeechContext.LowHealth, urgent: true);
@@ -348,7 +358,7 @@ public abstract partial class CompanionAI : BaseAI
 
             if (Utility.RandomDouble() < 0.5)
             {
-                Companion.Speak(SpeechContext.CombatStart);
+                Companion.SpeakBattleCry(target);
             }
         }
 
