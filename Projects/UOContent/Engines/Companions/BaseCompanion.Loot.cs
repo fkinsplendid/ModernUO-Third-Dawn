@@ -31,7 +31,68 @@ public abstract partial class BaseCompanion
     public bool CanCarry(Item item) => TotalWeight + item.TotalWeight + item.PileWeight <= CarryCapacity;
 
     /// <summary>Things this companion uses up itself. Kept, never shared.</summary>
-    protected virtual bool IsSupply(Item item) => item is BaseHealPotion or BaseCurePotion;
+    protected virtual bool IsSupply(Item item) => item is BasePotion potion && Drinks(potion) && !IsLooted(potion);
+
+    /// <summary>The potions a companion knows when to drink.</summary>
+    public static bool Drinks(BasePotion potion) =>
+        potion is BaseHealPotion or BaseCurePotion or BaseRefreshPotion or BaseStrengthPotion or BaseAgilityPotion;
+
+    /// <summary>True for a potion picked up off a corpse: loot for the employer, not for drinking.</summary>
+    public bool IsLooted(Item item) => _lootedPotions?.Contains(item) == true;
+
+    /// <summary>Remembers a potion just taken off a corpse as loot.</summary>
+    internal void NoteLooted(Item item)
+    {
+        // Deleted means it stacked onto a potion of their own.
+        if (item is not BasePotion || item.Deleted)
+        {
+            return;
+        }
+
+        PruneLooted();
+        (_lootedPotions ??= []).Add(item);
+        this.MarkDirty();
+    }
+
+    /// <summary>Stops treating <paramref name="item"/>, or the potions in it, as loot.</summary>
+    private void ForgetLooted(Item item)
+    {
+        if (_lootedPotions == null || _lootedPotions.Count == 0)
+        {
+            return;
+        }
+
+        var forgot = _lootedPotions.Remove(item);
+
+        if (item is Container bag)
+        {
+            foreach (var potion in bag.FindItemsByType<BasePotion>())
+            {
+                forgot |= _lootedPotions.Remove(potion);
+            }
+        }
+
+        if (forgot)
+        {
+            this.MarkDirty();
+        }
+    }
+
+    /// <summary>Drops looted potions that have left the pack (shared, taken, or used up).</summary>
+    private void PruneLooted()
+    {
+        if (_lootedPotions == null)
+        {
+            return;
+        }
+
+        var pack = Backpack;
+
+        if (_lootedPotions.RemoveAll(item => item.Deleted || pack == null || !item.IsChildOf(pack)) > 0)
+        {
+            this.MarkDirty();
+        }
+    }
 
     /// <summary>
     /// True for this companion's own supplies, and for a bag holding nothing else
@@ -196,6 +257,8 @@ public abstract partial class BaseCompanion
                 continue;
             }
 
+            NoteLooted(item);
+
             if (isGold)
             {
                 Speak(SpeechContext.LootGold, amount.ToString());
@@ -273,7 +336,9 @@ public abstract partial class BaseCompanion
         for (var i = 0; i < items.Count; i++)
         {
             var item = items[i];
-            var ally = FindAllyFor(item);
+
+            // Looted potions are the employer's, even ones an ally could drink.
+            var ally = item is BasePotion ? null : FindAllyFor(item);
 
             if (ally != null)
             {
@@ -294,6 +359,8 @@ public abstract partial class BaseCompanion
                 refused = true;
             }
         }
+
+        PruneLooted();
 
         if (shared)
         {

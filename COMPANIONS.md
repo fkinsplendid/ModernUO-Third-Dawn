@@ -77,6 +77,10 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
       reagents.
 - **Heal**: bandages (warrior, bard) and spells (mage) — poison first, worst wounds next, you
   slightly ahead of everyone else. Potions when they're in trouble.
+- **Potions**: in a fight they drink heal, cure, refresh, strength and agility potions, but
+  only ones you (or the guild) gave them. Potions they loot are yours and are handed over with
+  the spoils; pass one back and they'll keep it. They won't take potions they've no use for
+  (explosion, poison, night sight).
 - **Revive**: skilled healers (Healing and Anatomy 80+) bring fallen companions back after a
   fight and offer you resurrection if you die. A high-level mage casts Resurrection on you.
 - **Gear up**: they wear the best weapons and armour in their packs. Hand them gear and
@@ -85,7 +89,7 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
 - **Loot**: after a fight they search the corpses of what the party killed for gold, gems,
   reagents, bandages, potions, scrolls, jewellery and magic gear.
 - **Share**: when you're close and not fighting, they hand you the spoils. Supplies go to
-  whichever companion uses them; gear goes to whichever companion it suits. Near a banker in
+  whichever companion uses them (looted potions always come to you); gear goes to whichever companion it suits. Near a banker in
   town, they deposit straight into your bank box.
 - **Ask for supplies**: they tell you when bandages, reagents or the bard's instrument run low.
 - **Gate out**: a mage (Magery 80+) opens a gate when the party is losing badly, or when

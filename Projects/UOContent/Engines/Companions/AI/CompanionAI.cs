@@ -547,8 +547,12 @@ public abstract partial class CompanionAI : BaseAI
             return false;
         }
 
+        // Stat potions are only worth it while not already blessed (the same effect never stacks).
         if (Mobile.Poisoned && Mobile.Hits < Mobile.HitsMax * 0.6 && TryDrink<BaseCurePotion>() ||
-            !Mobile.Poisoned && Mobile.Hits < Mobile.HitsMax * 0.35 && TryDrink<BaseHealPotion>())
+            !Mobile.Poisoned && Mobile.Hits < Mobile.HitsMax * 0.35 && TryDrink<BaseHealPotion>() ||
+            Mobile.Stam < Mobile.StamMax * 0.25 && TryDrink<BaseRefreshPotion>() ||
+            Mobile.GetStatMod("[Magic] Str Buff") == null && TryDrink<BaseStrengthPotion>() ||
+            Mobile.GetStatMod("[Magic] Dex Buff") == null && TryDrink<BaseAgilityPotion>())
         {
             _nextPotion = now + 4000;
             return true;
@@ -563,8 +567,9 @@ public abstract partial class CompanionAI : BaseAI
     /// </summary>
     private bool TryDrink<T>() where T : BasePotion
     {
+        // Their own potions only: looted ones belong to the employer.
         var pack = Mobile.Backpack;
-        var potion = pack?.FindItemByType<T>();
+        var potion = pack?.FindItemByType<T>(predicate: p => !Companion.IsLooted(p));
 
         // Heal potions share a cooldown; don't fiddle with gear if it hasn't passed.
         if (potion == null || potion is BaseHealPotion && !Mobile.CanBeginAction(typeof(BaseHealPotion)))

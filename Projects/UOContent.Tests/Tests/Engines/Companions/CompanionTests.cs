@@ -353,6 +353,67 @@ public class CompanionTests : IDisposable
     }
 
     [Fact]
+    public void LootedPotions_AreShared_GivenPotionsAreKept()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionWarrior();
+        var looted = new GreaterHealPotion();
+        var given = new HealPotion();
+
+        try
+        {
+            companion.BeginService(employer);
+
+            companion.Backpack.DropItem(looted);
+            companion.NoteLooted(looted);
+            employer.Backpack.DropItem(given);
+            Assert.True(companion.OnDragDrop(employer, given));
+
+            Assert.True(companion.HasShareables());
+            companion.ShareLoot(false);
+
+            Assert.Same(employer.Backpack, looted.Parent);
+            Assert.Same(companion.Backpack, given.Parent);
+            Assert.False(companion.IsLooted(looted));
+
+            // Passed back, the looted potion is theirs to keep.
+            Assert.True(companion.OnDragDrop(employer, looted));
+            Assert.False(companion.IsLooted(looted));
+            Assert.False(companion.HasShareables());
+        }
+        finally
+        {
+            companion.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void PotionsTheyCantUse_AreRefused()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionWarrior();
+        var explosion = new ExplosionPotion();
+
+        try
+        {
+            companion.BeginService(employer);
+            employer.Backpack.DropItem(explosion);
+
+            Assert.False(companion.OnDragDrop(employer, explosion));
+            Assert.True(companion.OnDragDrop(employer, new RefreshPotion()));
+            Assert.True(companion.OnDragDrop(employer, new StrengthPotion()));
+            Assert.False(companion.HasShareables());
+        }
+        finally
+        {
+            explosion.Delete();
+            companion.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
     public void ShareLoot_KeepsOwnSupplies_AndHandsOverValuables()
     {
         var employer = CreateEmployer();

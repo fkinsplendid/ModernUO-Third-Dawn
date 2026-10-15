@@ -14,7 +14,7 @@ namespace Server.Engines.Companions;
 /// Companions are never deleted for lack of pay or by dying: unpaid or dismissed companions return
 /// to the guild with their progress intact, and the dead walk beside their employer until revived.
 /// </summary>
-[SerializationGenerator(2)]
+[SerializationGenerator(3)]
 public abstract partial class BaseCompanion : BaseCreature
 {
     [SerializableField(0, setter: "private")]
@@ -70,6 +70,12 @@ public abstract partial class BaseCompanion : BaseCreature
     [SerializableField(12)]
     [SerializedCommandProperty(AccessLevel.GameMaster)]
     private bool _stayOnFoot;
+
+    // Potions picked up off corpses. They're loot, handed over when sharing; any other potion in
+    // the pack came from the employer or the guild, and is theirs to drink.
+    [Tidy]
+    [SerializableField(13, setter: "private")]
+    private List<Item> _lootedPotions;
 
     private BaseAI _ai;
     private long _separatedSince;
@@ -838,6 +844,12 @@ public abstract partial class BaseCompanion : BaseCreature
             return true;
         }
 
+        if (dropped is BasePotion potion && !Drinks(potion))
+        {
+            SayTo(from, "I've no use for that potion. Better you keep it.");
+            return false;
+        }
+
         var pack = Backpack;
 
         if (pack?.TryDropItem(this, dropped, false) != true)
@@ -845,6 +857,9 @@ public abstract partial class BaseCompanion : BaseCreature
             SayTo(from, "I cannot carry any more than this.");
             return false;
         }
+
+        // Handed back, a looted potion is theirs to keep.
+        ForgetLooted(dropped);
 
         GearDirty = true;
         Speak(SpeechContext.ReceivedItem, urgent: true);
