@@ -252,8 +252,6 @@
     "homeRange": 60,
     "walkingRange": 80,
     "entries": [
-      { "name": "Noble", "maxCount": 10, "probability": 100 },
-      { "name": "Peasant", "maxCount": 10, "probability": 100 },
       { "name": "hirebeggar", "maxCount": 10, "probability": 100 },
       { "name": "Samurai", "maxCount": 10, "probability": 100 },
       { "name": "Ninja", "maxCount": 10, "probability": 100 }

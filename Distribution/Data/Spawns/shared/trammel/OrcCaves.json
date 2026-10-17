@@ -69,22 +69,6 @@
   },
   {
     "type": "Spawner",
-    "guid": "17e3d0fd-73d1-435c-9d32-ea6716977e80",
-    "name": "Spawner (112)",
-    "location": [5308, 1372, 0],
-    "map": "Trammel",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 8,
-    "walkingRange": 8,
-    "entries": [
-      { "name": "Noble", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
     "guid": "20658391-8218-48bd-bdab-fd04bbafad31",
     "name": "Spawner (112)",
     "location": [5141, 1968, 0],

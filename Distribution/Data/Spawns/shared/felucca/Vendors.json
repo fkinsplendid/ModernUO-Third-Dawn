@@ -877,22 +877,6 @@
   },
   {
     "type": "Spawner",
-    "guid": "2dc8250b-995a-4eae-a615-2c7b0037fd64",
-    "name": "Spawner (225)",
-    "location": [1434, 1717, 20],
-    "map": "Felucca",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 4,
-    "walkingRange": 4,
-    "entries": [
-      { "name": "Merchant", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
     "guid": "2dd708a7-fa32-46ad-a558-56d4464a6442",
     "name": "Spawner (225)",
     "location": [1395, 3705, 0],
@@ -1027,22 +1011,6 @@
     "walkingRange": 5,
     "entries": [
       { "name": "WarriorGuildmaster", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "3327ba9f-5ab2-4203-81c3-10ed191fe8a8",
-    "name": "Spawner (225)",
-    "location": [1304, 1826, 0],
-    "map": "Felucca",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 1,
-    "walkingRange": 1,
-    "entries": [
-      { "name": "Peasant", "maxCount": 1, "probability": 100 }
     ]
   },
   {
@@ -2223,22 +2191,6 @@
     "entries": [
       { "name": "Shipwright", "maxCount": 1, "probability": 100 },
       { "name": "Mapmaker", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "67acd17b-db93-4bb1-9f67-f4c9015a1888",
-    "name": "Spawner (225)",
-    "location": [1295, 1773, 10],
-    "map": "Felucca",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 4,
-    "walkingRange": 4,
-    "entries": [
-      { "name": "BrideGroom", "maxCount": 1, "probability": 100 }
     ]
   },
   {
@@ -4108,22 +4060,6 @@
     "entries": [
       { "name": "Healer", "maxCount": 1, "probability": 100 },
       { "name": "HealerGuildmaster", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "c1a128fa-7b72-403f-9bb3-14a4f26d2c99",
-    "name": "Spawner (225)",
-    "location": [1351, 1816, 0],
-    "map": "Felucca",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 1,
-    "walkingRange": 1,
-    "entries": [
-      { "name": "EscortableMage", "maxCount": 1, "probability": 100 }
     ]
   },
   {

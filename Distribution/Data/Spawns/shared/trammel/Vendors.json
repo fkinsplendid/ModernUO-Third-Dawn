@@ -930,22 +930,6 @@
   },
   {
     "type": "Spawner",
-    "guid": "32655bec-db85-4a3e-95b4-c21dcf576d0a",
-    "name": "Spawner (125)",
-    "location": [1434, 1717, 20],
-    "map": "Trammel",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 4,
-    "walkingRange": 4,
-    "entries": [
-      { "name": "Merchant", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
     "guid": "327a996b-05f3-4523-b029-90d7c4984a31",
     "name": "Spawner (125)",
     "location": [1602, 1712, 20],
@@ -2148,22 +2132,6 @@
     "walkingRange": 5,
     "entries": [
       { "name": "Baker", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "5d3324c6-7226-45eb-af13-35bb32a227ac",
-    "name": "Spawner (125)",
-    "location": [1351, 1816, 0],
-    "map": "Trammel",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 1,
-    "walkingRange": 1,
-    "entries": [
-      { "name": "EscortableMage", "maxCount": 1, "probability": 100 }
     ]
   },
   {
@@ -4155,22 +4123,6 @@
   },
   {
     "type": "Spawner",
-    "guid": "c0dd0b6c-633d-426a-8c36-3c2853ecd252",
-    "name": "Spawner (125)",
-    "location": [1295, 1773, 10],
-    "map": "Trammel",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 4,
-    "walkingRange": 4,
-    "entries": [
-      { "name": "BrideGroom", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
     "guid": "c193256a-99a5-44a6-934b-d2996199c5e5",
     "name": "Spawner (125)",
     "location": [3058, 3400, 15],
@@ -4199,22 +4151,6 @@
     "walkingRange": 5,
     "entries": [
       { "name": "Fisherman", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "c2c011c1-e49f-4005-86e9-ffec9a526573",
-    "name": "Spawner (125)",
-    "location": [1304, 1826, 0],
-    "map": "Trammel",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 1,
-    "walkingRange": 1,
-    "entries": [
-      { "name": "Peasant", "maxCount": 1, "probability": 100 }
     ]
   },
   {

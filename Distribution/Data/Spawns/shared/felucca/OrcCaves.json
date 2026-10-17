@@ -35,22 +35,6 @@
   },
   {
     "type": "Spawner",
-    "guid": "0e858157-adc4-4963-a34b-101fefb109d1",
-    "name": "Spawner (212)",
-    "location": [5308, 1372, 0],
-    "map": "Felucca",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 8,
-    "walkingRange": 8,
-    "entries": [
-      { "name": "Noble", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
     "guid": "1a6833ee-9e32-4900-ad6e-87926e8fb427",
     "name": "Spawner (212)",
     "location": [5316, 1332, 0],
