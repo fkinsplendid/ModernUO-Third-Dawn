@@ -72,19 +72,19 @@ public static partial class CharacterCreation
 
     private static readonly TimeSpan BadStartMessageDelay = TimeSpan.FromSeconds(3.5);
 
-    // Classic 9-city Trammel layout for pre-6000 clients (UOTD era).
+    // Classic 9-city Trammel layout for pre-6000 clients (UOTD era, Third Dawn map).
     // Order must match the client's hardcoded map button positions (index 0-8).
-    public static readonly CityInfo[] OldHavenStartingCities =
+    public static readonly CityInfo[] ThirdDawnStartingCities =
     [
-        new("Yew",        "The Empath Abbey",         1075072, 633,  858,  0,  Map.Trammel),
-        new("Minoc",      "The Barnacle",              1075073, 2476, 413,  15, Map.Trammel),
-        new("Britain",    "Sweet Dreams Inn",          1075074, 1496, 1628, 10, Map.Trammel),
-        new("Moonglow",   "The Scholars Inn",          1075075, 4408, 1168, 0,  Map.Trammel),
-        new("Trinsic",    "The Traveler's Inn",        1075076, 1845, 2745, 0,  Map.Trammel),
-        new("Jhelom",     "The Mercenary Inn",         1075078, 1374, 3826, 0,  Map.Trammel),
-        new("Skara Brae", "The Falconer's Inn",        1075079, 618,  2234, 0,  Map.Trammel),
-        new("Vesper",     "The Ironwood Inn",          1075080, 2771, 976,  0,  Map.Trammel),
-        new("Haven",      "The Bountiful Harvest Inn", 3677,    2625, 0,    Map.Trammel),
+        new("Yew",        "The Empath Abbey",       1075072, 633,  858,  0,  Map.Trammel),
+        new("Minoc",      "The Barnacle",           1075073, 2476, 413,  15, Map.Trammel),
+        new("Britain",    "Sweet Dreams Inn",       1075074, 1496, 1628, 10, Map.Trammel),
+        new("Moonglow",   "The Scholars Inn",       1075075, 4408, 1168, 0,  Map.Trammel),
+        new("Trinsic",    "The Traveler's Inn",     1075076, 1845, 2745, 0,  Map.Trammel),
+        new("Magincia",   "The Great Horns Tavern", 1075077, 3734, 2222, 20, Map.Trammel),
+        new("Jhelom",     "The Mercenary Inn",      1075078, 1374, 3826, 0,  Map.Trammel),
+        new("Skara Brae", "The Falconer's Inn",     1075079, 618,  2234, 0,  Map.Trammel),
+        new("Vesper",     "The Ironwood Inn",       1075080, 2771, 976,  0,  Map.Trammel)
     ];
 
     public static readonly CityInfo[] FeluccaStartingCities =
@@ -133,7 +133,7 @@ public static partial class CharacterCreation
         {
             if (pre6000ClientSupport)
             {
-                return OldHavenStartingCities;
+                return ThirdDawnStartingCities;
             }
 
             if (terMerAvailable)

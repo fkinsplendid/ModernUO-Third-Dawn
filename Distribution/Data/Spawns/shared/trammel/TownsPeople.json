@@ -106,39 +106,6 @@
   },
   {
     "type": "Spawner",
-    "guid": "37d7e7c7-3ef0-4b63-bc92-87b172a02533",
-    "name": "Spawner (123)",
-    "location": [7053, 338, 0],
-    "map": "Trammel",
-    "count": 2,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 6,
-    "walkingRange": 6,
-    "entries": [
-      { "name": "aneen", "maxCount": 1, "probability": 100 },
-      { "name": "Bird", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "4258947f-59d2-4fbb-98e7-11b65f16d8a9",
-    "name": "Spawner (123)",
-    "location": [7063, 350, 0],
-    "map": "Trammel",
-    "count": 3,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 4,
-    "walkingRange": 4,
-    "entries": [
-      { "name": "Bird", "maxCount": 2, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
     "guid": "56ff4f2b-88cc-44ce-bc5c-cadd416e069d",
     "name": "Spawner (123)",
     "location": [3721, 2161, 20],
@@ -349,27 +316,6 @@
   },
   {
     "type": "Spawner",
-    "guid": "99c8e802-f37a-4f2e-b5d5-23239e0ba219",
-    "name": "Spawner (123)",
-    "location": [7048, 382, 0],
-    "map": "Trammel",
-    "count": 6,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 12,
-    "walkingRange": 12,
-    "entries": [
-      { "name": "abbein", "maxCount": 1, "probability": 100 },
-      { "name": "taellia", "maxCount": 1, "probability": 100 },
-      { "name": "vicaie", "maxCount": 1, "probability": 100 },
-      { "name": "mallew", "maxCount": 1, "probability": 100 },
-      { "name": "jothan", "maxCount": 1, "probability": 100 },
-      { "name": "alethanian", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
     "guid": "a1fec8b0-aeb0-4cfe-bedb-a630f60f483b",
     "name": "Spawner (123)",
     "location": [1400, 1623, 28],
@@ -463,22 +409,6 @@
     "walkingRange": 1,
     "entries": [
       { "name": "ChaosGuard", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "fd8c35db-5081-4db5-9859-2873a070fbac",
-    "name": "Spawner (123)",
-    "location": [7010, 363, 0],
-    "map": "Trammel",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 8,
-    "walkingRange": 8,
-    "entries": [
-      { "name": "athialon", "maxCount": 1, "probability": 100 }
     ]
   },
   {

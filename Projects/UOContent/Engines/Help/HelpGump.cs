@@ -361,13 +361,14 @@ public sealed class HelpGump : DynamicGump
                             // You'll need a better jailbreak plan than that!
                             from.SendLocalizedMessage(1114345, "", 0x35);
                         }
-                        else if (from.Region.IsPartOf("Haven Island"))
+                        else if (from.Map == Map.Trammel && from.Region.IsPartOf("Britain"))
                         {
-                            from.SendLocalizedMessage(1041529); // You're already in Haven
+                            from.SendMessage("You're already in Britain.");
                         }
                         else
                         {
-                            from.MoveToWorld(new Point3D(3503, 2574, 14), Map.Trammel);
+                            // No Haven on the Third Dawn map; young players go to Britain's Sweet Dreams Inn.
+                            from.MoveToWorld(new Point3D(1496, 1628, 10), Map.Trammel);
                         }
                     }
 

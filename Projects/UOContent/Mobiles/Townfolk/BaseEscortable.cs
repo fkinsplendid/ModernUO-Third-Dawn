@@ -361,7 +361,7 @@ public partial class BaseEscortable : BaseCreature
             }
 
             // I'm looking to go somewhere:
-            Say(1042807, AffixType.Append, dest.Name == "Ocllo" && m.Map == Map.Trammel ? "Haven" : dest.Name, "");
+            Say(1042807, AffixType.Append, dest.Name, "");
             return true;
         }
 
@@ -383,7 +383,7 @@ public partial class BaseEscortable : BaseCreature
             }
 
             // Lead on! Payment will be made when we arrive at ~1_DESTINATION~!
-            Say(1042806, dest.Name == "Ocllo" && m.Map == Map.Trammel ? "Haven" : dest.Name);
+            Say(1042806, dest.Name);
             return true;
         }
 
@@ -438,7 +438,7 @@ public partial class BaseEscortable : BaseCreature
             }
 
             Say(
-                $"Lead on! Payment will be made when we arrive in {(dest.Name == "Ocllo" && m.Map == Map.Trammel ? "Haven" : dest.Name)}."
+                $"Lead on! Payment will be made when we arrive in {dest.Name}."
             );
             EscortTable[m] = this;
             StartFollow();

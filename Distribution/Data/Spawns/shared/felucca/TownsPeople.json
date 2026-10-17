@@ -98,22 +98,6 @@
   },
   {
     "type": "Spawner",
-    "guid": "478d5bf8-5043-4d76-9a45-802677f0c30f",
-    "name": "Spawner (223)",
-    "location": [7010, 363, 0],
-    "map": "Felucca",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 8,
-    "walkingRange": 8,
-    "entries": [
-      { "name": "athialon", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
     "guid": "4de7c0e5-3203-4a68-a2d6-8e78652191fc",
     "name": "Spawner (223)",
     "location": [4451, 1153, 0],
@@ -207,39 +191,6 @@
     "walkingRange": 5,
     "entries": [
       { "name": "TownCrier", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "8d5e0ca7-10d5-4475-9aa3-23bdc96210de",
-    "name": "Spawner (223)",
-    "location": [7053, 338, 0],
-    "map": "Felucca",
-    "count": 2,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 6,
-    "walkingRange": 6,
-    "entries": [
-      { "name": "aneen", "maxCount": 1, "probability": 100 },
-      { "name": "Bird", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "8e6761b5-a94e-4a95-90da-c08d5966aeb5",
-    "name": "Spawner (223)",
-    "location": [7063, 350, 0],
-    "map": "Felucca",
-    "count": 3,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 4,
-    "walkingRange": 4,
-    "entries": [
-      { "name": "Bird", "maxCount": 2, "probability": 100 }
     ]
   },
   {
@@ -394,27 +345,6 @@
     "walkingRange": 5,
     "entries": [
       { "name": "TownCrier", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "c7251678-03dd-4030-8316-2529b932fecb",
-    "name": "Spawner (223)",
-    "location": [7048, 382, 0],
-    "map": "Felucca",
-    "count": 6,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 12,
-    "walkingRange": 12,
-    "entries": [
-      { "name": "abbein", "maxCount": 1, "probability": 100 },
-      { "name": "taellia", "maxCount": 1, "probability": 100 },
-      { "name": "vicaie", "maxCount": 1, "probability": 100 },
-      { "name": "mallew", "maxCount": 1, "probability": 100 },
-      { "name": "jothan", "maxCount": 1, "probability": 100 },
-      { "name": "alethanian", "maxCount": 1, "probability": 100 }
     ]
   },
   {

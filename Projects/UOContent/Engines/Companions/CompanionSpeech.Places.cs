@@ -206,15 +206,14 @@ public static partial class CompanionSpeech
             "Mind your manners. Everyone in Wind could turn you into a newt.",
             "The libraries here hold secrets even the Lycaeum doesn't have."
         );
-        Place("Haven",
+        Place("Ocllo",
             [
-                "Haven. Where every adventurer starts out.",
-                "Haven. I remember my first day here. I was terrible."
+                "Ocllo. Quiet little island town.",
+                "Ocllo! Farms, fishing boats and not much else."
             ],
-            "Look at all the fresh faces. Were we ever that young?",
-            "Haven's a good place to learn. Or to come back to."
+            "Nobody hurries in Ocllo. I could get used to that.",
+            "Good place to rest up before heading back to the mainland."
         );
-        Place("New Haven", [ "New Haven. Where every adventurer starts out." ], "Look at all the fresh faces. Were we ever that young?");
 
         // ---------- Ilshenar ----------
 
