@@ -1,0 +1,40 @@
+{
+  "version": 0,
+  "type": "Server.Engines.TownLife.Resident",
+  "properties": [
+    {
+      "name": "Trade",
+      "type": "Server.Engines.TownLife.ResidentTrade",
+      "rule": "EnumMigrationRule"
+    },
+    {
+      "name": "TownName",
+      "type": "string",
+      "rule": "PrimitiveTypeMigrationRule",
+      "ruleArguments": [
+        ""
+      ]
+    },
+    {
+      "name": "Home",
+      "type": "Server.Point3D",
+      "rule": "PrimitiveUOTypeMigrationRule",
+      "ruleArguments": [
+        "Point3D"
+      ]
+    },
+    {
+      "name": "Indoors",
+      "type": "bool",
+      "rule": "PrimitiveTypeMigrationRule",
+      "ruleArguments": [
+        ""
+      ]
+    },
+    {
+      "name": "Manner",
+      "type": "Server.Engines.TownLife.ResidentManner",
+      "rule": "EnumMigrationRule"
+    }
+  ]
+}

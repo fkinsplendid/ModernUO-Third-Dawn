@@ -4286,6 +4286,8 @@ namespace Server.Mobiles
             {
                 MLQuestSystem.HandleSkillGain(this, skill);
             }
+
+            Engines.TownLife.TownNews.OnSkillChange(this, skill, oldBase);
         }
 
         public override void OnAccessLevelChanged(AccessLevel oldLevel)
