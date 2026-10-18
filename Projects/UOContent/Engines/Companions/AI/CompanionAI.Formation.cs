@@ -1,4 +1,5 @@
 using System;
+using Server.Items;
 using Server.Mobiles;
 
 namespace Server.Engines.Companions;
@@ -10,6 +11,8 @@ namespace Server.Engines.Companions;
 /// items can always be handed across. When the employer stops or
 /// turns on the spot, a companion already standing somewhere reasonable stays put rather than
 /// shuffling about. In cramped places they take the nearest free tile the employer can see.
+/// Anyone hurt or poisoned comes within bandage reach of the employer, and nobody steps away
+/// from a patient they are bandaging until the work is done.
 /// </summary>
 public abstract partial class CompanionAI
 {
@@ -52,6 +55,34 @@ public abstract partial class CompanionAI
         return true;
     }
 
+    /// <summary>
+    /// Hurt, poisoned, or under the employer's bandage: close enough to be treated. Also while
+    /// bandaging the employer, so walking back into formation doesn't spoil the work.
+    /// </summary>
+    private bool WantsTending(Mobile employer) =>
+        Mobile.Hits < Mobile.HitsMax || Mobile.Poisoned ||
+        BandageContext.GetContext(employer)?.Patient == Mobile ||
+        BandageContext.GetContext(Mobile)?.Patient == employer;
+
+    /// <summary>Bandaging another companion: stays beside them until the bandage is done.</summary>
+    private bool TendingOther(Mobile employer)
+    {
+        var patient = BandageContext.GetContext(Mobile)?.Patient;
+
+        if (patient == null || patient == Mobile || patient == employer || patient.Map != Mobile.Map ||
+            !Mobile.InRange(patient, ChaseRange))
+        {
+            return false;
+        }
+
+        if (!Mobile.InRange(patient, Bandage.Range))
+        {
+            MoveTo(patient, true, Bandage.Range);
+        }
+
+        return true;
+    }
+
     private bool InFormationRange(Mobile employer) =>
         employer?.Deleted == false && employer.Map == Mobile.Map && Mobile.InRange(employer, FormationRange);
 
@@ -74,13 +105,34 @@ public abstract partial class CompanionAI
 
         TrackHeading(employer);
 
+        // Running for it, nobody stops to finish a bandage on someone else.
+        if (!Party.IsRetreating && TendingOther(employer))
+        {
+            _hasSpot = false;
+            return;
+        }
+
+        // Waiting on a bandage: anywhere within reach will do, so skip the formation and just come close.
+        if (WantsTending(employer))
+        {
+            _hasSpot = false;
+
+            if (!Mobile.InRange(employer, Bandage.Range))
+            {
+                MoveTo(employer, true, Bandage.Range);
+            }
+
+            return;
+        }
+
         var now = Core.TickCount;
 
         var employerMoved = employer.Location != _spotAnchor;
+        const int reach = ArmsReach;
 
         if (!_hasSpot || employerMoved || now - _nextSpotCheck >= 0)
         {
-            _hasSpot = ChooseSpot(employer, !employerMoved, out _spot);
+            _hasSpot = ChooseSpot(employer, !employerMoved, reach, out _spot);
             _spotAnchor = employer.Location;
             _nextSpotCheck = now + SpotRecheckMs;
         }
@@ -88,9 +140,9 @@ public abstract partial class CompanionAI
         if (!_hasSpot)
         {
             // Nowhere sensible to stand, as in a crowded corridor: just stay close.
-            if (!Mobile.InRange(employer, ArmsReach))
+            if (!Mobile.InRange(employer, reach))
             {
-                MoveTo(employer, true, 2);
+                MoveTo(employer, true, reach);
             }
 
             return;
@@ -133,13 +185,14 @@ public abstract partial class CompanionAI
     /// The free tile nearest this companion's place. Once the employer has stopped, anywhere
     /// reasonable will do, so nobody shuffles about; on the move they keep their place properly.
     /// </summary>
-    private bool ChooseSpot(Mobile employer, bool settled, out Point3D spot)
+    private bool ChooseSpot(Mobile employer, bool settled, int reach, out Point3D spot)
     {
-        var ideal = IdealSpot(employer);
+        const int space = PersonalSpace;
+        var ideal = IdealSpot(employer, space);
         var here = Mobile.Location;
 
-        if (settled && Distance(here, ideal) <= SpotSearchRadius && Distance(here, employer.Location) <= ArmsReach &&
-            HasRoom(here, employer))
+        if (settled && Distance(here, ideal) <= SpotSearchRadius && Distance(here, employer.Location) <= reach &&
+            HasRoom(here, employer, space))
         {
             spot = here;
             return true;
@@ -154,7 +207,7 @@ public abstract partial class CompanionAI
             for (var dy = -SpotSearchRadius; dy <= SpotSearchRadius; dy++)
             {
                 if (!TryGetStandingSpot(ideal.X + dx, ideal.Y + dy, employer, out var candidate) ||
-                    Distance(candidate, employer.Location) > ArmsReach || !HasRoom(candidate, employer))
+                    Distance(candidate, employer.Location) > reach || !HasRoom(candidate, employer, space))
                 {
                     continue;
                 }
@@ -173,9 +226,9 @@ public abstract partial class CompanionAI
         return found;
     }
 
-    private Point3D IdealSpot(Mobile employer)
+    private Point3D IdealSpot(Mobile employer, int space)
     {
-        var (x, y) = FormationOffset(Companion.Role, _heading, PersonalSpace);
+        var (x, y) = FormationOffset(Companion.Role, _heading, space);
         return new Point3D(employer.X + x, employer.Y + y, employer.Z);
     }
 
@@ -216,9 +269,9 @@ public abstract partial class CompanionAI
     }
 
     /// <summary>Clear of the employer, the other companions, and the places they're heading for.</summary>
-    private bool HasRoom(Point3D spot, Mobile employer)
+    private bool HasRoom(Point3D spot, Mobile employer, int space)
     {
-        if (Distance(spot, employer.Location) < PersonalSpace)
+        if (Distance(spot, employer.Location) < space)
         {
             return false;
         }
@@ -230,8 +283,8 @@ public abstract partial class CompanionAI
                 continue;
             }
 
-            if (Distance(spot, member.Location) < PersonalSpace ||
-                member.AIObject is CompanionAI { _hasSpot: true } ally && Distance(spot, ally._spot) < PersonalSpace)
+            if (Distance(spot, member.Location) < space ||
+                member.AIObject is CompanionAI { _hasSpot: true } ally && Distance(spot, ally._spot) < space)
             {
                 return false;
             }

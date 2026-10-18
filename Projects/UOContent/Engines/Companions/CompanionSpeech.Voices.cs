@@ -29,6 +29,8 @@ public static partial class CompanionSpeech
         Flavour(p, SpeechContext.BigKill, "A worthy foe. It is done.", "That {arg} will trouble no one again.");
         Flavour(p, SpeechContext.Victory, "Clear.", "Area secure.", "Count heads. Good.");
         Flavour(p, SpeechContext.LowHealth, "I am wounded.", "Need aid.");
+        Flavour(p, SpeechContext.Retreat, "Withdraw.", "Back. Now.", "Covering you. Go.");
+        Flavour(p, SpeechContext.ShakenOff, "Clear behind.", "We live. That is enough.");
         Flavour(p, SpeechContext.Poisoned, "Poisoned. It will pass.", "Poison.");
         Flavour(p, SpeechContext.Revived, "I return.", "Thank you. I will not forget it.");
         Flavour(p, SpeechContext.EmployerRevived, "Good. You live.", "Welcome back, {owner}.");
@@ -69,6 +71,8 @@ public static partial class CompanionSpeech
         Flavour(p, SpeechContext.BigKill, "We did it! We actually killed that {arg}! Hug, anyone?", "I'm shaking! In a good way!");
         Flavour(p, SpeechContext.Victory, "We did it! Ha!", "Hooray! Everyone's alright?", "Wasn't that exciting?");
         Flavour(p, SpeechContext.LowHealth, "Ow, ow, ow! That really hurts!", "I'm not feeling very cheerful right now!");
+        Flavour(p, SpeechContext.Retreat, "Oh, we're running? We're running!", "Tactical skedaddle!");
+        Flavour(p, SpeechContext.ShakenOff, "Phew! Everyone still got all their bits?", "We made it! Sort of heroically!");
         Flavour(p, SpeechContext.Revived, "I'm back! Did I miss anything?", "Ooh, that was strange. Thank you!");
         Flavour(p, SpeechContext.EmployerRevived, "{owner}! Oh, thank goodness! I was so worried!");
         Flavour(p, SpeechContext.LevelUp, "Level {arg}! Wait till I tell my mother!", "I'm getting better! Did you notice?");
@@ -107,6 +111,8 @@ public static partial class CompanionSpeech
         Flavour(p, SpeechContext.BigKill, "Hmph. Big, wasn't it. Still died.", "That {arg}'ll make a decent rug.");
         Flavour(p, SpeechContext.Victory, "Bah. Is that all?", "Done. My back aches.");
         Flavour(p, SpeechContext.LowHealth, "Blast it, I'm cut up!", "Somebody patch me up, and quick!");
+        Flavour(p, SpeechContext.Retreat, "Hah, sensible. Move!", "Not dying for this. Go!");
+        Flavour(p, SpeechContext.ShakenOff, "Lost 'em. My knees hate you.", "Next time, we pick smaller ones.");
         Flavour(p, SpeechContext.Poisoned, "Poison. Wonderful. Just wonderful.", "Ugh. Who poisons a blade? Cowards.");
         Flavour(p, SpeechContext.Revived, "Hmph. Don't let it happen again.", "Death. Overrated.");
         Flavour(p, SpeechContext.EmployerRevived, "Hmph. Back, are you? Try not to die again, it's tiresome.");
@@ -150,6 +156,8 @@ public static partial class CompanionSpeech
         Flavour(p, SpeechContext.BigKill, "That {arg} picked the wrong party.", "I'd like to thank my sword, my armour, and my employer.");
         Flavour(p, SpeechContext.Victory, "And that's why they pay us.", "Flawless. Mostly. Somewhat.");
         Flavour(p, SpeechContext.LowHealth, "I seem to be leaking!", "This is not my best day!");
+        Flavour(p, SpeechContext.Retreat, "Advancing in the other direction!", "Let's not and say we did!");
+        Flavour(p, SpeechContext.ShakenOff, "We shall call that a strategic victory.", "Remind me to never go back there.");
         Flavour(p, SpeechContext.Poisoned, "Poison. How rude.", "Well, that's not the wine talking.");
         Flavour(p, SpeechContext.Revived, "Death was dull. I'm back for the jokes.", "Did anyone loot me? Be honest.");
         Flavour(p, SpeechContext.EmployerRevived, "Back from the dead! Show-off.", "{owner}! I've been keeping your corpse warm. Figuratively.");

@@ -110,7 +110,7 @@ empty. You fill it by giving the mage recall runes.
     When the party is losing badly, the mage opens an escape gate to
     its usual place by itself.
 
-  The usual place
+  The usual place!ggW0rth78
       <name> usual                Says which place is the usual.
       <name> usual yew gate       Makes that place the usual.
 

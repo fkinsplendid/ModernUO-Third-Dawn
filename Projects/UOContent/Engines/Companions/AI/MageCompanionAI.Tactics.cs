@@ -1,6 +1,7 @@
 using System;
 using Server.Mobiles;
 using Server.Spells;
+using Server.Spells.Eighth;
 using Server.Spells.Fifth;
 using Server.Spells.Second;
 using Server.Spells.Seventh;
@@ -12,9 +13,10 @@ namespace Server.Engines.Companions;
 
 /// <summary>
 /// What a Third Dawn mage does besides throwing damage: gets out from under melee (teleport
-/// clear, or paralyze the attacker), keeps one defensive spell up, dispels summons, blocks a
-/// charging brute with a wall, catches a pack with a paralyze field, and poisons everything it
-/// can (fields on groups, the spell on anyone not yet poisoned).
+/// clear, or paralyze the attacker), keeps one defensive spell up, dispels summons, sets blade
+/// spirits or an energy vortex on brutes (never with spellcasters about: they'd dispel them),
+/// blocks a charging brute with a wall, catches a pack with a paralyze field, and poisons
+/// everything it can (fields on groups, the spell on anyone not yet poisoned).
 /// </summary>
 public sealed partial class MageCompanionAI
 {
@@ -23,9 +25,16 @@ public sealed partial class MageCompanionAI
     private const double MinDispelChance = 0.4;
     private const int PoisonReach = 6;
     private const int MaxPoisonAttempts = 2;
+    private const int SummonCooldownMs = 8000;
+    private const int MaxSummons = 2;
+
+    // Comfortable odds: 62% for Blade Spirits (5th circle, 40-80), 62% for Energy Vortex (8th, 70-110).
+    private const double BladeSpiritsSkill = 65.0;
+    private const double EnergyVortexSkill = 95.0;
 
     private long _nextTeleport;
     private long _nextField;
+    private long _nextSummon;
     private Mobile _poisonTarget;
     private int _poisonAttempts;
 
@@ -57,6 +66,41 @@ public sealed partial class MageCompanionAI
 
         return Magery >= 50.0 && !attacker.Paralyzed && !IsWarriorOn(attacker) &&
                Affordable(new ParalyzeSpell(Mobile)) is { } paralyze && CastAt(paralyze, attacker);
+    }
+
+    /// <summary>Falling back with something on its heels, the mage teleports clear rather than outrunning it.</summary>
+    protected override bool TryRetreatMove()
+    {
+        var now = Core.TickCount;
+
+        if (Magery < 30.0 || now - _nextTeleport < 0 || !IsCloselyChased())
+        {
+            return false;
+        }
+
+        if (Affordable(new TeleportSpell(Mobile)) is { } teleport && FindSafeSpot(out var spot) &&
+            CastAtLocation(teleport, spot))
+        {
+            _nextTeleport = now + TeleportCooldownMs;
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsCloselyChased()
+    {
+        for (var i = 0; i < Threats.Count; i++)
+        {
+            var threat = Threats[i];
+
+            if (!threat.Paralyzed && !threat.Frozen && Mobile.InRange(threat, 2))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -168,6 +212,12 @@ public sealed partial class MageCompanionAI
             return true;
         }
 
+        if (now - _nextSummon >= 0 && TrySummon())
+        {
+            _nextSummon = now + SummonCooldownMs;
+            return true;
+        }
+
         if (fieldReady && (TryWall() || TryParalyzeField() || TryPoisonField()))
         {
             _nextField = now + FieldCooldownMs;
@@ -214,6 +264,100 @@ public sealed partial class MageCompanionAI
         }
 
         return Affordable(new DispelSpell(Mobile)) is { } dispel && CastAt(dispel, best);
+    }
+
+    /// <summary>
+    /// Brutes and no spellcasters: blades (or a vortex) beside the strongest brute in reach. They
+    /// pick their own targets, favouring the strongest thing near them. The cast is long, so only
+    /// when nothing is hitting the mage.
+    /// </summary>
+    private bool TrySummon()
+    {
+        if (BruteCount == 0 || CasterCount > 0 || Magery < BladeSpiritsSkill || CountSummons() >= MaxSummons ||
+            Mobile.Followers + 1 > Mobile.FollowersMax || FindThreatAttacking(Mobile, 1) != null)
+        {
+            return false;
+        }
+
+        Mobile brute = null;
+
+        for (var i = 0; i < Threats.Count; i++)
+        {
+            var threat = Threats[i];
+
+            if (IsBrute(threat) && InSpellRange(threat) && (brute == null || threat.Hits > brute.Hits))
+            {
+                brute = threat;
+            }
+        }
+
+        if (brute == null || !FindSummonSpot(brute, out var spot))
+        {
+            return false;
+        }
+
+        var spell = (Magery >= EnergyVortexSkill ? Affordable(new EnergyVortexSpell(Mobile)) : null) ??
+                    Affordable(new BladeSpiritsSpell(Mobile));
+
+        if (spell == null || !CastAtLocation(spell, spot))
+        {
+            return false;
+        }
+
+        if (Utility.RandomDouble() < 0.5)
+        {
+            Companion.Speak(SpeechContext.Summoning);
+        }
+
+        return true;
+    }
+
+    private int CountSummons()
+    {
+        var count = 0;
+
+        foreach (var m in Mobile.Map.GetMobilesInRange(Mobile.Location, SpellRange + 8))
+        {
+            if (m is BaseCreature { Summoned: true } summon && summon.SummonMaster == Mobile &&
+                summon is BladeSpirits or EnergyVortex)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    /// <summary>A clear tile beside <paramref name="brute"/> that the mage can see, nearest the mage.</summary>
+    private bool FindSummonSpot(Mobile brute, out Point3D spot)
+    {
+        var map = Mobile.Map;
+        spot = default;
+        var best = int.MaxValue;
+
+        for (var d = 0; d < 8; d++)
+        {
+            var x = brute.X;
+            var y = brute.Y;
+            Movement.Movement.Offset((Direction)d, ref x, ref y);
+
+            var land = new LandTarget(new Point3D(x, y, 0), map);
+
+            if (!map.CanSpawnMobile(x, y, land.Z) || !Mobile.InRange(land.Location, SpellRange) || !Mobile.InLOS(land))
+            {
+                continue;
+            }
+
+            var distance = Distance(Mobile.Location, land.Location);
+
+            if (distance < best)
+            {
+                spot = land.Location;
+                best = distance;
+            }
+        }
+
+        return best != int.MaxValue;
     }
 
     /// <summary>The same odds the dispel spells roll.</summary>

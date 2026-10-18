@@ -43,6 +43,10 @@ public enum SpeechContext
     Laden,
     GateEscape,
     GateTown,
+    Retreat,
+    ShakenOff,
+    Outmatched,
+    Summoning,
     ThroughTheGate,
     NoGate,
     NoRuneToGate,
@@ -400,6 +404,33 @@ public static partial class CompanionSpeech
             "We can't win this. Through the gate, now!",
             "Retreat! The gate's open!",
             "Into the gate! Now!"
+        );
+        Common(SpeechContext.Retreat,
+            "Fall back! Stay with {owner}!",
+            "Right behind you, {owner}!",
+            "Disengage! Go, go!",
+            "Back! Everyone back!",
+            "Running! Don't look back!",
+            "Breaking off!"
+        );
+        Common(SpeechContext.ShakenOff,
+            "I think we lost them.",
+            "Nothing behind us. Catch your breath.",
+            "That was too close.",
+            "They've given up the chase.",
+            "Well. Discretion, valour, and so on."
+        );
+        Common(SpeechContext.Outmatched,
+            "That {arg} is more than we can take, {owner}. Say the word and we fall back!",
+            "{owner}, we're outmatched here! Call the retreat if it turns!",
+            "This is going badly. Shout 'retreat' and we run!",
+            "Too much for us, {owner}! Your call: fight or flee?"
+        );
+        Common(SpeechContext.Summoning,
+            "Blades, find them!",
+            "Something sharp for our friend there.",
+            "Let the spirits deal with it!",
+            "I'm calling help. Stand clear of the whirlwind!"
         );
         Common(SpeechContext.GateTown,
             "We're laden down. I've opened a gate to {arg}.",

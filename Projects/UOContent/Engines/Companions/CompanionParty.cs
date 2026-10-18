@@ -39,6 +39,9 @@ public sealed class CompanionParty
     /// <summary>Someone is weighed down with loot; the mage should offer a gate to town.</summary>
     public bool WantsTownGate { get; set; }
 
+    /// <summary>Tick count before which nobody repeats that the party is outmatched.</summary>
+    public long NextOutmatchedCall { get; set; }
+
     /// <summary>Tick count before which no other companion joins in on a shared moment (a revival cheer).</summary>
     public long NextCheer { get; set; }
 
@@ -51,6 +54,108 @@ public sealed class CompanionParty
         !_placeRemarks.TryGetValue(place, out var last) || now - last >= PlaceRemarkCooldownMs;
 
     public void RemarkedOn(string place, long now) => _placeRemarks[place] = now;
+
+    // ---------- Retreat ----------
+
+    // Clear of every enemy by this much, and pulling further away, the employer is leaving the fight.
+    private const int FlightGap = 8;
+    private const int FlightWatchMs = 1500;
+    private const int FlightGapGrowth = 2;
+
+    // A retreat lasts at least this long, and ends once nothing has been close behind for a while.
+    private const int RetreatMinimumMs = 3000;
+    private const int ShakeOffMs = 5000;
+
+    // After getting away, whatever was left behind isn't worth going back for.
+    private const int AfterRetreatMs = 20000;
+
+    private bool _retreating;
+    private bool _hasRetreated;
+    private long _retreatStarted;
+    private long _lastPursued;
+    private long _retreatEnded;
+    private long _flightWatchSince;
+    private int _flightWatchGap;
+
+    /// <summary>The party is falling back with the employer.</summary>
+    public bool IsRetreating => _retreating;
+
+    /// <summary>Just got away: defend against anything that follows, but don't charge back.</summary>
+    public bool JustRetreated(long now) => _hasRetreated && now - _retreatEnded < AfterRetreatMs;
+
+    /// <summary>Starts falling back. False if the party already is.</summary>
+    public bool BeginRetreat(long now)
+    {
+        _lastPursued = now;
+        _flightWatchSince = 0;
+
+        if (IsRetreating)
+        {
+            return false;
+        }
+
+        _retreating = true;
+        _retreatStarted = now;
+        return true;
+    }
+
+    /// <summary>Stops falling back. False if the party wasn't.</summary>
+    public bool EndRetreat(long now)
+    {
+        if (!IsRetreating)
+        {
+            return false;
+        }
+
+        _retreating = false;
+        _hasRetreated = true;
+        _retreatEnded = now;
+        return true;
+    }
+
+    /// <summary>Something is still close on the party's heels.</summary>
+    public void NotePursued(long now) => _lastPursued = now;
+
+    /// <summary>Nothing has been close behind for a few seconds, so the retreat has done its job.</summary>
+    public bool HasShakenOff(long now) =>
+        IsRetreating && now - _retreatStarted >= RetreatMinimumMs && now - _lastPursued >= ShakeOffMs;
+
+    /// <summary>
+    /// The employer is running from the fight: their last step was a run, they are well clear of the
+    /// nearest enemy, and the gap keeps growing. Sampled over a moment, so a step back to look for a
+    /// bandage, or a dodge while kiting, doesn't count.
+    /// </summary>
+    public bool IsFleeing(bool running, int nearestThreat, long now)
+    {
+        if (!running || nearestThreat < FlightGap)
+        {
+            _flightWatchSince = 0;
+            return false;
+        }
+
+        if (_flightWatchSince == 0)
+        {
+            _flightWatchSince = now;
+            _flightWatchGap = nearestThreat;
+            return false;
+        }
+
+        if (now - _flightWatchSince < FlightWatchMs)
+        {
+            return false;
+        }
+
+        if (nearestThreat >= _flightWatchGap + FlightGapGrowth)
+        {
+            _flightWatchSince = 0;
+            return true;
+        }
+
+        // Not pulling away after all: watch afresh from here.
+        _flightWatchSince = now;
+        _flightWatchGap = nearestThreat;
+        return false;
+    }
 
     public bool IsEmpty
     {

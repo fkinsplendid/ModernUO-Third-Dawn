@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Server.Items;
 using Server.Mobiles;
@@ -14,9 +15,9 @@ namespace Server.Engines.Companions;
 /// The shared brain of every companion. Each tick it works down a fixed list of priorities and
 /// stops at the first one that wants the turn:
 ///
-///   finish a spell → follow a party gate → drink a potion → role support (heal, cure, sing,
-///   buff, revive) → get back on their mount → fight whatever threatens the party → loot →
-///   share → ordinary pet orders.
+///   finish a spell → follow a party gate → fall back with the employer → drink a potion → role
+///   support (heal, cure, sing, buff, revive) → get back on their mount → fight whatever threatens
+///   the party → loot → share → ordinary pet orders.
 ///
 /// Threats come from the aggressor lists of the employer and the companions, never from scanning
 /// the area, so a quiet tick costs almost nothing.
@@ -25,7 +26,13 @@ public abstract partial class CompanionAI : BaseAI
 {
     private const int PerceptionIntervalMs = 400;
     private const int LeashRange = 14;
+
+    // An employer whose target is within this is still fighting it (archers and mages included).
+    private const int EmployerFightRange = 12;
     private const int ThreatRange = 16;
+
+    // A typical blow in a fight; a foe hitting this hard counts at its full hit points.
+    private const double ReferenceDamage = 15.0;
     private static readonly long RecentCombatMs = 20000;
 
     private readonly List<Mobile> _threats = new(8);
@@ -96,7 +103,7 @@ public abstract partial class CompanionAI : BaseAI
             return true;
         }
 
-        if (TryFollowGate() || TrySurvive() || TryRoleSupport() || TryMount())
+        if (TryFollowGate() || TryRetreat() || TrySurvive() || TryRoleSupport() || TryMount())
         {
             return true;
         }
@@ -189,17 +196,34 @@ public abstract partial class CompanionAI : BaseAI
             _lastThreatSeen = now;
         }
 
-        var enemyHits = 0;
+        var enemyHits = 0.0;
 
         for (var i = 0; i < _threats.Count; i++)
         {
-            enemyHits += _threats[i].Hits;
+            enemyHits += _threats[i].Hits * HitHarder(_threats[i]);
         }
 
         PartyHealth = partyMax > 0 ? partyHits / (double)partyMax : 0;
         EnemyStrength = enemyHits / (double)(partyHits > 0 ? partyHits : 1);
 
+        ReadFight();
         CheckWarnings();
+    }
+
+    /// <summary>
+    /// How hard a foe hits, against a typical blow of <see cref="ReferenceDamage"/>. Hit points alone
+    /// make a pack of ettins look deadlier than an ogre lord; weighing them by their blows doesn't.
+    /// Spellcasters count as at least typical, since their melee damage says nothing of their spells.
+    /// </summary>
+    private static double HitHarder(Mobile m)
+    {
+        if (m is not BaseCreature { DamageMin: > 0, DamageMax: > 0 } creature)
+        {
+            return 1.0;
+        }
+
+        var factor = Math.Clamp((creature.DamageMin + creature.DamageMax) / 2.0 / ReferenceDamage, 0.5, 2.5);
+        return IsSpellcaster(m) ? Math.Max(factor, 1.0) : factor;
     }
 
     private void CollectThreats(Mobile member)
@@ -333,9 +357,21 @@ public abstract partial class CompanionAI : BaseAI
     {
         var employer = Employer;
 
-        // Don't get dragged off chasing things while the employer walks away.
+        // Don't get dragged off chasing things while the employer walks away. Having a target
+        // selected isn't fighting it: someone running from an ogre still has the ogre targeted.
         if (!holdPosition && employer?.Map == Mobile.Map && !Mobile.InRange(employer, LeashRange) &&
-            employer.Combatant == null)
+            !(employer.Combatant is { } foe && employer.InRange(foe, EmployerFightRange)))
+        {
+            if (_inCombat)
+            {
+                EndCombat();
+            }
+
+            return false;
+        }
+
+        // Just got away: fight whatever followed, but don't go back for the rest.
+        if (Party.JustRetreated(Core.TickCount) && employer != null && !IsPursued(employer))
         {
             if (_inCombat)
             {
@@ -365,6 +401,7 @@ public abstract partial class CompanionAI : BaseAI
         if (Mobile.Combatant != target)
         {
             Mobile.Combatant = target;
+            Note($"took on {target.Name}");
         }
 
         Mobile.FocusMob = target;
@@ -428,7 +465,8 @@ public abstract partial class CompanionAI : BaseAI
             Mobile.ControlOrder = OrderType.Follow;
         }
 
-        if (Utility.RandomDouble() < 0.4)
+        // Getting away isn't winning.
+        if (!Party.JustRetreated(Core.TickCount) && Utility.RandomDouble() < 0.4)
         {
             Companion.Speak(SpeechContext.Victory);
         }
@@ -459,6 +497,8 @@ public abstract partial class CompanionAI : BaseAI
         {
             return false;
         }
+
+        Note(target is Mobile m && m != Mobile ? $"cast {spell.Name} on {m.Name}" : $"cast {spell.Name}");
 
         // Targeted spells pay when the target is chosen, so a disturbed cast costs nothing.
         // Spells without a target (gate travel) pay up front.
@@ -673,11 +713,15 @@ public abstract partial class CompanionAI : BaseAI
 
     // ---------- Loot ----------
 
+    // Below this, a companion comes to the employer to be bandaged before going after corpses.
+    private const double LootHealthThreshold = 0.9;
+
     private bool TryLoot()
     {
         var employer = Employer;
 
-        if (Companion.IsLaden || employer?.Combatant != null)
+        if (Companion.IsLaden || employer?.Combatant != null || Mobile.Poisoned ||
+            Mobile.Hits < Mobile.HitsMax * LootHealthThreshold)
         {
             ReleaseCorpse();
             return false;
@@ -1049,6 +1093,7 @@ public abstract partial class CompanionAI : BaseAI
 
         if (BandageContext.BeginHeal(Mobile, patient) != null)
         {
+            Note(patient == Mobile ? "bandaged myself" : $"bandaged {patient.Name}");
             bandage.Consume();
             Party.ClaimHeal(patient, Companion, 8000);
 
@@ -1317,6 +1362,12 @@ public abstract partial class CompanionAI : BaseAI
         {
             Companion.ReturnToGuild(SpeechContext.Dismissed);
             return;
+        }
+
+        // Told to fight or guard: the retreat is over.
+        if (Mobile.ControlOrder is OrderType.Attack or OrderType.Guard && Party != null)
+        {
+            Party.EndRetreat(Core.TickCount);
         }
 
         base.OnCurrentOrderChanged();

@@ -1121,9 +1121,94 @@ public class CompanionTests : IDisposable
         }
     }
 
+    // ---------- Retreat ----------
+
+    [Fact]
+    public void Retreat_EmployerRunningAndPullingAway_CountsAsFleeing()
+    {
+        var party = new CompanionParty(null);
+
+        Assert.False(party.IsFleeing(true, 8, 1000));
+        Assert.False(party.IsFleeing(true, 10, 2000));
+        Assert.True(party.IsFleeing(true, 11, 2600));
+    }
+
+    [Theory]
+    [InlineData(false, 8, 14)] // walking off, not running
+    [InlineData(true, 5, 14)]  // still close to the fight, e.g. kiting
+    [InlineData(true, 9, 10)]  // running about, but not getting away
+    public void Retreat_NotFleeing_WithoutRunningClearAndAway(bool running, int firstGap, int laterGap)
+    {
+        var party = new CompanionParty(null);
+
+        party.IsFleeing(running, firstGap, 1000);
+        Assert.False(party.IsFleeing(running, laterGap, 3000));
+    }
+
+    [Fact]
+    public void Retreat_EndsOnlyOnceNothingHasBeenCloseBehindForAWhile()
+    {
+        var party = new CompanionParty(null);
+
+        Assert.True(party.BeginRetreat(0));
+        Assert.False(party.BeginRetreat(500));
+        Assert.True(party.IsRetreating);
+
+        party.NotePursued(4000);
+        Assert.False(party.HasShakenOff(8000));
+        Assert.True(party.HasShakenOff(9000));
+
+        Assert.True(party.EndRetreat(9000));
+        Assert.False(party.EndRetreat(9000));
+        Assert.True(party.JustRetreated(20000));
+        Assert.False(party.JustRetreated(29000));
+    }
+
+    [Theory]
+    [InlineData("retreat", true)]
+    [InlineData("Retreat!", true)]
+    [InlineData("fall back!", true)]
+    [InlineData("run", true)]
+    [InlineData("run for it!", true)]
+    [InlineData("flee", true)]
+    [InlineData("run to Britain", false)]
+    [InlineData("runebook", false)]
+    [InlineData("fall", false)]
+    public void Retreat_RecognisesTheCall(string speech, bool expected) =>
+        Assert.Equal(expected, CompanionCommands.IsRetreatCall(speech));
+
+    // ---------- Reading the fight ----------
+
+    [Fact]
+    public void FightRead_OgreLordIsABrute_LichIsASpellcaster()
+    {
+        var ogreLord = new OgreLord();
+        var lich = new Lich();
+        var mongbat = new Mongbat();
+
+        try
+        {
+            Assert.True(CompanionAI.IsBrute(ogreLord));
+            Assert.False(CompanionAI.IsSpellcaster(ogreLord));
+
+            Assert.True(CompanionAI.IsSpellcaster(lich));
+            Assert.False(CompanionAI.IsBrute(lich));
+
+            Assert.False(CompanionAI.IsBrute(mongbat));
+            Assert.False(CompanionAI.IsSpellcaster(mongbat));
+        }
+        finally
+        {
+            ogreLord.Delete();
+            lich.Delete();
+            mongbat.Delete();
+        }
+    }
+
     // ---------- Formation ----------
 
     [Theory]
+    [InlineData(1)]
     [InlineData(2)]
     [InlineData(3)]
     public void Formation_GivesEveryoneTheirOwnSpace_WhicheverWayTheEmployerHeads(int space)

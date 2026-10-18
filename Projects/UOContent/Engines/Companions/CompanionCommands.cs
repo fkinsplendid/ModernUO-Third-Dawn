@@ -24,6 +24,9 @@ namespace Server.Engines.Companions;
 ///   mount up / ride        climb back on
 ///   return your horse      hand their mount back to the employer
 ///   dismiss                send back to the guild (progress is kept)
+///   why / tactics          how they read the fight, and the last thing each decided to do
+///   retreat / fall back    in a fight: everyone drops it and runs with the employer (also "run",
+///                          "flee", or "all follow me"; "retreat" works without a name or "all")
 /// </summary>
 public static class CompanionCommands
 {
@@ -31,13 +34,35 @@ public static class CompanionCommands
 
     public static bool TryHandle(BaseCompanion companion, string speech)
     {
+        var employer = companion.Employer;
+        var party = companion.Party;
+
+        // Shouted in a hurry, so no name or "all" needed. Out of a fight, it's just talk.
+        if ((IsRetreatCall(speech) ||
+             TryGetCommand(companion, speech, out var call, out _) && IsRetreatCall(call)) &&
+            party != null && companion.AIObject is CompanionAI { InFight: true } companionAI)
+        {
+            companionAI.OrderRetreat();
+            return true;
+        }
+
         if (!TryGetCommand(companion, speech, out var command, out var wholeParty))
         {
             return false;
         }
 
-        var employer = companion.Employer;
-        var party = companion.Party;
+        if (Verb(command, out _) is "why" or "tactics" or "plan" or "explain")
+        {
+            foreach (var c in Targets(companion, party, wholeParty))
+            {
+                if (c.AIObject is CompanionAI ai && !c.IsDeadPet)
+                {
+                    c.SayTo(employer, ai.Explain());
+                }
+            }
+
+            return true;
+        }
 
         if (Has(command, "status") || Has(command, "report"))
         {
@@ -277,6 +302,15 @@ public static class CompanionCommands
         }
 
         return start < end ? string.Join(' ', words, start, end - start) : null;
+    }
+
+    internal static bool IsRetreatCall(string speech)
+    {
+        var verb = Verb(speech, out var rest);
+
+        return verb is "retreat" or "flee" && rest.Length == 0 ||
+               verb == "run" && (rest.Length == 0 || rest.StartsWith("for it", StringComparison.OrdinalIgnoreCase)) ||
+               verb == "fall" && rest.StartsWith("back", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool Has(string command, string keyword) => command.Contains(keyword, StringComparison.OrdinalIgnoreCase);

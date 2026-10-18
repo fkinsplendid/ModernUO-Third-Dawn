@@ -7,8 +7,9 @@ namespace Server.Engines.Companions;
 
 /// <summary>
 /// Crowd control from the second rank. Calms whatever threatens the backline, turns enemies on
-/// each other when outnumbered, and discords whatever the employer is fighting. Uses the same
-/// difficulty rolls as the player skills, and wears out instruments the same way.
+/// each other when outnumbered, and discords whatever the employer is fighting. Outmatched by
+/// brutes, setting them on each other comes before everything and is worth a long shot. Uses the
+/// same difficulty rolls as the player skills, and wears out instruments the same way.
 /// </summary>
 public sealed class BardCompanionAI : CompanionAI
 {
@@ -51,8 +52,16 @@ public sealed class BardCompanionAI : CompanionAI
         var instrument = Instrument;
 
         // Provocation takes two enemies out of the fight with one song, so it comes first;
-        // peace jumps ahead only to save a badly wounded backliner.
-        if (instrument != null && (TryPeace(instrument, true) || TryProvoke(instrument) ||
+        // peace jumps ahead only to save a badly wounded backliner, unless brutes are winning.
+        var desperate = Outmatched && BruteCount > 0;
+
+        if (instrument == null)
+        {
+            Note("I've no instrument to play");
+        }
+
+        if (instrument != null && (desperate && TryProvoke(instrument, DesperateChance) ||
+                                   TryPeace(instrument, true) || TryProvoke(instrument, MinimumChance) ||
                                    TryPeace(instrument, false) || TryDiscord(instrument)))
         {
             _nextSong = now + SongCooldownMs;
@@ -60,6 +69,16 @@ public sealed class BardCompanionAI : CompanionAI
         }
         else
         {
+            if (instrument != null && !_songless)
+            {
+                Note(
+                    _bestProvokeChance > 0
+                        ? $"held my songs: the best provocation odds were only {_bestProvokeChance:P0}"
+                        : Threats.Count < 2 ? "held my songs: nothing to pair up, and no one to calm"
+                        : "held my songs: nothing I could sway"
+                );
+            }
+
             _songless = true;
         }
 
@@ -124,6 +143,12 @@ public sealed class BardCompanionAI : CompanionAI
     // A bard who knows their craft doesn't strum at something they can't hope to sway.
     private const double MinimumChance = 0.3;
 
+    // ...unless the brutes will win otherwise.
+    private const double DesperateChance = 0.15;
+
+    // The best provocation odds seen on the last look, for explaining a silent bard.
+    private double _bestProvokeChance;
+
     private bool InBardRange(Mobile target, SkillName skill) =>
         Mobile.InRange(target, BaseInstrument.GetBardRange(Mobile, skill)) && Mobile.InLOS(target);
 
@@ -164,6 +189,7 @@ public sealed class BardCompanionAI : CompanionAI
         }
 
         instrument.ConsumeUse(Mobile);
+        Note($"played {skill} on {target.Name}, and it {(success ? "worked" : "failed")}");
         return success;
     }
 
@@ -237,8 +263,10 @@ public sealed class BardCompanionAI : CompanionAI
     /// When outnumbered, sets one enemy on another. Picks the pairing with the best odds,
     /// favouring the strongest instigator when the odds are close.
     /// </summary>
-    private bool TryProvoke(BaseInstrument instrument)
+    private bool TryProvoke(BaseInstrument instrument, double minimumChance)
     {
+        _bestProvokeChance = 0;
+
         if (Threats.Count < 2)
         {
             return false;
@@ -268,8 +296,9 @@ public sealed class BardCompanionAI : CompanionAI
                     (instrument.GetDifficultyFor(instigator) + instrument.GetDifficultyFor(victim)) * 0.5 - 5.0
                 );
                 var chance = SongChance(SkillName.Provocation, difficulty);
+                _bestProvokeChance = Math.Max(_bestProvokeChance, chance);
 
-                if (chance < MinimumChance)
+                if (chance < minimumChance)
                 {
                     continue;
                 }

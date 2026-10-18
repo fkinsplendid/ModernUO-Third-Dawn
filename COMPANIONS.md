@@ -53,16 +53,24 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
   experience is lost, but everything of yours they were carrying goes to your bank box.
 
 ### What they do on their own
+- **Read the fight**: they sort enemies into *brutes* (big melee beasts like ogre lords) and
+  *spellcasters* (liches and the like), and weigh whether the party is outmatched. When it is, one of
+  them says so ("Say the word and we fall back!"), but only you call the retreat.
 - **Fight**: defend you and each other from anything attacking the party.
-  - *Warrior*: front line; peels enemies off the mage and bard and taunts them away.
+  - *Warrior*: front line; peels enemies off the mage and bard and taunts them away. With the
+    backline safe, rushes spellcasters, since a blow spoils a spell.
   - *Bard*: turns enemies on each other (provocation) whenever there are two to pair up,
     calms (peacemaking) whatever threatens the backline when it can't, and weakens your
-    target (discordance). Peace comes first only to save a badly wounded bard or mage.
+    target (discordance). Peace comes first only to save a badly wounded bard or mage. When brutes
+    are winning, provocation comes before everything and is worth a long shot (15% odds, not 30%).
   - *Mage*: fights like a Third Dawn mage, holding a quarter of its mana back for healing:
     - *Defence*: teleports clear of melee when hurt or swarmed, or paralyzes a lone attacker the
       warrior isn't dealing with. Keeps one defensive spell up: Magic Reflection against
       spellcasters, otherwise Protection while being hit.
     - *Summons*: dispels enemy summons it has a fair chance against; Mass Dispel for several.
+      Against brutes, with no spellcasters about to dispel them, puts Blade Spirits (Magery 65+) or
+      an Energy Vortex (Magery 95+) beside the strongest one, up to two at a time. The cast is long,
+      so only when nothing is hitting the mage. Like any player's, they choose their own targets.
     - *Control*: puts an Energy Field (or Wall of Stone) in front of a brute charging it, and a
       Paralyze Field in the path of a pack nobody has engaged. Walls never cut off the party.
     - *Poison*: Poison Field on groups, and the Poison spell on every enemy in reach that isn't
@@ -133,6 +141,19 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
   dragons, orcs, spiders and more), boast after felling something notable, notice dawn and dusk,
   complain when you stand about too long, and cheer when you're raised from the dead.
 
+### Retreating
+Only you can judge when a fight is lost, so they take their cue from you. In the middle of a fight,
+any of these makes the whole party drop what it's doing and run with you:
+- say `retreat`, `fall back`, `run`, `run for it` or `flee` (no name or `all` needed);
+- say `all follow me` (or `<name> follow me`), the classic way to pull pets out of a fight;
+- or just **run for it**: once you're running, at least 8 tiles clear of every enemy and pulling
+  further away, they see you've gone and follow.
+
+While falling back nobody casts, sings or bandages anyone else; they drink potions on the run, and a
+mage with something on its heels teleports clear. Once nothing has been close behind for about five
+seconds they settle down ("I think we lost them"). For twenty seconds after that they defend themselves
+against anything that followed but won't go back for the rest. `all kill` or `all guard` ends a retreat.
+
 ### Mounts
 Give a companion a mount the way you'd give a pet to another player: use **Transfer** (context
 menu, or say `<pet name> transfer`) and target the companion. From then on it's theirs:
@@ -189,6 +210,8 @@ Address one by name (`Aldric, status`) or everyone at once (`all share`, `compan
 | `mount up` / `ride` | Get back on |
 | `return your horse` / `give me your mount` | Hand their mount back to you (needs follower room) |
 | `dismiss` | Send them back to the guild |
+| `why` / `tactics` | Each says how they read the fight and the last thing they decided (and why a bard is holding its songs) |
+| `retreat` / `fall back` / `run` / `flee` | In a fight: everyone breaks off and runs with you (see *Retreating*) |
 
 All the usual pet commands still work: `all follow me`, `all guard me`, `all kill`, `all stay`, etc.
 `Release` (spoken or from the context menu) sends a companion back to the guild instead of freeing them.
