@@ -428,7 +428,7 @@ public static class ResidentDialogues
         At(PlaceKind.Bank, "Queue's out the door again.", "Everyone's rich but us, {a}.", "Speak for yourself. I'm very nearly rich.");
         At(PlaceKind.Bank, "Putting it in or taking it out, {b}?", "Out. Always out.", "Same.");
 
-        At(PlaceKind.Docks, "Ship in from Trinsic?", "Aye, and one from Vesper by nightfall.", "Busy week.");
+        At(PlaceKind.Docks, "Ship in this morning?", "Aye, and another by nightfall.", "Busy week.");
         At(PlaceKind.Docks, "Smell that sea air, {b}.", "That's not the sea, {a}. That's the fish market.");
 
         At(PlaceKind.Fields, "Soil's good this year.", "Soil's always good. It's the weather that's wicked.");
@@ -508,6 +508,37 @@ public static class ResidentDialogues
         Local("Ocllo", "Anything happen today, {b}?", "A gull stole my bread.", "Big news, for Ocllo.");
         Local("Ocllo", "Ever think of moving to Britain, {b}?", "Every day.", "And?", "Then I see the prices.");
         Local("Ocllo", "Magincia folk were over again.", "Looking down their noses?", "From a great height, {b}.");
+
+        Local("Trinsic", "Paladin told me off for spitting, {b}.", "Did you stop?", "I spat further away.");
+        Local("Trinsic", "Ever wonder what's beyond the swamp?", "More swamp.", "That's what I was afraid of.");
+        Local("Trinsic", "Fighters off the Jhelom boat again.", "Brawling?", "Honorably, {b}. With rules.");
+
+        Local("Skara Brae", "Ferry's late, {b}.", "Ferryman's asleep.", "Lucky ferryman.");
+        Local("Skara Brae", "Ranger brought back a bear skin.", "Whole?", "Mostly. The bear wasn't consulted.");
+        Local("Skara Brae", "Nice and quiet today, {b}.", "Too quiet?", "In Skara Brae there's no such thing.");
+
+        Local("Nujel'm", "Palace is hiring servants, {b}.", "What's the pay?", "Leftovers.", "From the palace? I'm in.");
+        Local("Nujel'm", "Lost my shirt at cards.", "Your shirt?", "And my boots. Lend us a coin, {b}?");
+        Local("Nujel'm", "Hot one today.", "It's Nujel'm. It's always a hot one.", "I live in hope, {b}.");
+
+        Local("Moonglow", "Heard a bang from the Lycaeum, {b}.", "Again?", "Smoke's purple this time.", "Progress, then.");
+        Local("Moonglow", "My cousin's studying magic.", "How's it going?", "He was a frog for a week. Says it was research.");
+        Local("Moonglow", "Black pearl's gone up again.", "Everything's gone up, {b}.", "Except my wages.");
+
+        Local("Minoc", "Struck a seam yesterday, {b}.", "Gold?", "Iron. But a lot of it.");
+        Local("Minoc", "Tinker's new contraption blew up.", "Anyone hurt?", "Just his pride. And his eyebrows.");
+        Local("Minoc", "Vesper lot complain about our carts.", "Let 'em.", "They want the ore though, {b}.", "Then they can mind the noise.");
+
+        Local("Magincia", "Did you see the new fountain, {b}?", "Gaudy.", "I paid for half of it.", "Tasteful, I meant.");
+        Local("Magincia", "Humble, are we, {b}?", "Humbler than you.", "Nobody's humbler than me.");
+        Local("Magincia", "Ocllo folk are staring at the houses again.", "Let them stare.", "I charge them, {b}.");
+
+        Local("Jhelom", "Who won at the pits today, {b}?", "The healer.", "Every day, then.");
+        Local("Jhelom", "Fancy a duel?", "With you? Not before breakfast.", "After, then.", "After, I'll be too full.");
+        Local("Jhelom", "Another boat in from Trinsic, {b}.", "Fighters?", "Hopefuls. Fighters by the end of the week.", "Or patients.");
+
+        Local("Cove", "Orcs about tonight, {b}?", "Always. Keep the gate shut.", "I always do.");
+        Local("Cove", "Ever think of moving to Britain?", "And give up all this?", "All what?", "Exactly, {b}.");
     }
 
     private static void CompanionTalk()

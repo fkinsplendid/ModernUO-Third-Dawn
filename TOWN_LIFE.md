@@ -1,8 +1,10 @@
 # Town Life — Living Towns
 
 Towns have residents with names, trades, front doors and daily routines. On Trammel: Britain (28 residents),
-Vesper (26: no farmers, it has no farmland) and Ocllo (15: a small island town, 6 of them bank lurkers).
-Each town also has its own local talk (Vesper's canals and Minoc ore carts, Ocllo's pirates and quiet).
+Vesper (26), Trinsic (25), Nujel'm (22), Moonglow, Minoc, Magincia and Jhelom (20 each), Skara Brae (16),
+Ocllo (15) and Cove (7). Only Britain has farmers (no other town has named field regions); Minoc has no
+fishers (no docks); Cove has no bank and no tavern, so no lurkers and no drunk. Each town also has its own
+local talk (Trinsic's paladins, Moonglow's Lycaeum, Minoc's mines, Magincia's pride, Jhelom's duelling pits...).
 
 ## What players see
 - **A cast, not a spawn.** Britain has 28 residents: 2 farmers, 2 fishers, a smith's apprentice, 3 townsfolk,
@@ -66,7 +68,10 @@ Each town also has its own local talk (Vesper's canals and Minoc ore carts, Ocll
 - **Places are found, not placed.** At start-up the town floods its streets with the real movement rules
   (doors count as open), which takes a few seconds for Britain. Vendors then mark the tavern, bank, smithy,
   docks, healer and shops; the town's named field regions mark the farmland; and **front doors** (open sky on
-  one side within a few steps, past any porch or eaves, and a roof on the other) become homes.
+  one side within a few steps, past any porch or eaves, and a roof on the other) become homes. A town with
+  fewer than 10 such doors counts **archways** too: a roofed gap in a wall up to 3 tiles wide, a room behind
+  and the street in front (Magincia's houses have arches, not doors). A bank with no door (Trinsic, Moonglow,
+  Magincia) gets its lurkers in front of the archway nearest its counter, within 20 tiles.
 - **Long walks are planned across town** and walked a short leg at a time, so they can cross Britain.
 - **Only watched residents walk.** NPC AI sleeps when no player is near, so out of everyone's sight a
   resident simply arrives at the next place (or goes indoors). Going home means stepping through their front

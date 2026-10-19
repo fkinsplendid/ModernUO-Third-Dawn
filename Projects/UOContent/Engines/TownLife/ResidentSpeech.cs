@@ -117,7 +117,7 @@ public static class ResidentSpeech
             "Buying spider's silk! Fair prices!",
             "Black pearl, fresh from Moonglow! Who's buying?",
             "Best spot in {town}, this. Everyone comes through here eventually.",
-            "Anyone got a rune to Vesper? I'll pay.",
+            "Anyone got a rune to Yew? I'll pay.",
             "I'm not loitering. I'm waiting. It's a different thing.",
             "Trading a lockpick set for a decent cloak. Anyone?",
             "They say there's a dragon's hoard in Destard. Someone should go. Not me.",
@@ -157,7 +157,7 @@ public static class ResidentSpeech
         ];
         _place[(int)PlaceKind.Docks] =
         [
-            "Ship in from Trinsic this morning.",
+            "Ship in on the morning tide.",
             "Smells like fish and tar. Smells like home.",
             "Watch the planks, some are rotten."
         ];

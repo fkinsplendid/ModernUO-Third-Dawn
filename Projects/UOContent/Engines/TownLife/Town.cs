@@ -233,6 +233,107 @@ public sealed class Town
                 homes.Add(new TownPlace(PlaceKind.Home, "home", spot));
             }
         }
+
+        if (homes.Count < ArchwayHomes)
+        {
+            FindArchwayHomes();
+        }
+    }
+
+    // Below this many front doors, archways count as front doors too (Magincia has hardly a door in it).
+    private const int ArchwayHomes = 10;
+    private const int ArchwaySpacing = 3;
+
+    private void FindArchwayHomes()
+    {
+        var homes = _places[(int)PlaceKind.Home];
+
+        foreach (var area in Region.Area)
+        {
+            for (var x = area.Start.X; x < area.End.X; x++)
+            {
+                for (var y = area.Start.Y; y < area.End.Y; y++)
+                {
+                    if (!TryFindArchway(x, y, out var arch, out var spot, out _))
+                    {
+                        continue;
+                    }
+
+                    var taken = false;
+
+                    for (var i = 0; i < homes.Count && !taken; i++)
+                    {
+                        taken = Utility.InRange(homes[i].Spot, spot, ArchwaySpacing);
+                    }
+
+                    if (!taken && !IsShopDoor(arch))
+                    {
+                        homes.Add(new TownPlace(PlaceKind.Home, "home", spot));
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// A doorless entrance: a roofed gap in a wall, up to three tiles wide, with a room behind it and
+    /// open sky in front (past a portico, perhaps). <paramref name="outside"/> is that street tile.
+    /// </summary>
+    private bool TryFindArchway(int x, int y, out Point3D arch, out Point3D outside, out Direction way)
+    {
+        outside = default;
+        way = Direction.North;
+
+        if (!Streets.TryGetTile(x, y, out arch) || Streets.IsOutdoors(arch))
+        {
+            return false;
+        }
+
+        for (var d = 0; d < 8; d += 2)
+        {
+            int ox = x, oy = y, ix = x, iy = y;
+            Movement.Movement.Offset((Direction)d, ref ox, ref oy);
+            Movement.Movement.Offset((Direction)((d + 4) & 7), ref ix, ref iy);
+
+            // The street may lie past a portico or the eaves, as it can for a door.
+            if (!Streets.TryGetTile(ox, oy, out var front) || !TryFindOpenSky(front, (Direction)d, out var street) ||
+                !Streets.TryGetTile(ix, iy, out var behind) || Streets.IsOutdoors(behind) ||
+                !IsWallGap(x, y, (Direction)((d + 2) & 7)))
+            {
+                continue;
+            }
+
+            outside = street;
+            way = (Direction)d;
+            return true;
+        }
+
+        return false;
+    }
+
+    // An arch is at most this wide; anything wider is the open side of a building, not an entrance.
+    private const int ArchWidth = 3;
+
+    // Walls either side, across the given way, no more than ArchWidth tiles apart.
+    private bool IsWallGap(int x, int y, Direction across)
+    {
+        var width = 1 + WalkableRun(x, y, across) + WalkableRun(x, y, (Direction)(((int)across + 4) & 7));
+        return width <= ArchWidth;
+    }
+
+    private int WalkableRun(int x, int y, Direction way)
+    {
+        for (var run = 0; run < ArchWidth; run++)
+        {
+            Movement.Movement.Offset(way, ref x, ref y);
+
+            if (!Streets.IsWalkable(x, y))
+            {
+                return run;
+            }
+        }
+
+        return ArchWidth;
     }
 
     /// <summary>
@@ -426,6 +527,9 @@ public sealed class Town
     private const int LurkSpread = 4;
     private const int BankDoorSearch = 12;
 
+    // Open-fronted banks can be deep: Moonglow's counter is 19 steps down a hall from its arch.
+    private const int BankArchSearch = 20;
+
     private Point3D _bankDoor;
     private Point3D _lurkCentre;
     private int _lurkOutX;
@@ -521,7 +625,12 @@ public sealed class Town
             }
         }
 
-        // No door found: the street nearest the counter will have to do.
+        // No door: an archway, then the street nearest the counter.
+        if (_lurkCentre == Point3D.Zero)
+        {
+            FindBankArchway(main.Spot);
+        }
+
         if (_lurkCentre == Point3D.Zero && Streets.TryFindNearestOutdoors(main.Spot, BankDoorSearch, out var outside))
         {
             _lurkCentre = outside;
@@ -533,6 +642,38 @@ public sealed class Town
             _lurkCentre,
             _bankDoor
         );
+    }
+
+    /// <summary>The archway nearest the counter, for banks with an open front (Trinsic, Moonglow, Magincia).</summary>
+    private void FindBankArchway(Point3D counter)
+    {
+        var best = double.MaxValue;
+
+        for (var x = counter.X - BankArchSearch; x <= counter.X + BankArchSearch; x++)
+        {
+            for (var y = counter.Y - BankArchSearch; y <= counter.Y + BankArchSearch; y++)
+            {
+                if (!TryFindArchway(x, y, out var arch, out var doorstep, out var way))
+                {
+                    continue;
+                }
+
+                var score = arch.GetDistanceToSqrt(counter);
+
+                if (score >= best)
+                {
+                    continue;
+                }
+
+                best = score;
+                _bankDoor = arch;
+                _lurkOutX = Math.Sign(doorstep.X - arch.X);
+                _lurkOutY = Math.Sign(doorstep.Y - arch.Y);
+
+                var centre = new Point3D(doorstep.X + _lurkOutX * LurkDistance, doorstep.Y + _lurkOutY * LurkDistance, doorstep.Z);
+                _lurkCentre = Streets.TryFindNearestOutdoors(centre, 1, out var found) ? found : doorstep;
+            }
+        }
     }
 
     private bool HasNeighbouringDoor(BaseDoor door)

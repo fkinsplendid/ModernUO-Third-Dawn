@@ -125,6 +125,223 @@ public static class TownLifeSystem
             )
         );
 
+        // The city of honor: paladins, a walled town and a busy harbour.
+        AddTown(
+            new Town(
+                "Trinsic",
+                Map.Trammel,
+                [
+                    (ResidentTrade.Fisher, 2),
+                    (ResidentTrade.Smith, 1),
+                    (ResidentTrade.Townsfolk, 3),
+                    (ResidentTrade.Shopper, 2),
+                    (ResidentTrade.Drunk, 1),
+                    (ResidentTrade.Minstrel, 1),
+                    (ResidentTrade.Watchman, 2),
+                    (ResidentTrade.Beggar, 1),
+                    (ResidentTrade.Courier, 1),
+                    (ResidentTrade.Noble, 1),
+                    (ResidentTrade.Lurker, 10)
+                ],
+                [
+                    "The paladins drilled at dawn again. You could set a sundial by them.",
+                    "Honor's all well and good. Doesn't pay the rent.",
+                    "Those walls have kept Trinsic safe longer than anyone remembers.",
+                    "Mind the swamp road south. Things live out there.",
+                    "A paladin helped me with my cart today. Wouldn't take a coin for it.",
+                    "Ships from Jhelom brought fighters again. The tavern'll be lively."
+                ]
+            )
+        );
+
+        // A small island town of rangers and healers, cut off by the river.
+        AddTown(
+            new Town(
+                "Skara Brae",
+                Map.Trammel,
+                [
+                    (ResidentTrade.Fisher, 2),
+                    (ResidentTrade.Townsfolk, 2),
+                    (ResidentTrade.Shopper, 1),
+                    (ResidentTrade.Drunk, 1),
+                    (ResidentTrade.Minstrel, 1),
+                    (ResidentTrade.Watchman, 1),
+                    (ResidentTrade.Beggar, 1),
+                    (ResidentTrade.Courier, 1),
+                    (ResidentTrade.Lurker, 6)
+                ],
+                [
+                    "The ferry's slow today. The ferry's slow every day.",
+                    "Rangers came in from the forest with a deer the size of a horse.",
+                    "Spirituality, they say, is Skara Brae's virtue. Quiet, I call it.",
+                    "Heard wolves across the water last night.",
+                    "The healers here could mend a broken heart. Or so they claim.",
+                    "An island's a fine thing until you need something from Britain."
+                ]
+            )
+        );
+
+        // The pleasure island: palace, gardens and money.
+        AddTown(
+            new Town(
+                "Nujel'm",
+                Map.Trammel,
+                [
+                    (ResidentTrade.Fisher, 1),
+                    (ResidentTrade.Smith, 1),
+                    (ResidentTrade.Townsfolk, 2),
+                    (ResidentTrade.Shopper, 2),
+                    (ResidentTrade.Drunk, 1),
+                    (ResidentTrade.Minstrel, 2),
+                    (ResidentTrade.Watchman, 1),
+                    (ResidentTrade.Courier, 1),
+                    (ResidentTrade.Noble, 3),
+                    (ResidentTrade.Lurker, 8)
+                ],
+                [
+                    "The palace gardens are in bloom. Not that the likes of us get in.",
+                    "Another feast at the palace. You can hear the music from the docks.",
+                    "Nujel'm sand gets in everything. Everything.",
+                    "Someone lost a fortune at cards last night. Again.",
+                    "Silk from the east, wine from the south. Nujel'm has it all, for a price.",
+                    "Too hot for honest work. Good thing there's so little of it."
+                ]
+            )
+        );
+
+        // The city of mages, under the Lycaeum.
+        AddTown(
+            new Town(
+                "Moonglow",
+                Map.Trammel,
+                [
+                    (ResidentTrade.Fisher, 1),
+                    (ResidentTrade.Smith, 1),
+                    (ResidentTrade.Townsfolk, 3),
+                    (ResidentTrade.Shopper, 2),
+                    (ResidentTrade.Drunk, 1),
+                    (ResidentTrade.Watchman, 1),
+                    (ResidentTrade.Beggar, 1),
+                    (ResidentTrade.Courier, 1),
+                    (ResidentTrade.Noble, 1),
+                    (ResidentTrade.Lurker, 8)
+                ],
+                [
+                    "Someone at the Lycaeum set their sleeve alight again. You can smell it.",
+                    "Strange lights over the telescope last night.",
+                    "Every second person here's a mage. The other half want to be.",
+                    "Don't touch anything that glows. Good rule in Moonglow.",
+                    "Reagent prices are up. Blame the alchemists.",
+                    "The Lycaeum has more books than anyone could read. Someone's trying."
+                ]
+            )
+        );
+
+        // A mining town in the northern hills; no harbour to speak of.
+        AddTown(
+            new Town(
+                "Minoc",
+                Map.Trammel,
+                [
+                    (ResidentTrade.Smith, 2),
+                    (ResidentTrade.Townsfolk, 3),
+                    (ResidentTrade.Shopper, 1),
+                    (ResidentTrade.Drunk, 2),
+                    (ResidentTrade.Minstrel, 1),
+                    (ResidentTrade.Watchman, 1),
+                    (ResidentTrade.Beggar, 1),
+                    (ResidentTrade.Courier, 1),
+                    (ResidentTrade.Lurker, 8)
+                ],
+                [
+                    "Rock dust in the ale again. Adds flavour, the miners say.",
+                    "Another seam opened up in the hills. Everyone's rich for a week.",
+                    "The tinkers have built something that ticks. Nobody knows what it does.",
+                    "Gargoyles in the mines, I heard. Or a miner who's been down too long.",
+                    "Sacrifice, they call Minoc's virtue. Sacrifice your back, mostly.",
+                    "Ore carts off to Vesper every morning. You can hear them for miles."
+                ]
+            )
+        );
+
+        // The city of humility, which isn't, by all accounts.
+        AddTown(
+            new Town(
+                "Magincia",
+                Map.Trammel,
+                [
+                    (ResidentTrade.Fisher, 1),
+                    (ResidentTrade.Townsfolk, 2),
+                    (ResidentTrade.Shopper, 2),
+                    (ResidentTrade.Drunk, 1),
+                    (ResidentTrade.Minstrel, 1),
+                    (ResidentTrade.Watchman, 1),
+                    (ResidentTrade.Beggar, 1),
+                    (ResidentTrade.Courier, 1),
+                    (ResidentTrade.Noble, 2),
+                    (ResidentTrade.Lurker, 8)
+                ],
+                [
+                    "Humility, they say. Have you seen the size of those houses?",
+                    "My neighbour had his gate gilded. I'll have to do mine now.",
+                    "The merchants count their coin twice and their friends once.",
+                    "Ocllo folk were over again, gawping at the gardens.",
+                    "Nobody walks in Magincia. They promenade.",
+                    "Pride comes before a fall, my gran said. She lived in Magincia too."
+                ]
+            )
+        );
+
+        // An island of duellists and fighters.
+        AddTown(
+            new Town(
+                "Jhelom",
+                Map.Trammel,
+                [
+                    (ResidentTrade.Fisher, 2),
+                    (ResidentTrade.Smith, 1),
+                    (ResidentTrade.Townsfolk, 2),
+                    (ResidentTrade.Shopper, 1),
+                    (ResidentTrade.Drunk, 2),
+                    (ResidentTrade.Minstrel, 1),
+                    (ResidentTrade.Watchman, 1),
+                    (ResidentTrade.Beggar, 1),
+                    (ResidentTrade.Courier, 1),
+                    (ResidentTrade.Lurker, 8)
+                ],
+                [
+                    "Two duels at the pits before breakfast. Good day for the healers.",
+                    "Valor, they call it. Picking fights, I call it.",
+                    "Look at a Jhelom fighter wrong and you'll be looking at the sky.",
+                    "The pits are busy. Someone always thinks they're the best.",
+                    "Salt air, sore heads and steel. That's Jhelom.",
+                    "Another boat of hopefuls from Trinsic. Half'll go home bruised."
+                ]
+            )
+        );
+
+        // A tiny walled village by the orc woods. No bank and no tavern, so no crowd and no drunk.
+        AddTown(
+            new Town(
+                "Cove",
+                Map.Trammel,
+                [
+                    (ResidentTrade.Fisher, 1),
+                    (ResidentTrade.Townsfolk, 2),
+                    (ResidentTrade.Shopper, 1),
+                    (ResidentTrade.Watchman, 2),
+                    (ResidentTrade.Courier, 1)
+                ],
+                [
+                    "Orcs in the woods again. Keep the gate shut at night.",
+                    "Cove's small, but the walls are thick. Thank the virtues.",
+                    "Nearest bank's in Britain. My purse feels heavy all the way there.",
+                    "Heard drums from the orc fort last night.",
+                    "Quiet day. In Cove that means nobody got clubbed."
+                ]
+            )
+        );
+
         CommandSystem.Register("TownLife", AccessLevel.GameMaster, TownLife_OnCommand);
     }
 
