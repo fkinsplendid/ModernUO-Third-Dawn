@@ -888,6 +888,9 @@ public abstract partial class BaseCompanion : BaseCreature
         }
     }
 
+    // Bonded only so they can be resurrected; their level says what they are.
+    public override bool ShowsTameLabel => false;
+
     public override void OnSingleClick(Mobile from)
     {
         base.OnSingleClick(from);

@@ -2901,7 +2901,7 @@ namespace Server.Mobiles
             {
                 list.Add(1049646); // (summoned)
             }
-            else if (Controlled && Commandable)
+            else if (Controlled && Commandable && ShowsTameLabel)
             {
                 // Intentional difference (showing ONLY bonded when bonded instead of bonded & tame)
                 if (IsBonded)
@@ -2915,9 +2915,12 @@ namespace Server.Mobiles
             }
         }
 
+        /// <summary>Whether a controlled creature is labelled (tame), (bonded) or (hired) when looked at.</summary>
+        public virtual bool ShowsTameLabel => true;
+
         public override void OnSingleClick(Mobile from)
         {
-            if (Controlled && Commandable)
+            if (Controlled && Commandable && ShowsTameLabel)
             {
                 int number;
 
