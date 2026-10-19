@@ -349,6 +349,64 @@ public class TownLifeTests
     }
 
     [Fact]
+    public void Crier_EveryKindOfNewsCanBeCried()
+    {
+        var now = Core._now;
+        Core._now = new DateTime(2026, 10, 18, 12, 0, 0, DateTimeKind.Utc);
+
+        try
+        {
+            for (var kind = (NewsKind)0; kind < NewsKind.Count; kind++)
+            {
+                var item = new NewsItem
+                {
+                    Kind = kind, WhoName = "Ana", What = "a dragon", Where = "Destard", Town = "Minoc", When = Core.Now
+                };
+
+                // Twice over, for the kinds with two ways of saying it.
+                for (var i = 0; i < 8; i++)
+                {
+                    var lines = TownCrierNews.Proclaim(item, "Minoc");
+
+                    Assert.NotNull(lines);
+                    Assert.NotEmpty(lines);
+                    Assert.All(lines, line => Assert.False(string.IsNullOrWhiteSpace(line) || line.Contains('{'), $"{kind}: {line}"));
+                }
+            }
+        }
+        finally
+        {
+            Core._now = now;
+        }
+    }
+
+    [Theory]
+    [InlineData(0.5, "this very hour")]
+    [InlineData(5, "this day")]
+    [InlineData(24, "but yesterday")]
+    [InlineData(40, "of late")]
+    public void Crier_SaysHowLongAgo(double hoursAgo, string expected)
+    {
+        var now = Core._now;
+        Core._now = new DateTime(2026, 10, 18, 12, 0, 0, DateTimeKind.Utc);
+
+        try
+        {
+            var item = new NewsItem
+            {
+                Kind = NewsKind.Murder, WhoName = "Ana", What = "Bob", Where = "Britain",
+                When = Core.Now - TimeSpan.FromHours(hoursAgo)
+            };
+
+            Assert.Contains(TownCrierNews.Proclaim(item, "Britain"), line => line.Contains(expected));
+        }
+        finally
+        {
+            Core._now = now;
+        }
+    }
+
+    [Fact]
     public void News_ATownsLossIsOnlyThatTownsTalk()
     {
         TownNews.Clear();

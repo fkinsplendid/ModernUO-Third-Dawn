@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using ModernUO.Serialization;
+using Server.Engines.TownLife;
 using Server.Gumps;
 using Server.Items;
 using Server.Network;
@@ -296,8 +297,14 @@ public class TownCrierGump : Gump
 [SerializationGenerator(0, false)]
 public partial class TownCrier : Mobile, ITownCrierEntryList
 {
+    // Cries the news at whoever comes by, but not at every step they take.
+    private const int CryRange = 8;
+    private static readonly TimeSpan CryCooldown = TimeSpan.FromMinutes(3);
+
     private Timer _autoShoutTimer;
     private Timer _newsTimer;
+    private NewsItem _lastNews;
+    private long _nextCryTick;
 
     [Constructible]
     public TownCrier()
@@ -429,37 +436,80 @@ public partial class TownCrier : Mobile, ITownCrierEntryList
 
     private void AutoShout_Callback()
     {
-        var tce = GetRandomEntry();
+        var lines = PickLines();
 
-        if (tce == null)
+        if (lines == null)
         {
             _autoShoutTimer?.Stop();
             _autoShoutTimer = null;
         }
         else if (_newsTimer == null)
         {
-            _newsTimer = Timer.DelayCall(
-                TimeSpan.FromSeconds(1.0),
-                TimeSpan.FromSeconds(2.0),
-                tce.Lines.Length,
-                () => ShoutNews_Callback(tce)
-            );
-
-            PublicOverheadMessage(MessageType.Regular, 0x3B2, 502976); // Hear ye! Hear ye!
+            Cry(lines, 502976); // Hear ye! Hear ye!
         }
     }
 
-    private void ShoutNews_Callback(TownCrierEntry tce)
+    /// <summary>A staff entry or the real news of the land (see <see cref="TownNews"/>), half and half when there are both.</summary>
+    private string[] PickLines()
+    {
+        var tce = GetRandomEntry();
+        var town = TownNews.PlaceName(this);
+        var news = TownCrierNews.Pick(town, _lastNews);
+
+        if (news != null && (tce == null || Utility.RandomBool()))
+        {
+            _lastNews = news;
+            return TownCrierNews.Proclaim(news, town);
+        }
+
+        return tce?.Lines;
+    }
+
+    private void Cry(string[] lines, int opening)
+    {
+        // One tick per line, then one more to finish.
+        _newsTimer = Timer.DelayCall(
+            TimeSpan.FromSeconds(1.0),
+            TimeSpan.FromSeconds(2.0),
+            lines.Length + 1,
+            () => ShoutNews_Callback(lines)
+        );
+
+        PublicOverheadMessage(MessageType.Regular, 0x3B2, opening);
+    }
+
+    private void ShoutNews_Callback(string[] lines)
     {
         var index = _newsTimer.Index;
-        if (index >= tce.Lines.Length)
+        if (index >= lines.Length)
         {
             _newsTimer?.Stop();
             _newsTimer = null;
         }
         else
         {
-            PublicOverheadMessage(MessageType.Regular, 0x3B2, false, tce.Lines[index]);
+            PublicOverheadMessage(MessageType.Regular, 0x3B2, false, lines[index]);
+        }
+    }
+
+    public override void OnMovement(Mobile m, Point3D oldLocation)
+    {
+        base.OnMovement(m, oldLocation);
+
+        if (_newsTimer != null || !m.Player || !m.Alive || m.Hidden || Core.TickCount < _nextCryTick ||
+            !InRange(m, CryRange) || Utility.InRange(Location, oldLocation, CryRange))
+        {
+            return;
+        }
+
+        _nextCryTick = Core.TickCount + (long)CryCooldown.TotalMilliseconds;
+
+        var lines = PickLines();
+
+        if (lines != null)
+        {
+            Direction = GetDirectionTo(m);
+            Cry(lines, 502976); // Hear ye! Hear ye!
         }
     }
 
@@ -483,22 +533,15 @@ public partial class TownCrier : Mobile, ITownCrierEntryList
         {
             Direction = GetDirectionTo(e.Mobile);
 
-            var tce = GetRandomEntry();
+            var lines = PickLines();
 
-            if (tce == null)
+            if (lines == null)
             {
                 PublicOverheadMessage(MessageType.Regular, 0x3B2, 1005643); // I have no news at this time.
             }
             else
             {
-                _newsTimer = Timer.DelayCall(
-                    TimeSpan.FromSeconds(1.0),
-                    TimeSpan.FromSeconds(2.0),
-                    tce.Lines.Length,
-                    () => ShoutNews_Callback(tce)
-                );
-
-                PublicOverheadMessage(MessageType.Regular, 0x3B2, 502978); // Some of the latest news!
+                Cry(lines, 502978); // Some of the latest news!
             }
         }
     }
@@ -508,6 +551,13 @@ public partial class TownCrier : Mobile, ITownCrierEntryList
     public override void OnDelete()
     {
         Instances.Remove(this);
+
+        _autoShoutTimer?.Stop();
+        _autoShoutTimer = null;
+        _newsTimer?.Stop();
+        _newsTimer = null;
+        _lastNews = null;
+
         base.OnDelete();
     }
 }

@@ -47,6 +47,5 @@
 /Distribution/Configuration/server-access.json
 
 # Shard-local data
-/Distribution/Data/town-crier-feed.json
 /Distribution/Data/Decoration/_backup_quest_spawners
 /Projects/UOContent/PHcommands
