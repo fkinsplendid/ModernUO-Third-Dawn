@@ -342,6 +342,143 @@ public static class TownLifeSystem
             )
         );
 
+        // A spread-out forest town of farms, woodsmen and the Court of Truth. No smithy.
+        AddTown(
+            new Town(
+                "Yew",
+                Map.Trammel,
+                [
+                    (ResidentTrade.Farmer, 3),
+                    (ResidentTrade.Fisher, 1),
+                    (ResidentTrade.Townsfolk, 3),
+                    (ResidentTrade.Shopper, 1),
+                    (ResidentTrade.Drunk, 1),
+                    (ResidentTrade.Minstrel, 1),
+                    (ResidentTrade.Watchman, 1),
+                    (ResidentTrade.Beggar, 1),
+                    (ResidentTrade.Courier, 2),
+                    (ResidentTrade.Lurker, 8)
+                ],
+                [
+                    "Justice, they say, is Yew's virtue. The court's busy enough to prove it.",
+                    "The monks at the abbey make a fine wine. Don't tell them I said so.",
+                    "Yew's so spread out you need a horse to visit the neighbours.",
+                    "Heard wolves in the deep forest last night.",
+                    "Good timber in these woods. Carpenters come from all over.",
+                    "Another trial at the Court of Truth today. Guilty, I'd wager."
+                ]
+            )
+        );
+
+        // The fortress isle of the knights. Everything a garrison needs.
+        AddTown(
+            new Town(
+                "Serpent's Hold",
+                Map.Trammel,
+                [
+                    (ResidentTrade.Fisher, 2),
+                    (ResidentTrade.Smith, 1),
+                    (ResidentTrade.Townsfolk, 2),
+                    (ResidentTrade.Shopper, 1),
+                    (ResidentTrade.Drunk, 1),
+                    (ResidentTrade.Minstrel, 1),
+                    (ResidentTrade.Watchman, 2),
+                    (ResidentTrade.Courier, 1),
+                    (ResidentTrade.Noble, 1),
+                    (ResidentTrade.Lurker, 8)
+                ],
+                [
+                    "The knights drilled all morning. You can hear the clang from the docks.",
+                    "Courage, they call it here. Stubbornness, I call it.",
+                    "Safest town in Britannia, the Hold. Walls, knights and the sea.",
+                    "Ships come in from Trinsic and Jhelom. Mostly fighters and fish.",
+                    "A knight told me his whole life story at the tavern. Took all night.",
+                    "Hard to sneak anything onto an island full of knights."
+                ]
+            )
+        );
+
+        // In the Lost Lands, below the mountains: a frontier town with no harbour.
+        AddTown(
+            new Town(
+                "Delucia",
+                Map.Trammel,
+                [
+                    (ResidentTrade.Smith, 1),
+                    (ResidentTrade.Townsfolk, 3),
+                    (ResidentTrade.Shopper, 1),
+                    (ResidentTrade.Drunk, 1),
+                    (ResidentTrade.Watchman, 2),
+                    (ResidentTrade.Beggar, 1),
+                    (ResidentTrade.Courier, 1),
+                    (ResidentTrade.Lurker, 6)
+                ],
+                [
+                    "Ratmen in the hills again. Keep your door barred.",
+                    "The Lost Lands, they call it. Lost to everyone but us.",
+                    "Long way from Britain here. Nobody's sorry.",
+                    "Saw a lizardman by the road. Or a very ugly traveller.",
+                    "The pass is snowed in. Nothing in or out till spring.",
+                    "Papua's three days south through the jungle. I'll stay put."
+                ]
+            )
+        );
+
+        // The Lost Lands' jungle town, by the swamp and the sea.
+        AddTown(
+            new Town(
+                "Papua",
+                Map.Trammel,
+                [
+                    (ResidentTrade.Fisher, 2),
+                    (ResidentTrade.Smith, 1),
+                    (ResidentTrade.Townsfolk, 3),
+                    (ResidentTrade.Shopper, 2),
+                    (ResidentTrade.Drunk, 1),
+                    (ResidentTrade.Watchman, 1),
+                    (ResidentTrade.Beggar, 1),
+                    (ResidentTrade.Courier, 1),
+                    (ResidentTrade.Lurker, 6)
+                ],
+                [
+                    "Mosquitoes the size of sparrows today.",
+                    "Swamp's rising. Mind where you put your feet.",
+                    "Strange birds in the jungle. Louder than Britain's market.",
+                    "Heard drums from the jungle last night. Not ours.",
+                    "It's so hot even the lizards look for shade.",
+                    "Delucia folk call us backward. At least we're warm."
+                ]
+            )
+        );
+
+        // The pirates' island: rough taverns, the thieves' guild and no questions asked.
+        AddTown(
+            new Town(
+                "Buccaneer's Den",
+                Map.Trammel,
+                [
+                    (ResidentTrade.Fisher, 2),
+                    (ResidentTrade.Smith, 1),
+                    (ResidentTrade.Townsfolk, 2),
+                    (ResidentTrade.Shopper, 1),
+                    (ResidentTrade.Drunk, 3),
+                    (ResidentTrade.Minstrel, 1),
+                    (ResidentTrade.Watchman, 1),
+                    (ResidentTrade.Beggar, 1),
+                    (ResidentTrade.Courier, 1),
+                    (ResidentTrade.Lurker, 8)
+                ],
+                [
+                    "Count your fingers after you shake hands in the Den.",
+                    "Ship came in flying no colours. Nobody asked why.",
+                    "Everything's for sale in Buccaneer's Den. Mostly other people's things.",
+                    "The thieves' guild is hiring. They always are.",
+                    "Rum's cheaper than water here. Safer, too.",
+                    "Guards? Aye, we've got guards. They look the other way for a living."
+                ]
+            )
+        );
+
         CommandSystem.Register("TownLife", AccessLevel.GameMaster, TownLife_OnCommand);
     }
 

@@ -539,6 +539,24 @@ public static class ResidentDialogues
 
         Local("Cove", "Orcs about tonight, {b}?", "Always. Keep the gate shut.", "I always do.");
         Local("Cove", "Ever think of moving to Britain?", "And give up all this?", "All what?", "Exactly, {b}.");
+
+        Local("Yew", "Court found him guilty, {b}.", "Of what?", "Does it matter? It's Yew.");
+        Local("Yew", "Walked to the bank this morning.", "All that way?", "Took me till midday, {b}.");
+        Local("Yew", "Wolves got another sheep.", "Yours?", "Yours, {b}. Sorry.");
+
+        Local("Serpent's Hold", "Knight saluted me today, {b}.", "Did you salute back?", "I curtsied. Panicked.");
+        Local("Serpent's Hold", "Ever seen the Hold fall?", "Never.", "Never will, {b}.");
+        Local("Serpent's Hold", "Another ship of squires.", "Green as grass?", "Greener, {b}. One fell off the gangplank.");
+
+        Local("Delucia", "Ratmen took the Hendersons' goat.", "Again?", "Same goat, {b}. It keeps coming back.");
+        Local("Delucia", "Anyone come through the pass?", "One traveller.", "And?", "Turned round and went back, {b}.");
+
+        Local("Papua", "Hot enough for you, {b}?", "It's always hot enough.", "Then why ask?", "Habit.");
+        Local("Buccaneer's Den", "Nice boots, {b}.", "Thanks. New.", "New to you, anyway.");
+        Local("Buccaneer's Den", "Someone lifted my purse.", "In the Den? Never.", "Give it back, {b}.", "Fair.");
+        Local("Buccaneer's Den", "Ship in last night, {b}.", "Whose?", "Not the ones sailing it, I'd wager.");
+
+        Local("Papua", "Something big in the swamp last night.", "Gator?", "Bigger, {b}.", "I'll take the long way round.");
     }
 
     private static void CompanionTalk()

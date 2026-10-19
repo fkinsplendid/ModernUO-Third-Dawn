@@ -631,6 +631,21 @@ public sealed class Town
             FindBankArchway(main.Spot);
         }
 
+        // Still nothing (Yew's bank is deep in a roofed compound): wherever the walk out of it meets the sky.
+        if (_lurkCentre == Point3D.Zero && TryWalkOut(main.Spot, out var lastInside, out var firstOutside))
+        {
+            _bankDoor = lastInside;
+            _lurkOutX = Math.Sign(firstOutside.X - lastInside.X);
+            _lurkOutY = Math.Sign(firstOutside.Y - lastInside.Y);
+
+            var centre = new Point3D(
+                firstOutside.X + _lurkOutX * LurkDistance,
+                firstOutside.Y + _lurkOutY * LurkDistance,
+                firstOutside.Z
+            );
+            _lurkCentre = Streets.TryFindNearestOutdoors(centre, 1, out var found) ? found : firstOutside;
+        }
+
         if (_lurkCentre == Point3D.Zero && Streets.TryFindNearestOutdoors(main.Spot, BankDoorSearch, out var outside))
         {
             _lurkCentre = outside;
@@ -674,6 +689,56 @@ public sealed class Town
                 _lurkCentre = Streets.TryFindNearestOutdoors(centre, 1, out var found) ? found : doorstep;
             }
         }
+    }
+
+    // How far a walk out of a building may wander before giving up.
+    private const int WalkOutRange = 40;
+
+    /// <summary>
+    /// The nearest way out under open sky, walking from <paramref name="from"/> one straight step at a
+    /// time (no diagonals, so never squeezing between two corners of wall).
+    /// </summary>
+    private bool TryWalkOut(Point3D from, out Point3D lastInside, out Point3D firstOutside)
+    {
+        lastInside = default;
+        firstOutside = default;
+
+        if (!Streets.TryGetTile(from.X, from.Y, out var start))
+        {
+            return false;
+        }
+
+        var seen = new HashSet<Point2D> { new(start.X, start.Y) };
+        var queue = new Queue<Point3D>();
+        queue.Enqueue(start);
+
+        while (queue.Count > 0)
+        {
+            var tile = queue.Dequeue();
+
+            for (var d = 0; d < 8; d += 2)
+            {
+                int x = tile.X, y = tile.Y;
+                Movement.Movement.Offset((Direction)d, ref x, ref y);
+
+                if (Math.Abs(x - from.X) > WalkOutRange || Math.Abs(y - from.Y) > WalkOutRange ||
+                    !seen.Add(new Point2D(x, y)) || !Streets.TryGetTile(x, y, out var next))
+                {
+                    continue;
+                }
+
+                if (Streets.IsOutdoors(next))
+                {
+                    lastInside = tile;
+                    firstOutside = next;
+                    return true;
+                }
+
+                queue.Enqueue(next);
+            }
+        }
+
+        return false;
     }
 
     private bool HasNeighbouringDoor(BaseDoor door)

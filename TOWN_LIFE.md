@@ -1,9 +1,11 @@
 # Town Life — Living Towns
 
 Towns have residents with names, trades, front doors and daily routines. On Trammel: Britain (28 residents),
-Vesper (26), Trinsic (25), Nujel'm (22), Moonglow, Minoc, Magincia and Jhelom (20 each), Skara Brae (16),
-Ocllo (15) and Cove (7). Only Britain has farmers (no other town has named field regions); Minoc has no
-fishers (no docks); Cove has no bank and no tavern, so no lurkers and no drunk. Each town also has its own
+Vesper (26), Trinsic (25), Nujel'm and Yew (22), Moonglow, Minoc, Magincia, Jhelom and Serpent's Hold
+(20 each), Buccaneer's Den (21, heavy on drunks), Papua (18), Skara Brae and Delucia (16), Ocllo (15) and
+Cove (7). Wind is left out: a sealed mages' city in a cave isn't a town of front doors. Only Britain and Yew have
+farmers (no other town has named field regions); Minoc and Delucia have no fishers (no docks); Cove has no
+bank and no tavern, so no lurkers and no drunk. Each town also has its own
 local talk (Trinsic's paladins, Moonglow's Lycaeum, Minoc's mines, Magincia's pride, Jhelom's duelling pits...).
 
 ## What players see
@@ -71,7 +73,8 @@ local talk (Trinsic's paladins, Moonglow's Lycaeum, Minoc's mines, Magincia's pr
   one side within a few steps, past any porch or eaves, and a roof on the other) become homes. A town with
   fewer than 10 such doors counts **archways** too: a roofed gap in a wall up to 3 tiles wide, a room behind
   and the street in front (Magincia's houses have arches, not doors). A bank with no door (Trinsic, Moonglow,
-  Magincia) gets its lurkers in front of the archway nearest its counter, within 20 tiles.
+  Magincia) gets its lurkers in front of the archway nearest its counter, within 20 tiles; failing that (Yew's
+  bank is deep in a roofed compound), wherever walking out from the counter first reaches open sky.
 - **Long walks are planned across town** and walked a short leg at a time, so they can cross Britain.
 - **Only watched residents walk.** NPC AI sleeps when no player is near, so out of everyone's sight a
   resident simply arrives at the next place (or goes indoors). Going home means stepping through their front
