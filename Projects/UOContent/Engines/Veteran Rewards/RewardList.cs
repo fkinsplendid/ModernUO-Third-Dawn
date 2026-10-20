@@ -6,6 +6,7 @@ namespace Server.Engines.VeteranRewards
     {
         public RewardList(TimeSpan interval, int index, RewardEntry[] entries)
         {
+            Level = index;
             Age = TimeSpan.FromDays(interval.TotalDays * index);
             Entries = entries;
 
@@ -14,6 +15,9 @@ namespace Server.Engines.VeteranRewards
                 entries[i].List = this;
             }
         }
+
+        /// <summary>The reward level an account needs to choose from this list.</summary>
+        public int Level { get; }
 
         public TimeSpan Age { get; }
 
