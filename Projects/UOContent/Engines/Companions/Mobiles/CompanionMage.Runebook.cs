@@ -105,15 +105,19 @@ public partial class CompanionMage
             IssueRunebook();
             Say("I'll have to start a new runebook. Every place in the old one is gone.");
         }
+
+        IssueMissingSpellbook();
     }
 
-    /// <summary>Mages hired before runebooks were issued get theirs on load.</summary>
+    /// <summary>Mages hired before runebooks or their own spellbooks were issued get them on load.</summary>
     [AfterDeserialization(false)]
-    private void IssueMissingRunebook()
+    private void IssueMissingKit()
     {
         if (!Deleted && !IsDeadPet && Runebook == null)
         {
             IssueRunebook();
         }
+
+        IssueMissingSpellbook();
     }
 }

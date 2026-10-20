@@ -130,6 +130,9 @@ public partial class Spellbook : Item, ICraftable, ISlayer, IAosItem
     public override bool DisplayWeight => false;
 
     public virtual SpellbookType SpellbookType => SpellbookType.Regular;
+
+    /// <summary>Whether a glance at the book tells how many spells it holds.</summary>
+    public virtual bool ShowsSpellCount => true;
     public virtual int BookOffset => 0;
     public virtual int BookCount => 64;
 
@@ -799,7 +802,10 @@ public partial class Spellbook : Item, ICraftable, ISlayer, IAosItem
             list.Add(1075210, prop); // Increased Karma Loss ~1val~%
         }
 
-        list.Add(1042886, _spellCount); // ~1_NUMBERS_OF_SPELLS~ Spells
+        if (ShowsSpellCount)
+        {
+            list.Add(1042886, _spellCount); // ~1_NUMBERS_OF_SPELLS~ Spells
+        }
     }
 
     public override void OnSingleClick(Mobile from)
@@ -811,7 +817,10 @@ public partial class Spellbook : Item, ICraftable, ISlayer, IAosItem
             LabelTo(from, 1050043, _crafter); // crafted by ~1_NAME~
         }
 
-        LabelTo(from, 1042886, _spellCount.ToString());
+        if (ShowsSpellCount)
+        {
+            LabelTo(from, 1042886, _spellCount.ToString());
+        }
     }
 
     public override void OnDoubleClick(Mobile from)

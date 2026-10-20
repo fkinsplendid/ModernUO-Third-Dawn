@@ -65,7 +65,7 @@ public partial class CompanionMage : BaseCompanion
         AddItem(Issue(new Robe(Utility.RandomBlueHue())));
         AddItem(Issue(new WizardsHat(Utility.RandomBlueHue())));
         AddItem(Issue(new Sandals()));
-        AddItem(Issue(new Spellbook(ulong.MaxValue) { LootType = LootType.Blessed }));
+        IssueSpellbook();
         IssueRunebook();
 
         foreach (var (_, _, create) in _reagents)

@@ -874,6 +874,16 @@ public abstract partial class BaseCompanion : BaseCreature
 
     public override bool IsSnoop(Mobile from) => !HasPackAccess(from) && base.IsSnoop(from);
 
+    /// <summary>
+    /// The living can't see a ghost out of war mode, but a companion always knows where its own
+    /// party's dead stand. Without that no spell or bandage could ever be aimed at them.
+    /// </summary>
+    public override bool CanSee(Mobile m) =>
+        base.CanSee(m) || !m.Alive && !m.Hidden && m.Map == Map && Map != Map.Internal && IsOwnParty(m);
+
+    private bool IsOwnParty(Mobile m) =>
+        Employer is { } employer && (m == employer || m is BaseCompanion companion && companion.Employer == employer);
+
     public bool HasPackAccess(Mobile from) =>
         from.AccessLevel >= AccessLevel.GameMaster || from.Alive && from == Employer && !IsDeadPet &&
         State == CompanionState.Active;

@@ -65,9 +65,9 @@ public sealed partial class MageCompanionAI
             return $"We're already at {destination.Name}.";
         }
 
-        if (Magery < GateSkill)
+        if (!Knows<GateTravelSpell>())
         {
-            return "I haven't the skill to open a gate yet.";
+            return $"Gate travel's not in my book yet. I'll learn it at {GateSkill:0} Magery.";
         }
 
         _gateFizzles = 0;
@@ -170,7 +170,7 @@ public sealed partial class MageCompanionAI
     /// <summary>Casts Gate Travel to <paramref name="destination"/>, or the usual place if none is given.</summary>
     private bool OpenGate(bool escape, GateDestination? destination = null)
     {
-        if (_gateDeadline != 0 || Party.ActiveGate != null || Magery < GateSkill || Mobile.Mana < GateMana)
+        if (_gateDeadline != 0 || Party.ActiveGate != null || !Knows<GateTravelSpell>() || Mobile.Mana < GateMana)
         {
             return false;
         }
@@ -484,9 +484,9 @@ public sealed partial class MageCompanionAI
             return "Give me a moment, I'm already casting.";
         }
 
-        if (CastChance(spell, Magery) <= 0)
+        if (!KnowsSpell(spell))
         {
-            return "I haven't the skill to cast Mark yet.";
+            return $"Mark's not in my book yet. I'll learn it at {CompanionMage.CircleSkill(6):0} Magery.";
         }
 
         rune = FindBlankRune();

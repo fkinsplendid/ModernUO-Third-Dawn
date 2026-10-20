@@ -25,6 +25,9 @@ public class CompanionTests : IDisposable
 
         CompanionSettings.Configure();
 
+        // The test host skips startup, where spells get the IDs a spellbook files them under.
+        Server.Spells.Initializer.Configure();
+
         // The test host has no NPC speed table; creatures need at least the default class.
         NPCSpeeds.RegisterSpeed(
             new NPCSpeeds.SpeedClassEntry { Level = SpeedLevel.Medium, ActiveSpeed = 0.2, PassiveSpeed = 0.4, Types = [] }
@@ -300,7 +303,7 @@ public class CompanionTests : IDisposable
             Assert.Same(companion.Backpack, plate.Parent);
             Assert.Same(companion.Backpack, sword.Parent);
             Assert.Same(companion, leather.Parent);
-            Assert.IsType<Spellbook>(companion.FindItemOnLayer(Layer.OneHanded));
+            Assert.IsType<CompanionSpellbook>(companion.FindItemOnLayer(Layer.OneHanded));
         }
         finally
         {
@@ -2007,6 +2010,201 @@ public class CompanionTests : IDisposable
             }
 
             mage.Delete();
+            employer.Delete();
+        }
+    }
+
+    // ---------- The mage's spellbook ----------
+
+    [Fact]
+    public void Mage_SpellbookGrowsWithMagery_AndNeverForgets()
+    {
+        var employer = CreateEmployer();
+        var mage = new CompanionMage();
+
+        try
+        {
+            mage.BeginService(employer);
+
+            mage.Skills.Magery.Base = 62.0;
+            Assert.Equal(5, mage.CirclesKnown);
+            Assert.True(mage.Knows(typeof(Server.Spells.Fifth.ParalyzeSpell)));
+            Assert.False(mage.Knows(typeof(Server.Spells.Sixth.MarkSpell)));
+            Assert.False(mage.Knows(typeof(Server.Spells.Eighth.ResurrectionSpell)));
+
+            mage.Skills.Magery.Base = 89.9;
+            Assert.Equal(7, mage.CirclesKnown);
+            Assert.True(mage.Knows(typeof(Server.Spells.Seventh.GateTravelSpell)));
+            Assert.False(mage.Knows(typeof(Server.Spells.Eighth.ResurrectionSpell)));
+
+            mage.Skills.Magery.Base = 90.0;
+            Assert.Equal(CompanionMage.Circles, mage.CirclesKnown);
+            Assert.Equal(64, mage.Spellbook.SpellCount);
+            Assert.True(mage.Knows(typeof(Server.Spells.Eighth.ResurrectionSpell)));
+
+            mage.Skills.Magery.Base = 70.0;
+            Assert.Equal(CompanionMage.Circles, mage.CirclesKnown);
+        }
+        finally
+        {
+            mage.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Mage_SpellbookIsPrivate()
+    {
+        var employer = CreateEmployer();
+        var mage = new CompanionMage();
+
+        try
+        {
+            mage.BeginService(employer);
+            var book = mage.Spellbook;
+
+            Assert.NotNull(book);
+            Assert.Equal(mage, book.Parent);
+            Assert.False(book.ShowsSpellCount);
+            Assert.False(mage.CheckNonlocalLift(employer, book));
+
+            // Scrolls can't be written into it to skip ahead.
+            var scroll = new ResurrectionScroll();
+            Assert.False(book.OnDragDrop(employer, scroll));
+            Assert.False(mage.Knows(typeof(Server.Spells.Eighth.ResurrectionSpell)));
+            scroll.Delete();
+        }
+        finally
+        {
+            mage.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Mage_WontMark_UntilTheSixthCircleIsInTheBook()
+    {
+        var employer = CreateEmployer();
+        var mage = new CompanionMage();
+
+        try
+        {
+            mage.BeginService(employer);
+            mage.MoveToWorld(Britain, Map.Trammel);
+            mage.Skills.Magery.Base = 65.0;
+            mage.Mana = mage.ManaMax;
+            mage.Backpack.DropItem(new RecallRune());
+
+            var ai = (MageCompanionAI)mage.AIObject;
+            ai.RequestMark(null);
+            Assert.Null(mage.Spell);
+
+            mage.Skills.Magery.Base = CompanionMage.CircleSkill(6);
+            ai.RequestMark(null);
+            Assert.IsType<Server.Spells.Sixth.MarkSpell>(mage.Spell);
+        }
+        finally
+        {
+            mage.Delete();
+            employer.Delete();
+        }
+    }
+
+    private sealed class RecordingTarget : Server.Targeting.Target
+    {
+        public RecordingTarget() : base(1, false, Server.Targeting.TargetFlags.Beneficial)
+        {
+        }
+
+        public object Hit { get; private set; }
+
+        public bool CouldNotSee { get; private set; }
+
+        protected override void OnTarget(Mobile from, object targeted) => Hit = targeted;
+
+        protected override void OnCantSeeTarget(Mobile from, object targeted) => CouldNotSee = true;
+    }
+
+    [Fact]
+    public void Mage_CanAimResurrection_AtItsEmployersGhost()
+    {
+        var employer = CreateEmployer();
+        var stranger = CreateEmployer();
+        var mage = new CompanionMage();
+
+        try
+        {
+            mage.BeginService(employer);
+            mage.MoveToWorld(Origin, Map.Felucca);
+            employer.MoveToWorld(new Point3D(Origin.X + 1, Origin.Y, Origin.Z), Map.Felucca);
+            stranger.MoveToWorld(new Point3D(Origin.X - 1, Origin.Y, Origin.Z), Map.Felucca);
+
+            // Ghosts out of war mode, which the living can't see.
+            employer.Player = stranger.Player = true;
+            employer.Body = stranger.Body = 0x192;
+            employer.Warmode = stranger.Warmode = false;
+            Assert.False(employer.Alive);
+
+            Assert.True(mage.CanSee(employer));
+            Assert.False(mage.CanSee(stranger));
+
+            // The spell's target gets the ghost, rather than "that is not in sight".
+            var target = new RecordingTarget();
+            target.Invoke(mage, employer);
+            Assert.False(target.CouldNotSee);
+            Assert.Same(employer, target.Hit);
+        }
+        finally
+        {
+            mage.Delete();
+            stranger.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
+    public void Mage_ChancesANewlyLearnedCircle_ButNotEveryTime()
+    {
+        var employer = CreateEmployer();
+        var mage = new CompanionMage();
+        var target = new Horse();
+
+        try
+        {
+            mage.BeginService(employer);
+            target.MoveToWorld(employer.Location, employer.Map);
+            target.RawInt = mage.Int + 10; // no mind blast
+            mage.Mana = mage.ManaMax;
+
+            var ai = (MageCompanionAI)mage.AIObject;
+            int Bolts()
+            {
+                var bolts = 0;
+
+                for (var i = 0; i < 400; i++)
+                {
+                    if (ai.ChooseAttack(target) is Server.Spells.Sixth.EnergyBoltSpell)
+                    {
+                        bolts++;
+                    }
+                }
+
+                return bolts;
+            }
+
+            // Below the sixth circle, never.
+            mage.Skills.Magery.Base = 65.0;
+            Assert.Equal(0, Bolts());
+
+            // Just learned (about even odds): tried often, but not every time.
+            mage.Skills.Magery.Base = 70.0;
+            var tried = Bolts();
+            Assert.InRange(tried, 80, 320);
+        }
+        finally
+        {
+            mage.Delete();
+            target.Delete();
             employer.Delete();
         }
     }

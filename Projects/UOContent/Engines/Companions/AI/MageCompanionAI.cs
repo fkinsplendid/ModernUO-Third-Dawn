@@ -21,13 +21,14 @@ namespace Server.Engines.Companions;
 /// </summary>
 public sealed partial class MageCompanionAI : CompanionAI
 {
-    // About an even chance per cast at these levels (Gate 60-100, Resurrection 70-110 pre-ML).
-    // A fizzle still costs the reagents, so a mage tries a few times before giving up.
-    internal const double GateSkill = 80.0;
-    internal const double ResurrectSkill = 90.0;
+    // The circles go into the book at about an even chance per cast (Gate 60-100, Resurrection
+    // 70-110 pre-ML). A fizzle still costs the reagents, so a mage tries a few times before giving up.
+    internal static readonly double GateSkill = CompanionMage.CircleSkill(7);
+    internal static readonly double ResurrectSkill = CompanionMage.CircleSkill(8);
     private const int GateWaitMs = 8000;
     private const int MaxGateAttempts = 3;
     private const int ResurrectRetryMs = 2000;
+    private const int RaiseClaimMs = 6000;
 
     // Blessings are kept up through the lulls of a hunt, not while strolling about town.
     private const int BlessAfterFightMs = 60000;
@@ -54,6 +55,10 @@ public sealed partial class MageCompanionAI : CompanionAI
     }
 
     private double Magery => Mobile.Skills.Magery.Value;
+
+    protected override bool KnowsSpell(Spell spell) => (Companion as CompanionMage)?.Knows(spell) == true;
+
+    private bool Knows<T>() where T : Spell => (Companion as CompanionMage)?.Knows(typeof(T)) == true;
 
     protected override bool TryRoleSupport()
     {
@@ -215,7 +220,7 @@ public sealed partial class MageCompanionAI : CompanionAI
     /// </summary>
     private bool TryResurrect()
     {
-        if (Threats.Count > 0 || Magery < ResurrectSkill || Mobile.Mana < 50 || _resurrectSpell != null)
+        if (Threats.Count > 0 || !Knows<ResurrectionSpell>() || Mobile.Mana < 50 || _resurrectSpell != null)
         {
             return false;
         }
@@ -258,6 +263,9 @@ public sealed partial class MageCompanionAI : CompanionAI
         {
             return false;
         }
+
+        // A fallen companion stands still for this, or it drifts out of reach mid-chant.
+        Party.ClaimHeal(ghost, Companion, RaiseClaimMs);
 
         if (!Mobile.InRange(ghost, 1))
         {
@@ -310,7 +318,7 @@ public sealed partial class MageCompanionAI : CompanionAI
     /// <summary>Casts if the patient is in range; otherwise walks towards them.</summary>
     private bool CastOrApproach(Spell spell, Mobile target, int mana)
     {
-        if (Mobile.Mana < mana)
+        if (Mobile.Mana < mana || !KnowsSpell(spell))
         {
             return false;
         }
@@ -414,43 +422,33 @@ public sealed partial class MageCompanionAI : CompanionAI
 
     /// <summary>
     /// The strongest damage spell this mage knows and can pay for, in mana and in reagents. Runs
-    /// down the list rather than giving up when the pack is out of one reagent. Poison is decided
-    /// separately, before this.
+    /// down the list rather than giving up when the pack is out of one reagent. Each spell is tried
+    /// about as often as the mage expects to land it, so a newly learned circle is attempted, and
+    /// fizzled, and trained, while the old reliable ones fill in. Poison is decided separately.
     /// </summary>
     internal Spell ChooseAttack(Mobile target)
     {
-        var magery = Magery;
-        Spell spell = null;
+        // Flame strike's mana is dear; it's a now-and-then spell however skilled the mage.
+        var spell = Utility.RandomDouble() < 0.3 ? Confident(new FlameStrikeSpell(Mobile)) : null;
 
-        if (magery >= 90.0 && Utility.RandomDouble() < 0.3)
+        spell ??= Confident(new EnergyBoltSpell(Mobile));
+
+        if (target.Int < Mobile.Int)
         {
-            spell ??= Affordable(new FlameStrikeSpell(Mobile));
+            spell ??= Confident(new MindBlastSpell(Mobile));
         }
 
-        if (magery >= 80.0)
-        {
-            spell ??= Affordable(new EnergyBoltSpell(Mobile));
-        }
-
-        if (magery >= 60.0 && target.Int < Mobile.Int)
-        {
-            spell ??= Affordable(new MindBlastSpell(Mobile));
-        }
-
-        if (magery >= 40.0)
-        {
-            spell ??= Affordable(new LightningSpell(Mobile));
-        }
-
-        if (magery >= 20.0)
-        {
-            spell ??= Affordable(new FireballSpell(Mobile));
-        }
+        spell ??= Confident(new LightningSpell(Mobile));
+        spell ??= Confident(new FireballSpell(Mobile));
 
         return spell ?? Affordable(new MagicArrowSpell(Mobile));
     }
 
-    private Spell Affordable(Spell spell) => Mobile.Mana >= spell.GetMana() && HasReagents(spell.Info) ? spell : null;
+    /// <summary>The spell, if affordable and a roll against its odds says the mage will chance it.</summary>
+    private Spell Confident(Spell spell) => Utility.RandomDouble() < CastChance(spell, Magery) ? Affordable(spell) : null;
+
+    private Spell Affordable(Spell spell) =>
+        Mobile.Mana >= spell.GetMana() && KnowsSpell(spell) && HasReagents(spell.Info) ? spell : null;
 
     /// <summary>Tries for a meditative trance. The skill itself decides whether it takes.</summary>
     private void Meditate()

@@ -486,9 +486,12 @@ public abstract partial class CompanionAI : BaseAI
     /// <summary>Starts casting a spell aimed at the ground (a field, a teleport).</summary>
     protected bool CastAtLocation(Spell spell, Point3D location) => BeginCast(spell, new LandTarget(location, Mobile.Map));
 
+    /// <summary>Whether the spell is one this companion has learned. NPCs need no book to cast.</summary>
+    protected virtual bool KnowsSpell(Spell spell) => true;
+
     private bool BeginCast(Spell spell, IPoint3D target)
     {
-        if (Mobile.Spell != null || Mobile.Target != null || !HasReagents(spell.Info))
+        if (Mobile.Spell != null || Mobile.Target != null || !KnowsSpell(spell) || !HasReagents(spell.Info))
         {
             return false;
         }
@@ -1160,6 +1163,7 @@ public abstract partial class CompanionAI : BaseAI
                 bandage.Consume();
                 _reviving = ally;
                 _reviveDone = Core.TickCount + ReviveChannelMs;
+                Party.ClaimHeal(ally, Companion, ReviveChannelMs + 2000);
                 _reviveGiveUp = Core.TickCount + ReviveReachMs;
                 Mobile.Say($"Hold on, {ally.Name}. I've got you.");
                 return true;
@@ -1191,6 +1195,7 @@ public abstract partial class CompanionAI : BaseAI
 
             MoveTo(patient, true, Bandage.Range);
             _reviveDone = Core.TickCount + ReviveChannelMs;
+            Party.ClaimHeal(patient, Companion, ReviveChannelMs + 2000);
             return true;
         }
 
@@ -1245,6 +1250,12 @@ public abstract partial class CompanionAI : BaseAI
         {
             _diedAt = now;
             _resurrector = null;
+        }
+
+        // Someone in the party is raising us: hold still so the spell or bandage stays in reach.
+        if (Party.IsHealClaimedByOther(Mobile, Companion))
+        {
+            return true;
         }
 
         if (_threats.Count > 0 || now - _diedAt < (long)CompanionSettings.GhostPatience.TotalMilliseconds)

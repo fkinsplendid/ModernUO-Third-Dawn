@@ -63,13 +63,21 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
     calms (peacemaking) whatever threatens the backline when it can't, and weakens your
     target (discordance). Peace comes first only to save a badly wounded bard or mage. When brutes
     are winning, provocation comes before everything and is worth a long shot (15% odds, not 30%).
-  - *Mage*: fights like a Third Dawn mage, holding a quarter of its mana back for healing:
+  - *Mage*: fights like a Third Dawn mage, holding a quarter of its mana back for healing.
+    It only casts what is in its **own spellbook**, issued by the guild, which grows with its
+    Magery a circle at a time. Each circle goes in at the point where it can be cast at about
+    even odds: the Nth circle at 10×N + 10 Magery (5th at 60, Mark's 6th at 70, Gate's 7th at
+    80, Resurrection's 8th at 90, the whole book). A new hire knows circles 1-5. The mage
+    announces each new circle. The book is private: it can't be taken, opened, counted or
+    written into with scrolls. The `skills` window shows how far through it the mage is.
     - *Defence*: teleports clear of melee when hurt or swarmed, or paralyzes a lone attacker the
       warrior isn't dealing with. Keeps one defensive spell up: Magic Reflection against
       spellcasters, otherwise Protection while being hit.
     - *Summons*: dispels enemy summons it has a fair chance against; Mass Dispel for several.
       Against brutes, with no spellcasters about to dispel them, puts Blade Spirits (Magery 65+) or
-      an Energy Vortex (Magery 95+) beside the strongest one, up to two at a time. The cast is long,
+      an Energy Vortex beside the strongest one, up to two at a time. Once the vortex is in the
+      book (Magery 90) the mage tries it about as often as it expects to land it: half the time at
+      90, three times in four at grandmaster, and a fizzle costs the reagents. The cast is long,
       so only when nothing is hitting the mage. Like any player's, they choose their own targets.
     - *Control*: puts an Energy Field (or Wall of Stone) in front of a brute charging it, and a
       Paralyze Field in the path of a pack nobody has engaged. Walls never cut off the party.
@@ -77,7 +85,10 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
       already poisoned (skipping the immune, and anything that resists twice). Mages train
       Poisoning, which strengthens the spell: Regular on hire, Greater around level 13, now and
       then Deadly at grandmaster. Strength drops off beyond three tiles.
-    - Then the strongest damage spell it has the mana and reagents for. It won't break a
+    - Then the strongest damage spell it has the mana and reagents for, each tried about as
+      often as the mage expects to land it. A newly learned circle gets chanced and often
+      fizzles (gaining Magery all the same) while the old reliable spells fill in; with skill,
+      the new spells take over. It won't break a
       paralysis nobody is fighting. Out of mana, it meditates where it stands, and between fights
       whenever the party stops.
     - *Bless*: keeps you and the party blessed during a hunt, recasting in the lulls between
@@ -90,7 +101,9 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
   the spoils; pass one back and they'll keep it. They won't take potions they've no use for
   (explosion, poison, night sight).
 - **Revive**: skilled healers (Healing and Anatomy 80+) bring fallen companions back after a
-  fight and offer you resurrection if you die. A high-level mage casts Resurrection on you.
+  fight and offer you resurrection if you die. A mage with the 8th circle (Magery 90) casts
+  Resurrection on you and on fallen companions once the fighting stops. A fallen companion
+  stands still while someone in the party is raising it.
 - **Gear up**: they wear the best weapons and armour in their packs. Hand them gear and
   they'll use it if it suits them (mages refuse metal armour and weapons, bards refuse shields
   and heavy armour).
@@ -100,7 +113,7 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
   whichever companion uses them (looted potions always come to you); gear goes to whichever companion it suits. Near a banker in
   town, they deposit straight into your bank box.
 - **Ask for supplies**: they tell you when bandages, reagents or the bard's instrument run low.
-- **Gate out**: a mage (Magery 80+) opens a gate when the party is losing badly, or when
+- **Gate out**: a mage with the 7th circle (Magery 80+) opens a gate when the party is losing badly, or when
   everyone is weighed down with loot. Step through and they follow. Where the gate leads:
   - Every mage carries its **own runebook**, issued by the guild and empty at first. Give it
     a blank rune and say `mark` (or `mark Minoc mine` to name it): it marks where it stands

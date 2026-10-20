@@ -28,9 +28,6 @@ public sealed partial class MageCompanionAI
     private const int SummonCooldownMs = 8000;
     private const int MaxSummons = 2;
 
-    // Comfortable odds: 62% for Blade Spirits (5th circle, 40-80), 62% for Energy Vortex (8th, 70-110).
-    private const double BladeSpiritsSkill = 65.0;
-    private const double EnergyVortexSkill = 95.0;
 
     private long _nextTeleport;
     private long _nextField;
@@ -273,7 +270,7 @@ public sealed partial class MageCompanionAI
     /// </summary>
     private bool TrySummon()
     {
-        if (BruteCount == 0 || CasterCount > 0 || Magery < BladeSpiritsSkill || CountSummons() >= MaxSummons ||
+        if (BruteCount == 0 || CasterCount > 0 || CountSummons() >= MaxSummons ||
             Mobile.Followers + 1 > Mobile.FollowersMax || FindThreatAttacking(Mobile, 1) != null)
         {
             return false;
@@ -296,8 +293,7 @@ public sealed partial class MageCompanionAI
             return false;
         }
 
-        var spell = (Magery >= EnergyVortexSkill ? Affordable(new EnergyVortexSpell(Mobile)) : null) ??
-                    Affordable(new BladeSpiritsSpell(Mobile));
+        var spell = Confident(new EnergyVortexSpell(Mobile)) ?? Affordable(new BladeSpiritsSpell(Mobile));
 
         if (spell == null || !CastAtLocation(spell, spot))
         {
@@ -390,7 +386,7 @@ public sealed partial class MageCompanionAI
             return false;
         }
 
-        var energy = Magery >= 75.0;
+        var energy = Knows<EnergyFieldSpell>();
         var half = energy ? 2 : 1;
 
         for (var i = 0; i < Threats.Count; i++)

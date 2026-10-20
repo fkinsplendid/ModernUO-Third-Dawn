@@ -44,7 +44,7 @@ public class CompanionSkillsGump : DynamicGump
 
         if (spells.Length > 0)
         {
-            height += 30 + spells.Length * LineHeight;
+            height += 30 + (spells.Length + 1) * LineHeight;
             height += 30 + destinationLines * LineHeight;
         }
 
@@ -73,6 +73,8 @@ public class CompanionSkillsGump : DynamicGump
         {
             y += 10;
             builder.AddHtml(20, y, Width - 40, 20, "Chance to cast", "#FFC000");
+            y += LineHeight;
+            builder.AddHtml(30, y, Width - 60, 20, BookProgress((CompanionMage)_companion), "#A0A0A0");
             y += LineHeight;
 
             foreach (var (name, chance, note) in spells)
@@ -145,26 +147,36 @@ public class CompanionSkillsGump : DynamicGump
         return list;
     }
 
-    private static (string Name, double Chance, string Note)[] SpellOdds(BaseCompanion mage)
+    /// <summary>How far through the book the mage is. The book itself is private.</summary>
+    private static string BookProgress(CompanionMage mage)
     {
+        var known = mage.CirclesKnown;
+
+        return known switch
+        {
+            CompanionMage.Circles => "Spellbook: all eight circles.",
+            0                     => $"Spellbook: empty. The first circle at {CompanionMage.CircleSkill(1):0}.",
+            _                     => $"Spellbook: circles 1-{known} of 8. Next at {CompanionMage.CircleSkill(known + 1):0}."
+        };
+    }
+
+    private static (string Name, double Chance, string Note)[] SpellOdds(BaseCompanion companion)
+    {
+        var mage = (CompanionMage)companion;
         var magery = mage.Skills.Magery.Value;
-        var mark = CastChance(new MarkSpell(mage), magery);
 
         return
         [
-            ("Recall", CastChance(new RecallSpell(mage), magery), "Not cast by companions"),
-            ("Mark", mark, mark > 0 ? "Marks your blank runes" : "Too unskilled yet"),
-            (
-                "Gate Travel",
-                CastChance(new GateTravelSpell(mage), magery),
-                magery >= MageCompanionAI.GateSkill ? "Opens gates for you" : $"Opens gates at {MageCompanionAI.GateSkill:0}"
-            ),
-            (
-                "Resurrection",
-                CastChance(new ResurrectionSpell(mage), magery),
-                magery >= MageCompanionAI.ResurrectSkill ? "Raises the fallen" : $"Raises the fallen at {MageCompanionAI.ResurrectSkill:0}"
-            )
+            Odds(mage, new RecallSpell(mage), 4, "Not cast by companions"),
+            Odds(mage, new MarkSpell(mage), 6, "Marks your blank runes"),
+            Odds(mage, new GateTravelSpell(mage), 7, "Opens gates for you"),
+            Odds(mage, new ResurrectionSpell(mage), 8, "Raises the fallen")
         ];
+
+        (string, double, string) Odds(CompanionMage m, Spell spell, int circle, string use) =>
+            m.Knows(spell)
+                ? (spell.Name, CastChance(spell, magery), use)
+                : (spell.Name, 0, $"Not in the book until {CompanionMage.CircleSkill(circle):0}");
     }
 
     private static double CastChance(Spell spell, double skill) => MageCompanionAI.CastChance(spell, skill);
