@@ -224,6 +224,13 @@ public abstract partial class BaseWeapon
 
     public virtual bool UseSkillMod => !Core.AOS;
 
+    /// <summary>
+    /// Accuracy raises the weapon skill, as it always did, but out of sight: the skills window
+    /// shows no bonus and no gain or loss when the weapon is wielded or put away.
+    /// </summary>
+    private SkillMod AccuracyMod() =>
+        new DefaultSkillMod(AccuracySkill, "WeaponAccuracy", true, (int)_accuracyLevel * 5) { Hidden = true };
+
     public static bool InDoubleStrike { get; set; }
 
     public virtual int VirtualDamageBonus => 0;
@@ -314,7 +321,7 @@ public abstract partial class BaseWeapon
                     }
                     else if (m_SkillMod == null && Parent is Mobile mobile)
                     {
-                        m_SkillMod = new DefaultSkillMod(AccuracySkill, "WeaponAccuracy", true, (int)_accuracyLevel * 5);
+                        m_SkillMod = AccuracyMod();
                         mobile.AddSkillMod(m_SkillMod);
                     }
                     else if (m_SkillMod != null)
@@ -1102,7 +1109,7 @@ public abstract partial class BaseWeapon
         {
             m_SkillMod?.Remove();
 
-            m_SkillMod = new DefaultSkillMod(AccuracySkill, "WeaponAccuracy", true, (int)_accuracyLevel * 5);
+            m_SkillMod = AccuracyMod();
             from.AddSkillMod(m_SkillMod);
         }
 
@@ -3996,7 +4003,7 @@ public abstract partial class BaseWeapon
 
         if (UseSkillMod && _accuracyLevel != WeaponAccuracyLevel.Regular && parentMobile != null)
         {
-            m_SkillMod = new DefaultSkillMod(AccuracySkill, "WeaponAccuracy", true, (int)_accuracyLevel * 5);
+            m_SkillMod = AccuracyMod();
             parentMobile.AddSkillMod(m_SkillMod);
         }
 

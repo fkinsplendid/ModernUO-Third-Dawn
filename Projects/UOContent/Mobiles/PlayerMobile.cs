@@ -1825,6 +1825,33 @@ namespace Server.Mobiles
             }
         }
 
+        // Magic armor's protection level is felt, not seen: the status shows the rating without it.
+        public override double DisplayArmorRating
+        {
+            get
+            {
+                var rating = 0.0;
+
+                AddVisibleArmorRating(ref rating, NeckArmor);
+                AddVisibleArmorRating(ref rating, HandArmor);
+                AddVisibleArmorRating(ref rating, HeadArmor);
+                AddVisibleArmorRating(ref rating, ArmsArmor);
+                AddVisibleArmorRating(ref rating, LegsArmor);
+                AddVisibleArmorRating(ref rating, ChestArmor);
+                AddVisibleArmorRating(ref rating, ShieldArmor);
+
+                return VirtualArmor + VirtualArmorMod + rating;
+            }
+        }
+
+        private static void AddVisibleArmorRating(ref double rating, Item armor)
+        {
+            if (armor is BaseArmor ar && (!Core.AOS || ar.ArmorAttributes.MageArmor == 0))
+            {
+                rating += ar.VisibleArmorRatingScaled;
+            }
+        }
+
         private void AddArmorRating(ref double rating, Item armor)
         {
             if (armor is BaseArmor ar && (!Core.AOS || ar.ArmorAttributes.MageArmor == 0))

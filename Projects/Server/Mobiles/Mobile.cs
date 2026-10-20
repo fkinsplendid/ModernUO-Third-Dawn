@@ -932,6 +932,9 @@ public partial class Mobile : IHued, IComparable<Mobile>, ISpawnable, IObjectPro
     [CommandProperty(AccessLevel.GameMaster)]
     public virtual double ArmorRating => 0.0;
 
+    /// <summary>The armor rating the player is shown in their status. Can leave out hidden bonuses.</summary>
+    public virtual double DisplayArmorRating => ArmorRating;
+
     /// <summary>
     ///     Overridable. Returns true if the player is alive, false if otherwise. By default, this is computed by:
     ///     <c>!Deleted &amp;&amp; (!Player || !Body.IsGhost)</c>

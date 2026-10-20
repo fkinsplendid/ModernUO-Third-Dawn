@@ -61,6 +61,12 @@ public abstract partial class SkillMod : MobileMod
         _value = value;
     }
 
+    /// <summary>
+    /// A hidden mod still counts in every skill check, but the client is never told about it: the
+    /// skills window shows the skill without it and reports no gain or loss when it comes and goes.
+    /// </summary>
+    public bool Hidden { get; set; }
+
     public bool Absolute
     {
         get => !Relative;

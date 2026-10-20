@@ -305,45 +305,50 @@ namespace Server.Items
 
         public double BaseArmorRatingScaled => BaseArmorRating * ArmorScalar;
 
-        public virtual double ArmorRating
+        public virtual double ArmorRating => ComputeArmorRating(true);
+
+        /// <summary>
+        /// The rating a wearer sees in their status: the magic protection level still protects
+        /// them, but isn't shown.
+        /// </summary>
+        public double VisibleArmorRatingScaled => ComputeArmorRating(false) * ArmorScalar;
+
+        private double ComputeArmorRating(bool withProtection)
         {
-            get
+            var ar = BaseArmorRating;
+
+            if (withProtection && _protectionLevel != ArmorProtectionLevel.Regular)
             {
-                var ar = BaseArmorRating;
-
-                if (_protectionLevel != ArmorProtectionLevel.Regular)
-                {
-                    if (Core.UOR)
-                    {
-                        ar += 10;
-                    }
-
-                    ar += 5 * (int)_protectionLevel;
-                }
-
-                // Colored armor does not give a bonus until UOR+
                 if (Core.UOR)
                 {
-                    ar += _resource switch
-                    {
-                        CraftResource.DullCopper    => 2,
-                        CraftResource.ShadowIron    => 4,
-                        CraftResource.Copper        => 6,
-                        CraftResource.Bronze        => 8,
-                        CraftResource.Gold          => 10,
-                        CraftResource.Agapite       => 12,
-                        CraftResource.Verite        => 14,
-                        CraftResource.Valorite      => 16,
-                        CraftResource.SpinedLeather => 10,
-                        CraftResource.HornedLeather => 13,
-                        CraftResource.BarbedLeather => 16,
-                        _                           => 0
-                    };
+                    ar += 10;
                 }
 
-                ar += 8 * (int)(_quality - 1);
-                return ScaleArmorByDurability(ar);
+                ar += 5 * (int)_protectionLevel;
             }
+
+            // Colored armor does not give a bonus until UOR+
+            if (Core.UOR)
+            {
+                ar += _resource switch
+                {
+                    CraftResource.DullCopper    => 2,
+                    CraftResource.ShadowIron    => 4,
+                    CraftResource.Copper        => 6,
+                    CraftResource.Bronze        => 8,
+                    CraftResource.Gold          => 10,
+                    CraftResource.Agapite       => 12,
+                    CraftResource.Verite        => 14,
+                    CraftResource.Valorite      => 16,
+                    CraftResource.SpinedLeather => 10,
+                    CraftResource.HornedLeather => 13,
+                    CraftResource.BarbedLeather => 16,
+                    _                           => 0
+                };
+            }
+
+            ar += 8 * (int)(_quality - 1);
+            return ScaleArmorByDurability(ar);
         }
 
         public double ArmorRatingScaled => ArmorRating * ArmorScalar;

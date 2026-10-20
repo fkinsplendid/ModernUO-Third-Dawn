@@ -530,7 +530,7 @@ public static class OutgoingMobilePackets
         writer.Write((short)beheld.ManaMax);
 
         writer.Write(beheld.TotalGold);
-        writer.Write((short)(Core.AOS ? beheld.PhysicalResistance : (int)(beheld.ArmorRating + 0.5)));
+        writer.Write((short)(Core.AOS ? beheld.PhysicalResistance : (int)(beheld.DisplayArmorRating + 0.5)));
         writer.Write((short)(Mobile.BodyWeight + beheld.TotalWeight));
 
         if (version >= 5)

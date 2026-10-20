@@ -133,7 +133,7 @@ public static class OutgoingPlayerPackets
         {
             var s = skills[i];
 
-            var v = s.NonRacialValue;
+            var v = s.DisplayValue;
             var uv = Math.Clamp((int)(v * 10), 0, 0xFFFF);
 
             writer.Write((ushort)(s.Info.SkillID + 1));
@@ -162,7 +162,7 @@ public static class OutgoingPlayerPackets
         writer.Write((byte)0x3A); // Packet ID
         writer.Write((ushort)13);
 
-        var v = skill.NonRacialValue;
+        var v = skill.DisplayValue;
         var uv = Math.Clamp((int)(v * 10), 0, 0xFFFF);
 
         writer.Write((byte)0xDF); // type: delta, capped

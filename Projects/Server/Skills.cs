@@ -247,87 +247,90 @@ public class Skill
     }
 
     [CommandProperty(AccessLevel.Counselor)]
-    public double NonRacialValue
+    public double NonRacialValue => ComputeValue(true);
+
+    /// <summary>The value the player is shown: <see cref="NonRacialValue"/> without hidden mods.</summary>
+    [CommandProperty(AccessLevel.Counselor)]
+    public double DisplayValue => ComputeValue(false);
+
+    private double ComputeValue(bool includeHidden)
     {
-        get
+        var baseValue = Base;
+        var statsOffset = Owner.Owner.RawStr * Info.StrScale +
+                          Owner.Owner.RawDex * Info.DexScale +
+                          Owner.Owner.RawInt * Info.IntScale;
+
+        var inv = 100.0 - baseValue;
+
+        if (inv <= 0.0)
         {
-            var baseValue = Base;
-            var statsOffset = Owner.Owner.RawStr * Info.StrScale +
-                              Owner.Owner.RawDex * Info.DexScale +
-                              Owner.Owner.RawInt * Info.IntScale;
+            statsOffset = 0.0;
+        }
+        else
+        {
+            statsOffset *= inv;
 
-            var inv = 100.0 - baseValue;
-
-            if (inv <= 0.0)
+            if (Info.StatTotal > 0)
             {
-                statsOffset = 0.0;
-            }
-            else
-            {
-                statsOffset *= inv;
+                var statTotal = Info.StatTotal * inv;
 
-                if (Info.StatTotal > 0)
+                if (statsOffset > statTotal)
                 {
-                    var statTotal = Info.StatTotal * inv;
-
-                    if (statsOffset > statTotal)
-                    {
-                        statsOffset = statTotal;
-                    }
+                    statsOffset = statTotal;
                 }
             }
+        }
 
-            var value = baseValue + statsOffset;
+        var value = baseValue + statsOffset;
 
-            Owner.Owner.ValidateSkillMods();
+        Owner.Owner.ValidateSkillMods();
 
-            double bonusObey = 0.0, bonusNotObey = 0.0;
+        double bonusObey = 0.0, bonusNotObey = 0.0;
 
-            var mods = Owner.Owner.SkillMods;
+        var mods = Owner.Owner.SkillMods;
 
-            if (mods != null)
+        if (mods != null)
+        {
+            foreach (var mod in mods)
             {
-                foreach (var mod in mods)
+                if (mod.Skill != (SkillName)Info.SkillID || mod.Hidden && !includeHidden)
                 {
-                    if (mod.Skill != (SkillName)Info.SkillID)
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    if (mod.Relative)
+                if (mod.Relative)
+                {
+                    if (mod.ObeyCap)
                     {
-                        if (mod.ObeyCap)
-                        {
-                            bonusObey += mod.Value;
-                        }
-                        else
-                        {
-                            bonusNotObey += mod.Value;
-                        }
+                        bonusObey += mod.Value;
                     }
                     else
                     {
-                        bonusObey = 0.0;
-                        bonusNotObey = 0.0;
-                        value = mod.Value;
+                        bonusNotObey += mod.Value;
                     }
                 }
-            }
-
-            value += bonusNotObey;
-
-            if (value < Cap)
-            {
-                value += bonusObey;
-
-                if (value > Cap)
+                else
                 {
-                    value = Cap;
+                    bonusObey = 0.0;
+                    bonusNotObey = 0.0;
+                    value = mod.Value;
                 }
             }
-
-            return value;
         }
+
+        value += bonusNotObey;
+
+        if (value < Cap)
+        {
+            value += bonusObey;
+
+            if (value > Cap)
+            {
+                value = Cap;
+            }
+        }
+
+        return value;
     }
 
     public override string ToString() => $"[{Name}: {Base}]";
