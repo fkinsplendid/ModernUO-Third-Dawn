@@ -61,6 +61,14 @@ public enum SpeechContext
     SteedReturned,
     Dismount,
     MountUp,
+    GearWorn,
+    GearFailing,
+    GearSound,
+    NoSmith,
+    ToTheSmith,
+    HandToSmith,
+    Repaired,
+    RepairDeclined,
     Count
 }
 
@@ -100,6 +108,7 @@ public static partial class CompanionSpeech
         SteedLines();
         PlaceLines();
         FoeLines();
+        SmithingLines();
     }
 
     private static void CommonLines()

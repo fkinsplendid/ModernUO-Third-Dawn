@@ -23,6 +23,7 @@ namespace Server.Engines.Companions;
 ///   dismount               get down and leave the mount standing
 ///   mount up / ride        climb back on
 ///   return your horse      hand their mount back to the employer
+///   repair / mend / smith  take worn metal gear to a master blacksmith nearby (the employer pays)
 ///   dismiss                send back to the guild (progress is kept)
 ///   why / tactics          how they read the fight, and the last thing each decided to do
 ///   retreat / fall back    in a fight: everyone drops it and runs with the employer (also "run",
@@ -225,6 +226,19 @@ public static class CompanionCommands
             if (refusal != null)
             {
                 mage.Say(refusal);
+            }
+
+            return true;
+        }
+
+        if (Has(command, "repair") || Has(command, "mend") || Has(command, "smith"))
+        {
+            foreach (var c in Targets(companion, party, wholeParty))
+            {
+                if (c.AIObject is CompanionAI ai && CompanionParty.IsFighting(c))
+                {
+                    ai.RequestRepair();
+                }
             }
 
             return true;

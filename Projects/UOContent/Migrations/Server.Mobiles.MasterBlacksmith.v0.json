@@ -1,0 +1,16 @@
+{
+  "version": 0,
+  "type": "Server.Mobiles.MasterBlacksmith",
+  "properties": [
+    {
+      "name": "Workpiece",
+      "type": "Server.Item",
+      "rule": "SerializableInterfaceMigrationRule"
+    },
+    {
+      "name": "Customer",
+      "type": "Server.Mobile",
+      "rule": "SerializableInterfaceMigrationRule"
+    }
+  ]
+}

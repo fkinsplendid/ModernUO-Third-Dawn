@@ -154,6 +154,18 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
   dragons, orcs, spiders and more), boast after felling something notable, notice dawn and dusk,
   complain when you stand about too long, and cheer when you're raised from the dead.
 
+### Gear repairs
+Their weapons and armour wear down in fights just like yours. When a metal piece gets below
+half its condition they mention it ("my blade won't take much more of this"), more urgently
+below a fifth. In town, with a **Master Blacksmith** within about 15 tiles and you within 10
+of him, any companion with a metal piece below 60% walks over and hands it across the counter.
+The smith appraises it aloud and asks **you** for the bill ("<you>, I can mend Aldric's blade
+for 45 gold. Shall I?"). Say `yes`/`aye`/`ok` and he takes the gold from your pack (or bank),
+hammers at it and hands it back, and they put it straight back on. Say `no`, or don't answer
+for a minute, and they get it back as it was and won't raise it again for ten minutes. Pieces
+go one at a time, worst first. `repair` sends them for anything less than whole. Leather,
+bows and wood aren't his work. Place the smith with `[add MasterBlacksmith`.
+
 ### Retreating
 Only you can judge when a fight is lost, so they take their cue from you. In the middle of a fight,
 any of these makes the whole party drop what it's doing and run with you:
@@ -222,6 +234,7 @@ Address one by name (`Aldric, status`) or everyone at once (`all share`, `compan
 | `dismount` | Get down and leave the mount standing where it is (e.g. before a boat) |
 | `mount up` / `ride` | Get back on |
 | `return your horse` / `give me your mount` | Hand their mount back to you (needs follower room) |
+| `repair` / `mend` / `smith` | Take any worn metal gear to the Master Blacksmith nearby; he asks you for the bill (see *Gear repairs*) |
 | `dismiss` | Send them back to the guild |
 | `why` / `tactics` | Each says how they read the fight and the last thing they decided (and why a bard is holding its songs) |
 | `retreat` / `fall back` / `run` / `flee` | In a fight: everyone breaks off and runs with you (see *Retreating*) |

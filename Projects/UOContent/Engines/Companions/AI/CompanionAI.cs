@@ -17,7 +17,7 @@ namespace Server.Engines.Companions;
 ///
 ///   finish a spell → follow a party gate → fall back with the employer → drink a potion → role
 ///   support (heal, cure, sing, buff, revive) → get back on their mount → fight whatever threatens
-///   the party → loot → share → ordinary pet orders.
+///   the party → see the smith → loot → share → ordinary pet orders.
 ///
 /// Threats come from the aggressor lists of the employer and the companions, never from scanning
 /// the area, so a quiet tick costs almost nothing.
@@ -127,7 +127,7 @@ public abstract partial class CompanionAI : BaseAI
             EndCombat();
         }
 
-        if (TryRoleIdle() || TryLoot() || TryShare())
+        if (TryVisitSmith() || TryRoleIdle() || TryLoot() || TryShare())
         {
             return true;
         }

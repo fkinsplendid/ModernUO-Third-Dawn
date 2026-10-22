@@ -1,0 +1,18 @@
+[
+  {
+    "type": "Spawner",
+    "guid": "42475f85-2e8e-4894-8ebc-b9fcaf25e87a",
+    "name": "Master Blacksmith",
+    "location": [1423, 1558, 30],
+    "map": "Trammel",
+    "count": 1,
+    "minDelay": "00:05:00",
+    "maxDelay": "00:10:00",
+    "team": 0,
+    "homeRange": 0,
+    "walkingRange": 2,
+    "entries": [
+      { "name": "MasterBlacksmith", "maxCount": 1, "probability": 100 }
+    ]
+  }
+]
