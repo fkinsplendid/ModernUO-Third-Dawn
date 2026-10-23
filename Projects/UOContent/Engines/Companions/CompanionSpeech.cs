@@ -69,6 +69,9 @@ public enum SpeechContext
     HandToSmith,
     Repaired,
     RepairDeclined,
+    UnlockStart,
+    Unlocked,
+    LockTooHard,
     Count
 }
 
@@ -109,6 +112,7 @@ public static partial class CompanionSpeech
         PlaceLines();
         FoeLines();
         SmithingLines();
+        LockLines();
     }
 
     private static void CommonLines()

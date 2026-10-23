@@ -19,6 +19,7 @@ namespace Server.Engines.Companions;
 ///   destinations           the mage lists the places it can gate to
 ///   runebook / runes       read the mage's runebook: rename places, pick the usual one
 ///   mark [name]            the mage marks a blank rune where it stands (filed in its runebook)
+///   unlock                 the mage casts Unlock on a locked chest the employer points out
 ///   usual <place>          the mage's gates lead to that runebook entry unless told otherwise
 ///   dismount               get down and leave the mount standing
 ///   mount up / ride        climb back on
@@ -167,6 +168,22 @@ public static class CompanionCommands
             else
             {
                 companion.Say(mage is CompanionMage ? "I can't do that right now." : "Marking runes is a mage's work.");
+            }
+
+            return true;
+        }
+
+        if (Verb(command, out _) == "unlock")
+        {
+            var mage = wholeParty ? party?[CompanionRole.Mage] : companion;
+
+            if (mage?.AIObject is MageCompanionAI ai && CompanionParty.IsFighting(mage))
+            {
+                ai.RequestUnlock(employer);
+            }
+            else
+            {
+                companion.Say(mage is CompanionMage ? "I can't do that right now." : "Locks are a mage's work, or a thief's.");
             }
 
             return true;

@@ -69,6 +69,7 @@ public sealed partial class MageCompanionAI : CompanionAI
 
         CheckResurrectLanded();
         CheckMarkLanded();
+        CheckUnlockLanded();
 
         if (Mobile.Spell != null)
         {
@@ -108,6 +109,11 @@ public sealed partial class MageCompanionAI : CompanionAI
             _gateFizzles = 0;
             _gateTarget = null;
             Mobile.Say(GateRefusal());
+        }
+
+        if (TryUnlock())
+        {
+            return true;
         }
 
         // Between fights a mage sits in a trance whenever the party stands still. Walking breaks it.

@@ -136,6 +136,15 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
   - The book can't be taken from the mage's pack. Blank runes are kept, not shared back. At 80 Magery about half of gate casts
   fizzle; the mage tries up to three times, spending reagents on each. Resurrection (Magery
   90+) fizzles as often at first, and the mage tries again a moment later.
+- **Unlock chests**: in a dungeon, between fights, a mage with at least half its mana casts
+  Unlock (3rd circle) on the nearest locked chest it can see within 10 tiles. Opening it, and any
+  trap, is up to you. The spell beats locks up to Magery × 0.8 − 4 (76 at 100 Magery), so a
+  level 1 dungeon chest needs about 77 Magery, level 2 about 95, and levels 3 and 4 need a
+  lockpick. The mage only finds out by trying; a lock that holds is left alone until its
+  Magery grows. A fizzle is tried again.
+  - Say `unlock` (or `<name> unlock`) to point out a lock yourself, anywhere, not only in
+    dungeons: the mage gives you a target cursor and casts on what you pick, if it's a locked
+    chest or box on the ground within 10 tiles and in sight. It tells you why not otherwise.
 - **Mind the fields**: no companion walks into a fire, poison or paralysis field, theirs or
   the enemy's. They step around it, or wait if it blocks the way; caught in one, they walk out.
 - **Keep their own space**: walking or riding, each has a place around you: the warrior at
@@ -230,6 +239,7 @@ Address one by name (`Aldric, status`) or everyone at once (`all share`, `compan
 | `destinations` / `where can you gate` | The mage lists the places it can gate to |
 | `runebook` / `runes` | Read the mage's runebook: rename places and pick the usual one (also a button on the mage's skills window) |
 | `mark` / `mark <name>` | The mage marks a blank rune where it stands, naming it if you say a name, and files it in its runebook |
+| `unlock` | The mage casts Unlock on a locked chest you point out with a target cursor (within 10 tiles, in sight) |
 | `usual <place>` | The mage's gates lead to that runebook entry from now on (`usual` alone says which it is) |
 | `dismount` | Get down and leave the mount standing where it is (e.g. before a boat) |
 | `mount up` / `ride` | Get back on |

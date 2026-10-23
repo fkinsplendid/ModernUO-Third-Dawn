@@ -1375,6 +1375,64 @@ public class CompanionTests : IDisposable
     }
 
     [Fact]
+    public void Mage_UnlocksOnlyLockedChests_AndKnowsWhichLocksItsSpellBeats()
+    {
+        var employer = CreateEmployer();
+        var mage = new CompanionMage();
+        var easy = new TreasureChestLevel1();
+        var hard = new TreasureChestLevel3();
+        var open = new TreasureChestLevel1 { Locked = false };
+        var sealedShut = new TreasureChestLevel1 { LockLevel = ILockpickable.CannotPick };
+
+        try
+        {
+            mage.BeginService(employer);
+            mage.Skills.Magery.Base = 100.0;
+            var ai = (MageCompanionAI)mage.AIObject;
+
+            open.MoveToWorld(new Point3D(Origin.X + 1, Origin.Y, Origin.Z), employer.Map);
+            sealedShut.MoveToWorld(new Point3D(Origin.X, Origin.Y + 1, Origin.Z), employer.Map);
+
+            Assert.Null(ai.FindLockedChest(10));
+
+            hard.MoveToWorld(new Point3D(Origin.X + 3, Origin.Y, Origin.Z), employer.Map);
+            easy.MoveToWorld(new Point3D(Origin.X + 6, Origin.Y, Origin.Z), employer.Map);
+
+            // Nearest first: the mage doesn't know a lock is too strong until it has tried it.
+            Assert.Same(hard, ai.FindLockedChest(10));
+
+            // Unlock opens locks up to Magery x 0.8 - 4: 76 at 100 Magery.
+            Assert.False(ai.SpellCanOpen(hard));
+            Assert.True(ai.SpellCanOpen(easy));
+
+            mage.Skills.Magery.Base = 70.0;
+            Assert.False(ai.SpellCanOpen(easy));
+
+            // Told to "unlock", the mage hands the employer a cursor, then checks what was pointed out.
+            ai.RequestUnlock(employer);
+            Assert.NotNull(employer.Target);
+
+            var spell = new Server.Spells.Third.UnlockSpell(mage);
+            Assert.Null(ai.UnlockRefusal(spell, easy));
+            Assert.Equal("That isn't locked.", ai.UnlockRefusal(spell, open));
+            Assert.Equal("That's no lock my magic can open.", ai.UnlockRefusal(spell, sealedShut));
+            Assert.Equal("That's no lock my magic can open.", ai.UnlockRefusal(spell, null));
+
+            easy.MoveToWorld(new Point3D(Origin.X + 20, Origin.Y, Origin.Z), employer.Map);
+            Assert.Equal("I can't reach it from here. Bring me closer.", ai.UnlockRefusal(spell, easy));
+        }
+        finally
+        {
+            mage.Delete();
+            easy.Delete();
+            hard.Delete();
+            open.Delete();
+            sealedShut.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
     public void Mage_IsTrainedInPoisoning_StrongEnoughForRegularPoisonOnHire()
     {
         var mage = new CompanionMage();

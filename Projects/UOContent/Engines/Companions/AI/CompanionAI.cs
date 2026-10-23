@@ -480,7 +480,10 @@ public abstract partial class CompanionAI : BaseAI
     /// </summary>
     protected bool CastAt(Spell spell, Mobile target) => BeginCast(spell, target);
 
-    /// <summary>Starts casting a spell aimed at an item in the companion's own pack (Mark on a rune).</summary>
+    /// <summary>
+    /// Starts casting a spell aimed at an item, in the companion's own pack (Mark on a rune) or on
+    /// the ground nearby (Unlock on a chest).
+    /// </summary>
     protected bool CastOnItem(Spell spell, Item target) => BeginCast(spell, target);
 
     /// <summary>Starts casting a spell aimed at the ground (a field, a teleport).</summary>
@@ -569,12 +572,12 @@ public abstract partial class CompanionAI : BaseAI
         var stillThere = intended switch
         {
             Mobile m  => !m.Deleted && m.Map == Mobile.Map && Mobile.CanSee(m),
-            Item item => !item.Deleted && item.IsChildOf(Mobile.Backpack),
+            Item item => !item.Deleted && (item.IsChildOf(Mobile.Backpack) || item.Parent == null && item.Map == Mobile.Map),
             _         => intended != null
         };
 
         // An item in our own pack is always in reach; its location is relative to the pack.
-        var inReach = intended is Item || target.Range < 0 || Mobile.InRange(intended, target.Range);
+        var inReach = intended is Item i && i.Parent != null || target.Range < 0 || Mobile.InRange(intended, target.Range);
 
         if (stillThere && Mobile.InLOS(intended) && inReach)
         {
