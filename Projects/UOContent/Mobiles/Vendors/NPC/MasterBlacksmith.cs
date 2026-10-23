@@ -124,6 +124,11 @@ public partial class MasterBlacksmith : BaseVendor
 
     public override bool OnDragDrop(Mobile from, Item dropped)
     {
+        if (dropped is Gold gold)
+        {
+            return OnGoldHandedOver(from, gold);
+        }
+
         if (dropped is not (BaseWeapon or BaseArmor))
         {
             return base.OnDragDrop(from, dropped);
@@ -156,6 +161,43 @@ public partial class MasterBlacksmith : BaseVendor
 
         _timerToken.Cancel();
         Timer.StartTimer(_inspectDelay, Appraise, out _timerToken);
+        return true;
+    }
+
+    /// <summary>
+    /// Gold handed over while he waits on an answer pays the quote, with any change given back.
+    /// Otherwise it's handed back: he's no beggar, and he never pockets money he isn't owed.
+    /// </summary>
+    private bool OnGoldHandedOver(Mobile from, Gold gold)
+    {
+        Direction = GetDirectionTo(from);
+
+        if (_stage != JobStage.AwaitingAnswer || from != Payer)
+        {
+            SayTo(from, _workpiece == null
+                ? "Keep your gold. Hand me the piece first and I'll tell you what it costs."
+                : "Keep your gold for now. I'm not done looking.");
+            return false;
+        }
+
+        if (gold.Amount < _quote)
+        {
+            SayTo(from, $"That's {gold.Amount} gold. The work is {_quote}.");
+            return false;
+        }
+
+        if (gold.Amount > _quote)
+        {
+            gold.Amount -= _quote;
+            from.AddToBackpack(gold);
+            SayTo(from, "Here's your change.");
+        }
+        else
+        {
+            gold.Delete();
+        }
+
+        StartWork();
         return true;
     }
 
@@ -229,8 +271,8 @@ public partial class MasterBlacksmith : BaseVendor
 
         Tell(
             payer == _customer
-                ? $"I can mend it for {_quote} gold. Shall I?"
-                : $"{payer.Name}, I can mend {_customer.Name}'s {GetNoun(_workpiece)} for {_quote} gold. Shall I?"
+                ? $"I can mend it for {_quote} gold. Shall I? Say yes, or hand me the gold."
+                : $"{payer.Name}, I can mend {_customer.Name}'s {GetNoun(_workpiece)} for {_quote} gold. Shall I? Say yes, or hand me the gold."
         );
 
         Timer.StartTimer(_answerTimeout, OnAnswerTimeout, out _timerToken);
@@ -259,10 +301,16 @@ public partial class MasterBlacksmith : BaseVendor
             return;
         }
 
+        StartWork();
+    }
+
+    private void StartWork()
+    {
+        _timerToken.Cancel();
         _paid = true;
         _stage = JobStage.Working;
 
-        payer.PlaySound(0x32); // coins
+        Payer.PlaySound(0x32); // coins
         Tell("Right. Give me a moment.");
 
         _strikes = 0;

@@ -116,6 +116,47 @@ public class MasterBlacksmithTests : IDisposable
     }
 
     [Fact]
+    public void Player_HandsOverGold_PaysTheQuote_AndGetsChange()
+    {
+        var player = CreatePlayer(0);
+        var smith = CreateSmith();
+        var sword = CreateWornSword();
+        player.Backpack.DropItem(sword);
+        var coins = new Gold(100);
+
+        try
+        {
+            // Gold before there's a job is refused, not pocketed.
+            player.Backpack.DropItem(coins);
+            Assert.False(smith.OnDragDrop(player, coins));
+
+            smith.OnDragDrop(player, sword);
+            Advance(TimeSpan.FromSeconds(3));
+
+            // Short of the quote: refused.
+            var few = new Gold(5);
+            player.Backpack.DropItem(few);
+            Assert.False(smith.OnDragDrop(player, few));
+
+            Assert.True(smith.OnDragDrop(player, coins));
+            Advance(TimeSpan.FromSeconds(5));
+
+            Assert.False(smith.IsBusy);
+            Assert.Same(player.Backpack, sword.Parent);
+            Assert.Equal(sword.MaxHitPoints, sword.HitPoints);
+            // The change (and the refused 5) are back in the pack.
+            Assert.Equal(5 + 100 - (10 + 5 * 5), player.Backpack.GetAmount(typeof(Gold)));
+        }
+        finally
+        {
+            sword.Delete();
+            coins.Delete();
+            smith.Delete();
+            player.Delete();
+        }
+    }
+
+    [Fact]
     public void Player_Declines_GetsItBackUnchangedAndFree()
     {
         var player = CreatePlayer(1000);

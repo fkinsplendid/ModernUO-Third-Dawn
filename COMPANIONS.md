@@ -169,8 +169,8 @@ half its condition they mention it ("my blade won't take much more of this"), mo
 below a fifth. In town, with a **Master Blacksmith** within about 15 tiles and you within 10
 of him, any companion with a metal piece below 60% walks over and hands it across the counter.
 The smith appraises it aloud and asks **you** for the bill ("<you>, I can mend Aldric's blade
-for 45 gold. Shall I?"). Say `yes`/`aye`/`ok` and he takes the gold from your pack (or bank),
-hammers at it and hands it back, and they put it straight back on. Say `no`, or don't answer
+for 45 gold. Shall I?"). Say `yes`/`aye`/`ok` and he takes the gold from your pack (or bank), or hand him the gold (change given back);
+he hammers at it and hands it back, and they put it straight back on. Say `no`, or don't answer
 for a minute, and they get it back as it was and won't raise it again for ten minutes. Pieces
 go one at a time, worst first. `repair` sends them for anything less than whole. Leather,
 bows and wood aren't his work. Place the smith with `[add MasterBlacksmith`.
