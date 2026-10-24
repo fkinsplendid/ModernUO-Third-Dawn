@@ -10,7 +10,7 @@ namespace Server.Engines.Companions;
 public class CompanionStatusGump : DynamicGump
 {
     private const int Width = 520;
-    private const int RowHeight = 70;
+    private const int RowHeight = 90;
 
     private readonly Mobile _employer;
 
@@ -82,9 +82,33 @@ public class CompanionStatusGump : DynamicGump
                 "#C0C0C0"
             );
 
+            var owed = c.Owed > 0 ? $"  ·  Owed {c.Owed} gold" : "";
+
+            builder.AddHtml(
+                20,
+                y + 60,
+                Width - 40,
+                20,
+                $"Spirits: {MoodText(c.Mood)}  ·  {WearinessText(c)}{owed}",
+                c.Mood <= CompanionMood.Unhappy ? "#FF8080" : "#C0C0C0"
+            );
+
             y += RowHeight;
         }
     }
+
+    private static string MoodText(CompanionMood mood) =>
+        mood switch
+        {
+            CompanionMood.Bitter  => "Bitter",
+            CompanionMood.Unhappy => "Unhappy",
+            CompanionMood.Content => "Content",
+            CompanionMood.Loyal   => "Loyal",
+            _                     => "Devoted"
+        };
+
+    private static string WearinessText(BaseCompanion c) =>
+        c.IsExhausted ? "Exhausted" : c.IsTired ? "Tired" : "Rested";
 
     public override void OnResponse(NetState sender, in RelayInfo info)
     {

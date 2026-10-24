@@ -217,6 +217,36 @@ goes to the nearest **wandering healer** within sight (any free healer) and is r
 If there's no healer but a **GM** is nearby, it goes to them and asks; the GM gets a message
 and can use `[res` on it. Otherwise it follows you and reminds you from time to time.
 
+### Their own minds
+Every companion has feelings about you, and a little life of their own.
+
+- **Spirits** (shown in the `status` window: Bitter, Unhappy, Content, Loyal, Devoted) rise when
+  you pay on time, pay when they're short, praise them, raise them from the dead, and keep your
+  word. They fall when you insult them, leave them dead for long (more than five minutes), die
+  over and over, ignore their questions, refuse what they ask, or break a promise.
+- **Loyal** companions take 5% less in wages, **devoted** ones 10%. A loyal or devoted companion
+  whose purse runs dry works **one day on credit** (you owe them the wage, shown in `status`);
+  gold you give them settles the debt first. Unpaid a second day, they go back to the guild.
+- A **bitter** companion gives you **notice**. If they're still bitter fifteen minutes later they
+  leave for the guild at the next quiet moment. Answer their warning with `no` and they leave at
+  once; turn things around and they withdraw it. Hired back, they start out wary.
+- **Weariness** builds on the road, faster in dungeons and in fights, and clears in town (fastest
+  in their hometown) or while you're logged out for ten minutes or more. Tired companions say so.
+- **Fears**: each has one: spiders, the dead, snakes, rats, daemons, dragons, slimes, giants or
+  the dark. Faced with it, they balk for a few seconds: they fight something else, or hang back
+  if there's nothing else. Then they steel themselves for the rest of that fight. A feared foe
+  going for you when you're badly hurt gets no hesitation. Every feared foe the party kills
+  weakens the fear, and after 25 (or two hours below ground, for the dark) it's **gone for good**.
+- **Fondnesses**: music (a bard in the party), the open road, treasure (magic finds), glory
+  (big kills) or home. Getting it now and then lifts their spirits.
+- **Concerns**: in quiet moments they bring things up and wait for **`yes`**, **`no`** or
+  **`later`** (no name needed): they're exhausted and want to rest in town, wages are due and
+  the purse is short, you keep dying, you left them dead too long, they want a horse, they've
+  had enough of what they fear, or they miss home. A `yes` is a promise, and they notice whether
+  you keep it (getting to a town, finding them a horse, paying, staying alive, steering clear of
+  their fear, visiting their hometown). `Later` twice in a row counts against you; no answer at
+  all within a minute counts too. While told to be `quiet`, they only raise notice and wages.
+
 ### Skill
 New hires start capable (about 52 in their trained skills) and are guaranteed grandmaster by
 level 25. Each role is a little ahead in its specialty: the bard's Musicianship (+20) and bard
@@ -246,6 +276,14 @@ Address one by name (`Aldric, status`) or everyone at once (`all share`, `compan
 | `return your horse` / `give me your mount` | Hand their mount back to you (needs follower room) |
 | `repair` / `mend` / `smith` | Take any worn metal gear to the Master Blacksmith nearby; he asks you for the bill (see *Gear repairs*) |
 | `dismiss` | Send them back to the guild |
+| `how are you` | How they feel, and how tired they are |
+| `what do you think of me` | What they think of you, honestly |
+| `what's on your mind` / `any concerns` | Brings up whatever is troubling them; answer `yes`, `no` or `later` |
+| `what scares you` | Their fear, and whether it's easing (a bitter companion won't say) |
+| `what do you like` | Their fondness |
+| `tell me about yourself` / `where are you from` | Where they're from; ask again for a memory, and again for what they hope for |
+| `well done` / `thank you` | Praise lifts their spirits (once every ten minutes) |
+| `sorry` | Mends half of a recent slight |
 | `why` / `tactics` | Each says how they read the fight and the last thing they decided (and why a bard is holding its songs) |
 | `retreat` / `fall back` / `run` / `flee` | In a fight: everyone breaks off and runs with you (see *Retreating*) |
 

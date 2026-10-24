@@ -63,7 +63,7 @@ public abstract partial class CompanionAI : BaseAI
     protected List<Mobile> Threats => _threats;
 
     /// <summary>True if anything has threatened the party within the last <paramref name="ms"/> milliseconds.</summary>
-    protected bool FoughtWithin(int ms) => _lastThreatSeen != 0 && Core.TickCount - _lastThreatSeen < ms;
+    public bool FoughtWithin(long ms) => _lastThreatSeen != 0 && Core.TickCount - _lastThreatSeen < ms;
 
     /// <summary>Combined health of the employer and living companions, 0 to 1.</summary>
     protected double PartyHealth { get; private set; } = 1.0;
@@ -194,6 +194,11 @@ public abstract partial class CompanionAI : BaseAI
         if (_threats.Count > 0)
         {
             _lastThreatSeen = now;
+        }
+        else if (!_inCombat)
+        {
+            // Hung back the whole fight without ever joining it: the next one is faced afresh.
+            ResetFear();
         }
 
         var enemyHits = 0.0;
@@ -383,6 +388,11 @@ public abstract partial class CompanionAI : BaseAI
 
         var target = SelectTarget(holdPosition);
 
+        if (target != null)
+        {
+            target = FaceFear(target);
+        }
+
         if (target == null)
         {
             return false;
@@ -451,6 +461,7 @@ public abstract partial class CompanionAI : BaseAI
     private void EndCombat()
     {
         _inCombat = false;
+        ResetFear();
         _warnedLowHealth = false;
         _warnedEmployerHurt = false;
 

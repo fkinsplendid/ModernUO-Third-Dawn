@@ -27,6 +27,13 @@ namespace Server.Engines.Companions;
 ///   repair / mend / smith  take worn metal gear to a master blacksmith nearby (the employer pays)
 ///   dismiss                send back to the guild (progress is kept)
 ///   why / tactics          how they read the fight, and the last thing each decided to do
+///   how are you            how they feel, and how tired they are
+///   what do you think of me how they regard their employer
+///   what's on your mind    whatever is troubling them (answer yes / no / later)
+///   what scares you        their fear, and how close they are to beating it
+///   what do you like       their fondness
+///   tell me about yourself where they're from, then a memory, then a dream
+///   well done / thanks     praise; "sorry" mends a recent slight; insults are remembered
 ///   retreat / fall back    in a fight: everyone drops it and runs with the employer (also "run",
 ///                          "flee", or "all follow me"; "retreat" works without a name or "all")
 /// </summary>
@@ -48,9 +55,23 @@ public static class CompanionCommands
             return true;
         }
 
+        // An answer to whatever this companion just asked: "yes", "no", "later", with or without a name.
+        if (companion.AskedIssue != CompanionIssue.None &&
+            CompanionTalk.TryGetAnswer(TryGetCommand(companion, speech, out var answered, out _) ? answered : speech, out var answer))
+        {
+            return companion.AnswerIssue(answer);
+        }
+
         if (!TryGetCommand(companion, speech, out var command, out var wholeParty))
         {
             return false;
+        }
+
+        // Talk before orders: "tell me about your home town" is a question, not "gate to town".
+        if (CompanionTalk.TryGetTopic(command, out var topic))
+        {
+            Talk(companion, party, wholeParty, topic);
+            return true;
         }
 
         if (Verb(command, out _) is "why" or "tactics" or "plan" or "explain")
@@ -272,6 +293,32 @@ public static class CompanionCommands
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// One companion answers at once; asked of everyone, each answers in turn, a moment apart. Thanks
+    /// and apologies said to everyone are heard by everyone at once.
+    /// </summary>
+    private static void Talk(BaseCompanion companion, CompanionParty party, bool wholeParty, CompanionTopic topic)
+    {
+        var delay = TimeSpan.Zero;
+        var stagger = topic is CompanionTopic.Praise or CompanionTopic.Apology or CompanionTopic.Insult
+            ? TimeSpan.FromSeconds(0.8)
+            : TimeSpan.FromSeconds(3);
+
+        foreach (var c in Targets(companion, party, wholeParty))
+        {
+            if (delay == TimeSpan.Zero)
+            {
+                c.TalkAbout(topic);
+            }
+            else
+            {
+                Timer.StartTimer(delay, () => c.TalkAbout(topic));
+            }
+
+            delay += stagger;
+        }
     }
 
     private static bool TryGetCommand(BaseCompanion companion, string speech, out string command, out bool wholeParty)

@@ -14,7 +14,7 @@ namespace Server.Engines.Companions;
 /// Companions are never deleted for lack of pay or by dying: unpaid or dismissed companions return
 /// to the guild with their progress intact, and the dead walk beside their employer until revived.
 /// </summary>
-[SerializationGenerator(3)]
+[SerializationGenerator(4)]
 public abstract partial class BaseCompanion : BaseCreature
 {
     [SerializableField(0, setter: "private")]
@@ -77,6 +77,50 @@ public abstract partial class BaseCompanion : BaseCreature
     [SerializableField(13, setter: "private")]
     private List<Item> _lootedPotions;
 
+    // ---------- The companion's mind (BaseCompanion.Mind.cs) ----------
+
+    [SerializableField(14)]
+    [SerializedCommandProperty(AccessLevel.GameMaster)]
+    private int _regard;
+
+    [SerializableField(15)]
+    [SerializedCommandProperty(AccessLevel.GameMaster)]
+    private int _weariness;
+
+    [SerializableField(16)]
+    [SerializedCommandProperty(AccessLevel.GameMaster)]
+    private CompanionFear _fear;
+
+    // Feared foes beaten, or minutes spent in dungeons for a fear of the dark.
+    [SerializableField(17, setter: "private")]
+    [SerializedCommandProperty(AccessLevel.GameMaster)]
+    private int _fearFaced;
+
+    [SerializableField(18, setter: "private")]
+    [SerializedCommandProperty(AccessLevel.GameMaster)]
+    private CompanionFear _conqueredFear;
+
+    [SerializableField(19)]
+    [SerializedCommandProperty(AccessLevel.GameMaster)]
+    private CompanionFondness _fondness;
+
+    [SerializableField(20, setter: "private")]
+    [SerializedCommandProperty(AccessLevel.GameMaster)]
+    private string _hometown;
+
+    // Picks which origin, memory and dream a companion tells of.
+    [SerializableField(21, setter: "private")]
+    private int _story;
+
+    // Wages worked on credit and not yet paid.
+    [SerializableField(22, setter: "private")]
+    [SerializedCommandProperty(AccessLevel.GameMaster)]
+    private int _owed;
+
+    [SerializableField(23, setter: "private")]
+    [SerializedCommandProperty(AccessLevel.GameMaster)]
+    private bool _gaveNotice;
+
     private BaseAI _ai;
     private long _separatedSince;
     private bool _purseWarned;
@@ -85,6 +129,7 @@ public abstract partial class BaseCompanion : BaseCreature
     {
         _level = 1;
         _personality = (CompanionPersonality)Utility.Random(4);
+        RollCharacter();
 
         Female = Utility.RandomBool();
         Body = LivingBody;
@@ -130,7 +175,7 @@ public abstract partial class BaseCompanion : BaseCreature
     }
 
     [CommandProperty(AccessLevel.GameMaster)]
-    public int DailyWage => CompanionSettings.DailyWageFor(Level);
+    public int DailyWage => CompanionSettings.DailyWageFor(Level) * (100 - WageDiscountPercent) / 100;
 
     public int MinutesUntilWage => CompanionSettings.WageDayMinutes - MinutesServed;
 
@@ -229,9 +274,10 @@ public abstract partial class BaseCompanion : BaseCreature
         MinutesServed = 0;
         _purseWarned = false;
 
+        OnMindResumeService();
         MoveToWorld(employer.Location, employer.Map);
         BringSteed();
-        Speak(SpeechContext.Rehired, urgent: true);
+        Speak(Mood <= CompanionMood.Unhappy ? SpeechContext.RehiredWary : SpeechContext.Rehired, urgent: true);
         return true;
     }
 
@@ -270,6 +316,13 @@ public abstract partial class BaseCompanion : BaseCreature
             Speak(farewell, urgent: true);
         }
 
+        // Walking out unpaid leaves a bad taste, should they ever be hired back.
+        if (farewell == SpeechContext.LeavingUnpaid)
+        {
+            Regard = Math.Max(MinRegard, Regard - 20);
+        }
+
+        OnMindReturnToGuild();
         State = CompanionState.Resting;
         Combatant = null;
         Warmode = false;
@@ -291,6 +344,7 @@ public abstract partial class BaseCompanion : BaseCreature
         }
 
         State = CompanionState.Waiting;
+        OnMindWaiting();
         Combatant = null;
         Warmode = false;
         IsStabled = true;
@@ -313,13 +367,22 @@ public abstract partial class BaseCompanion : BaseCreature
         ControlTarget = employer;
         ControlOrder = OrderType.Follow;
         _separatedSince = 0;
+        OnMindRejoin();
 
         MoveToWorld(employer.Location, employer.Map);
         BringSteed();
         Timer.StartTimer(TimeSpan.FromSeconds(Utility.RandomMinMax(2, 6)), GreetEmployer);
     }
 
-    private void GreetEmployer() => Speak(SpeechContext.Greeting);
+    private void GreetEmployer() =>
+        Speak(
+            Mood switch
+            {
+                <= CompanionMood.Unhappy                        => SpeechContext.GreetingCold,
+                CompanionMood.Devoted when Utility.RandomBool() => SpeechContext.GreetingWarm,
+                _                                               => SpeechContext.Greeting
+            }
+        );
 
     [AfterDeserialization(false)]
     private void AfterDeserialization()
@@ -366,6 +429,12 @@ public abstract partial class BaseCompanion : BaseCreature
 
         Loyalty = MaxLoyalty;
         MinutesServed++;
+        TickMind();
+
+        if (State != CompanionState.Active)
+        {
+            return;
+        }
 
         var wage = DailyWage;
 
@@ -384,12 +453,19 @@ public abstract partial class BaseCompanion : BaseCreature
 
         if (Purse < wage)
         {
-            ReturnToGuild(SpeechContext.LeavingUnpaid);
+            if (!TryWorkOnCredit(wage))
+            {
+                ReturnToGuild(SpeechContext.LeavingUnpaid);
+            }
+
             return;
         }
 
         Purse -= wage;
         _purseWarned = false;
+
+        // Another day's honest pay, on time.
+        AdjustRegard(1);
     }
 
     // ---------- Progression ----------
@@ -398,6 +474,11 @@ public abstract partial class BaseCompanion : BaseCreature
     {
         Kills++;
         AwardExperience(experience);
+
+        if (Fears(victim))
+        {
+            FaceFear();
+        }
 
         if (victim.LastKiller == this)
         {
@@ -439,6 +520,7 @@ public abstract partial class BaseCompanion : BaseCreature
         FixedParticles(0x376A, 9, 32, 5030, EffectLayer.Waist);
         PlaySound(0x1F2);
         Speak(SpeechContext.LevelUp, Level.ToString(), urgent: true);
+        OnMindLevelUp();
         Employer?.SendMessage(0x59, $"{Name} has reached level {Level}.");
     }
 
@@ -656,6 +738,7 @@ public abstract partial class BaseCompanion : BaseCreature
 
         BecomeGhost(true);
         OnRiderDied();
+        OnMindDeath();
 
         if (Party == null)
         {
@@ -797,6 +880,7 @@ public abstract partial class BaseCompanion : BaseCreature
         Redress();
         base.OnAfterResurrect();
         Speak(SpeechContext.Revived, urgent: true);
+        OnMindRevived();
     }
 
     public override void OnDelete()
@@ -837,10 +921,8 @@ public abstract partial class BaseCompanion : BaseCreature
         if (dropped is Gold or BankCheck)
         {
             var amount = dropped is BankCheck check ? check.Worth : dropped.Amount;
-            Purse += amount;
-            _purseWarned = false;
             dropped.Delete();
-            Speak(SpeechContext.Paid, amount.ToString(), urgent: true);
+            ReceiveWages(amount);
             return true;
         }
 
@@ -863,6 +945,7 @@ public abstract partial class BaseCompanion : BaseCreature
 
         GearDirty = true;
         Speak(SpeechContext.ReceivedItem, urgent: true);
+        OnGiftReceived();
         return true;
     }
 

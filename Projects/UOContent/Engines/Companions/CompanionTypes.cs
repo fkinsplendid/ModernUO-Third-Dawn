@@ -57,3 +57,56 @@ public sealed class CompanionProfile
     /// <summary>Skills that are trained with level. Everything else stays at zero.</summary>
     public TrainedSkill[] Skills { get; init; }
 }
+
+/// <summary>How a companion feels about their employer, from their regard for them.</summary>
+public enum CompanionMood
+{
+    Bitter,
+    Unhappy,
+    Content,
+    Loyal,
+    Devoted
+}
+
+/// <summary>
+/// The one thing a companion dreads. Most are kinds of foe; the dark is dread of dungeons. A fear
+/// faced often enough is conquered for good.
+/// </summary>
+public enum CompanionFear
+{
+    None,
+    Spiders,
+    Undead,
+    Snakes,
+    Rats,
+    Daemons,
+    Dragons,
+    Ooze,
+    Giants,
+    TheDark
+}
+
+/// <summary>What a companion loves. Getting it now and then lifts their spirits.</summary>
+public enum CompanionFondness
+{
+    None,
+    Music,
+    OpenRoad,
+    Treasure,
+    Glory,
+    Home
+}
+
+/// <summary>Things a companion may bring up with their employer, wanting an answer.</summary>
+public enum CompanionIssue
+{
+    None,
+    Weary,
+    WagesShort,
+    EmployerReckless,
+    LeftDead,
+    WantsMount,
+    FacingFear,
+    MissesHome,
+    Notice
+}

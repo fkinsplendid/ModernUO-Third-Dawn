@@ -45,6 +45,9 @@ public sealed class CompanionParty
     /// <summary>Tick count before which no other companion joins in on a shared moment (a revival cheer).</summary>
     public long NextCheer { get; set; }
 
+    /// <summary>Tick count before which nobody brings up another concern with the employer.</summary>
+    public long NextIssue { get; set; }
+
     // Places someone has remarked on, and when, so arriving somewhere gets one remark, not three.
     private readonly Dictionary<string, long> _placeRemarks = new(StringComparer.OrdinalIgnoreCase);
     private static readonly long PlaceRemarkCooldownMs = (long)TimeSpan.FromMinutes(30).TotalMilliseconds;

@@ -142,6 +142,8 @@ public abstract partial class BaseCompanion
             CheckGear(now);
         }
 
+        ThinkMind(now);
+
         CheckSupplies();
         CheckSteed(now);
     }
@@ -268,6 +270,11 @@ public abstract partial class BaseCompanion
                 if (item is BaseWeapon or BaseArmor)
                 {
                     GearDirty = true;
+                }
+
+                if (IsMagic(item))
+                {
+                    OnTreasureFound();
                 }
 
                 if (Utility.RandomDouble() < 0.4)

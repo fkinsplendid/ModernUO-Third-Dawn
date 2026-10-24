@@ -76,9 +76,14 @@ public abstract partial class BaseCompanion
     {
         var name = CompanionSpeech.BareName(victim.Name);
 
-        if (victim.Fame >= BigKillFame && Speak(SpeechContext.BigKill, name, urgent: true))
+        if (victim.Fame >= BigKillFame)
         {
-            return;
+            OnMindBigKill();
+
+            if (Speak(SpeechContext.BigKill, name, urgent: true))
+            {
+                return;
+            }
         }
 
         var kind = CompanionSpeech.KindOf(victim);
@@ -110,8 +115,10 @@ public abstract partial class BaseCompanion
         }
 
         var placeLine = _place != null && Utility.RandomDouble() < 0.4 ? CompanionSpeech.PlaceIdleLine(_place) : null;
+        var moodContext = placeLine == null && Utility.RandomDouble() < 0.3 ? MoodIdleContext() : SpeechContext.Count;
 
-        if (!(placeLine != null ? SpeakLine(placeLine, _place, false) : Speak(PickIdleContext(now))))
+        if (!(placeLine != null ? SpeakLine(placeLine, _place, false) :
+                Speak(moodContext != SpeechContext.Count ? moodContext : PickIdleContext(now))))
         {
             return;
         }
@@ -164,7 +171,12 @@ public abstract partial class BaseCompanion
 
         if (!employer.Alive)
         {
-            _employerWasDead = true;
+            if (!_employerWasDead)
+            {
+                _employerWasDead = true;
+                OnEmployerDied(now);
+            }
+
             return;
         }
 
@@ -184,6 +196,27 @@ public abstract partial class BaseCompanion
         {
             Party.NextCheer = now + 10000;
         }
+    }
+
+    /// <summary>An idle remark that shows how they feel, or Count if they feel nothing worth airing.</summary>
+    private SpeechContext MoodIdleContext()
+    {
+        if (IsTired)
+        {
+            return SpeechContext.IdleWeary;
+        }
+
+        if (Fear == CompanionFear.TheDark && Region.IsPartOf<DungeonRegion>())
+        {
+            return SpeechContext.IdleDark;
+        }
+
+        return Mood switch
+        {
+            <= CompanionMood.Unhappy => SpeechContext.IdleUnhappy,
+            CompanionMood.Devoted    => SpeechContext.IdleDevoted,
+            _                        => SpeechContext.Count
+        };
     }
 
     private void ReplyToBanter() => Speak(SpeechContext.BanterReply, urgent: true);

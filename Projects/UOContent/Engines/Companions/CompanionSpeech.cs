@@ -72,6 +72,30 @@ public enum SpeechContext
     UnlockStart,
     Unlocked,
     LockTooHard,
+    GreetingWarm,
+    GreetingCold,
+    RehiredWary,
+    IdleWeary,
+    IdleUnhappy,
+    IdleDevoted,
+    IdleDark,
+    FearSighted,
+    FearSteeled,
+    FearBraved,
+    FearConquered,
+    FearOvercome,
+    Fearless,
+    Praised,
+    PraisedAgain,
+    Insulted,
+    ApologyAccepted,
+    ApologyUnneeded,
+    StoryRefused,
+    IssueIgnored,
+    OnCredit,
+    DebtSettled,
+    NoticeWithdrawn,
+    Quits,
     Count
 }
 
@@ -113,6 +137,8 @@ public static partial class CompanionSpeech
         FoeLines();
         SmithingLines();
         LockLines();
+        MindLines();
+        MindContextLines();
     }
 
     private static void CommonLines()
