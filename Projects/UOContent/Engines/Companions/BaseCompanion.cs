@@ -932,6 +932,12 @@ public abstract partial class BaseCompanion : BaseCreature
             return false;
         }
 
+        if (GearRefusal(dropped) is { } refusal)
+        {
+            SayTo(from, refusal);
+            return false;
+        }
+
         var pack = Backpack;
 
         if (pack?.TryDropItem(this, dropped, false) != true)

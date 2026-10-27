@@ -455,6 +455,40 @@ public class CompanionTests : IDisposable
     }
 
     [Fact]
+    public void GivenWeapons_OneSpareIsKept_UnusableOnesAreRefused()
+    {
+        var employer = CreateEmployer();
+        var companion = new CompanionBard();
+        var spare = new Dagger { Layer = Layer.OneHanded };
+        var second = new Dagger { Layer = Layer.OneHanded };
+        var sword = new Longsword { Layer = Layer.OneHanded };
+
+        try
+        {
+            companion.BeginService(employer);
+            FixHandLayers(companion);
+            employer.Backpack.DropItem(second);
+            employer.Backpack.DropItem(sword);
+
+            Assert.True(companion.OnDragDrop(employer, spare));
+            Assert.Same(spare, companion.FindSpareWeapon());
+            Assert.False(companion.OnDragDrop(employer, second));
+            Assert.False(companion.OnDragDrop(employer, sword));
+
+            Assert.False(companion.HasShareables());
+            companion.ShareLoot(false);
+            Assert.True(spare.IsChildOf(companion.Backpack));
+        }
+        finally
+        {
+            second.Delete();
+            sword.Delete();
+            companion.Delete();
+            employer.Delete();
+        }
+    }
+
+    [Fact]
     public void PotionsTheyCantUse_AreRefused()
     {
         var employer = CreateEmployer();

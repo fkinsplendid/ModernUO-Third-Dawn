@@ -84,6 +84,118 @@ public abstract partial class BaseCompanion
         };
     }
 
+    /// <summary>
+    /// Why this companion would turn down a weapon or piece of armour handed to them, or null if
+    /// they'd wear it. Anything else they took would only be passed straight back with the loot.
+    /// </summary>
+    public string GearRefusal(Item item)
+    {
+        if (item is not (BaseWeapon or BaseArmor) || IsUpgrade(item) || item is BaseWeapon spare && IsBetterSpare(spare))
+        {
+            return null;
+        }
+
+        var ally = FindAllyToWear(item);
+        var reason = item switch
+        {
+            BaseWeapon { StrRequirement: var str } when Str < str => "That's too heavy for me to swing.",
+            BaseArmor { StrRequirement: var str } when Str < str  => "That's too heavy for me to wear.",
+            BaseWeapon w when ScoreWeapon(w) <= 0                 => WeaponRefusal(w),
+            BaseArmor a when ScoreArmor(a) <= 0                   => "I can't fight in that.",
+            BaseWeapon                                            => "I've a spare as good as that already. Keep it.",
+            _                                                     => "What I have is as good as that. Keep it."
+        };
+
+        return ally != null ? $"{reason} {ally.Name} could use it, though." : reason;
+    }
+
+    /// <summary>
+    /// The best weapon in the pack this companion can fight with, kept back from sharing in case
+    /// the one in hand breaks (or is away at the smith).
+    /// </summary>
+    public BaseWeapon FindSpareWeapon()
+    {
+        BaseWeapon spare = null;
+        var best = 0.0;
+
+        if (Backpack is not { } pack)
+        {
+            return null;
+        }
+
+        foreach (var item in pack.Items)
+        {
+            if (item is BaseWeapon weapon && ScoreWeapon(weapon) is var score && score > best)
+            {
+                spare = weapon;
+                best = score;
+            }
+        }
+
+        return spare;
+    }
+
+    private bool IsBetterSpare(BaseWeapon weapon)
+    {
+        var score = ScoreWeapon(weapon);
+        return score > 0 && (FindSpareWeapon() is not { } spare || score > ScoreWeapon(spare));
+    }
+
+    /// <summary>A weapon left the hands (broke, or went to the smith): draw the spare straight away, fight or no fight.</summary>
+    public override void OnItemRemoved(Item item)
+    {
+        base.OnItemRemoved(item);
+
+        if (item is BaseWeapon && item.Layer is Layer.OneHanded or Layer.TwoHanded)
+        {
+            Timer.DelayCall(DrawSpare);
+        }
+    }
+
+    private void DrawSpare()
+    {
+        if (Deleted || IsDeadPet || Map == Map.Internal || FindItemOnLayer(Layer.TwoHanded) is BaseWeapon ||
+            FindItemOnLayer(Layer.OneHanded) is BaseWeapon)
+        {
+            return;
+        }
+
+        if (EquipBestHands())
+        {
+            Speak(SpeechContext.Equip, urgent: true);
+        }
+    }
+
+    private string WeaponRefusal(BaseWeapon weapon) =>
+        Role == CompanionRole.Mage
+            ? "My hands are for spellcraft, not steel."
+            : weapon switch
+            {
+                BaseRanged                            => "I was never any good with a bow.",
+                _ when weapon.Skill == SkillName.Swords  => "I was never trained with a blade.",
+                _ when weapon.Skill == SkillName.Macing  => "I was never trained with a mace.",
+                _ when weapon.Skill == SkillName.Fencing => "I was never trained with a spear or a dagger.",
+                _                                        => "I wouldn't know what to do with that."
+            };
+
+    private BaseCompanion FindAllyToWear(Item item)
+    {
+        if (Party == null)
+        {
+            return null;
+        }
+
+        foreach (var ally in Party.Members)
+        {
+            if (ally != this && ally is { IsDeadPet: false } && ally.IsUpgrade(item))
+            {
+                return ally;
+            }
+        }
+
+        return null;
+    }
+
     private double WornOneHandedScore() => FindItemOnLayer(Layer.OneHanded) is BaseWeapon w ? ScoreWeapon(w) : 0;
 
     private double WornShieldScore() =>

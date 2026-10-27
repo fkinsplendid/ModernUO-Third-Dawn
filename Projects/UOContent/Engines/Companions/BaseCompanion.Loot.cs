@@ -301,9 +301,11 @@ public abstract partial class BaseCompanion
             return false;
         }
 
+        var spare = FindSpareWeapon();
+
         foreach (var item in pack.Items)
         {
-            if (!IsOwnSupply(item) && !IsUpgrade(item) && !IsIssued(item))
+            if (item != spare && !IsOwnSupply(item) && !IsUpgrade(item) && !IsIssued(item))
             {
                 return true;
             }
@@ -330,11 +332,12 @@ public abstract partial class BaseCompanion
         var refused = false;
 
         using var items = PooledRefList<Item>.Create();
+        var spare = FindSpareWeapon();
 
         foreach (var item in pack.Items)
         {
-            // Upgrades for ourselves are about to be worn, not given away.
-            if (item is not Gold && !IsOwnSupply(item) && !IsUpgrade(item) && !IsIssued(item))
+            // Upgrades for ourselves are about to be worn, not given away; one spare weapon is kept.
+            if (item is not Gold && item != spare && !IsOwnSupply(item) && !IsUpgrade(item) && !IsIssued(item))
             {
                 items.Add(item);
             }
