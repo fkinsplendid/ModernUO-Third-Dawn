@@ -124,6 +124,9 @@ public class CompanionMindTests : IDisposable
     public void ContentCompanion_LeavesUnpaid_AndRemembersIt() =>
         Run((_, companion) =>
         {
+            // A love of the open road could lift their spirits during the day and soften the knock.
+            companion.Fondness = CompanionFondness.Glory;
+
             var before = companion.Regard;
             companion.Purse = 0;
 
