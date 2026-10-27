@@ -81,7 +81,7 @@ public abstract partial class CompanionAI
 
         if (_smith == null)
         {
-            if (now - _nextSmithCheck < 0 || FoughtWithin(10000))
+            if (Companion.InBand || now - _nextSmithCheck < 0 || FoughtWithin(10000))
             {
                 return false;
             }

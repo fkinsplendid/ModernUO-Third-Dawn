@@ -74,4 +74,6 @@ public partial class CompanionBard : BaseCompanion
         ReportShortage(0, "an instrument", pack?.FindItemByType<BaseInstrument>() == null ? 0 : 1, 1);
         ReportShortage(1, "bandages", pack?.GetAmount(typeof(Bandage)) ?? 0, 5);
     }
+
+    protected override void RestockRoleSupplies() => TopUp(typeof(Bandage), 25, amount => new Bandage(amount));
 }

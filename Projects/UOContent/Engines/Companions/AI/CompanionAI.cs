@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Server.Engines.Bands;
 using Server.Items;
 using Server.Mobiles;
 using Server.Regions;
@@ -106,6 +107,11 @@ public abstract partial class CompanionAI : BaseAI
         if (TryFollowGate() || TryRetreat() || TrySurvive() || TryRoleSupport() || TryMount())
         {
             return true;
+        }
+
+        if (Companion.InBand)
+        {
+            Companion.ForgiveBandmates();
         }
 
         var order = Mobile.ControlOrder;
@@ -266,7 +272,8 @@ public abstract partial class CompanionAI : BaseAI
         if (m?.Deleted != false || !m.Alive || m.IsDeadBondedPet || m.Map != Mobile.Map ||
             m.AccessLevel > AccessLevel.Player || m is BaseCreature { BardPacified: true } ||
             !Mobile.InRange(m, ThreatRange) || Party.IsFriendly(m) || !Mobile.CanSee(m) ||
-            !Mobile.CanBeHarmful(m, false) || _threats.Contains(m))
+            !Mobile.CanBeHarmful(m, false) || _threats.Contains(m) ||
+            Companion.InBand && (BandRules.IsOffLimits(m) || BandRules.IsClaimedByPlayer(m)))
         {
             return;
         }
@@ -819,7 +826,7 @@ public abstract partial class CompanionAI : BaseAI
     {
         var now = Core.TickCount;
 
-        if (now - _nextShare < 0)
+        if (Companion.InBand || now - _nextShare < 0)
         {
             return false;
         }
@@ -948,6 +955,9 @@ public abstract partial class CompanionAI : BaseAI
 
         return false;
     }
+
+    /// <summary>A blocked step turns aside only where there's no field, unless already standing in one.</summary>
+    protected override bool CanSidestepTo(Direction d) => IsFieldAt(Mobile.Location) || !IsFieldAt(Step(d));
 
     private Point3D Step(Direction d)
     {
@@ -1272,7 +1282,9 @@ public abstract partial class CompanionAI : BaseAI
             return true;
         }
 
-        if (_threats.Count > 0 || now - _diedAt < (long)CompanionSettings.GhostPatience.TotalMilliseconds)
+        // A band ghost keeps to its captain and waits on its own band to raise it.
+        if (Companion.InBand || _threats.Count > 0 ||
+            now - _diedAt < (long)CompanionSettings.GhostPatience.TotalMilliseconds)
         {
             return base.Obey();
         }

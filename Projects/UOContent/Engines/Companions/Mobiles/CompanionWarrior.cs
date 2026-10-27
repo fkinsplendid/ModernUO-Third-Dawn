@@ -61,4 +61,6 @@ public partial class CompanionWarrior : BaseCompanion
 
     protected override void CheckSupplies() =>
         ReportShortage(0, "bandages", Backpack?.GetAmount(typeof(Bandage)) ?? 0, 10);
+
+    protected override void RestockRoleSupplies() => TopUp(typeof(Bandage), 50, amount => new Bandage(amount));
 }

@@ -42,6 +42,9 @@ public sealed class CompanionParty
     /// <summary>Tick count before which nobody repeats that the party is outmatched.</summary>
     public long NextOutmatchedCall { get; set; }
 
+    /// <summary>Tick count when a companion last read the fight as outmatched. A band captain retreats on it.</summary>
+    public long LastOutmatched { get; set; }
+
     /// <summary>Tick count before which no other companion joins in on a shared moment (a revival cheer).</summary>
     public long NextCheer { get; set; }
 

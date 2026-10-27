@@ -81,7 +81,7 @@ Useful `[Props` on a companion: `Level` (setting it applies stats/skills), `Purs
       so only when nothing is hitting the mage. Like any player's, they choose their own targets.
     - *Control*: puts an Energy Field (or Wall of Stone) in front of a brute charging it, and a
       Paralyze Field in the path of a pack nobody has engaged. Walls never cut off the party.
-    - *Poison*: Poison Field on groups, and the Poison spell on every enemy in reach that isn't
+    - *Poison*: the Poison spell on every enemy in reach that isn't
       already poisoned (skipping the immune, and anything that resists twice). Mages train
       Poisoning, which strengthens the spell: Regular on hire, Greater around level 13, now and
       then Deadly at grandmaster. Strength drops off beyond three tiles.

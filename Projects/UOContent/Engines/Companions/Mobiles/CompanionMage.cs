@@ -115,4 +115,12 @@ public partial class CompanionMage : BaseCompanion
             ReportShortage(0, names.ToString(), lowest, LowReagents);
         }
     }
+
+    protected override void RestockRoleSupplies()
+    {
+        foreach (var (type, _, create) in _reagents)
+        {
+            TopUp(type, 30, create);
+        }
+    }
 }

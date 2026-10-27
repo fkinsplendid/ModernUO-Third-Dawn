@@ -32,7 +32,8 @@ public sealed partial class MageCompanionAI
     {
         var now = Core.TickCount;
 
-        if (now - _nextUnlockScan < 0 || Threats.Count > 0 || FoughtWithin(5000) || _gateDeadline != 0 ||
+        // A band leaves the dungeon's chests to the players.
+        if (Companion.InBand || now - _nextUnlockScan < 0 || Threats.Count > 0 || FoughtWithin(5000) || _gateDeadline != 0 ||
             _markSpell != null || _unlockSpell != null || Mobile.Mana < Mobile.ManaMax / 2 ||
             !Mobile.Region.IsPartOf<DungeonRegion>())
         {

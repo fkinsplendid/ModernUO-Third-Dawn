@@ -1,0 +1,35 @@
+{
+  "version": 0,
+  "type": "Server.Engines.Bands.AdventurerBand",
+  "properties": [
+    {
+      "name": "Captain",
+      "type": "Server.Engines.Bands.BandCaptain",
+      "rule": "SerializableInterfaceMigrationRule"
+    },
+    {
+      "name": "Level",
+      "type": "int",
+      "rule": "PrimitiveTypeMigrationRule",
+      "ruleArguments": [
+        ""
+      ]
+    },
+    {
+      "name": "PatrolRange",
+      "type": "int",
+      "rule": "PrimitiveTypeMigrationRule",
+      "ruleArguments": [
+        ""
+      ]
+    },
+    {
+      "name": "NextMuster",
+      "type": "System.DateTime",
+      "rule": "PrimitiveTypeMigrationRule",
+      "ruleArguments": [
+        ""
+      ]
+    }
+  ]
+}

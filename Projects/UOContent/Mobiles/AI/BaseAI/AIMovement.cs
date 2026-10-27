@@ -113,6 +113,12 @@ public abstract partial class BaseAI
         return TryAlternateMovement(wasPushing);
     }
 
+    /// <summary>
+    /// Whether a blocked step may turn aside into <paramref name="d"/> instead. Checked here because
+    /// the sidestep happens inside the move, after any checks the caller made on the first direction.
+    /// </summary>
+    protected virtual bool CanSidestepTo(Direction d) => true;
+
     private MoveResult TryAlternateMovement(bool wasPushing)
     {
         var offset = Utility.Random(2) == 0 ? 1 : -1;
@@ -121,7 +127,7 @@ public abstract partial class BaseAI
         {
             Mobile.TurnInternal(offset);
 
-            if (Mobile.Move(Mobile.Direction))
+            if (CanSidestepTo(Mobile.Direction) && Mobile.Move(Mobile.Direction))
             {
                 return MoveResult.SuccessAutoTurn;
             }

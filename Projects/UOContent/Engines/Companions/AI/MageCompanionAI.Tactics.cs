@@ -15,8 +15,8 @@ namespace Server.Engines.Companions;
 /// What a Third Dawn mage does besides throwing damage: gets out from under melee (teleport
 /// clear, or paralyze the attacker), keeps one defensive spell up, dispels summons, sets blade
 /// spirits or an energy vortex on brutes (never with spellcasters about: they'd dispel them),
-/// blocks a charging brute with a wall, catches a pack with a paralyze field, and poisons
-/// everything it can (fields on groups, the spell on anyone not yet poisoned).
+/// blocks a charging brute with a wall, catches a pack with a paralyze field, and casts Poison on
+/// anyone not yet poisoned. Never Poison Field: the party kept blundering about around it.
 /// </summary>
 public sealed partial class MageCompanionAI
 {
@@ -161,7 +161,7 @@ public sealed partial class MageCompanionAI
                 var candidate = land.Location;
 
                 if (!Mobile.InRange(candidate, 10) || !map.CanSpawnMobile(x, y, land.Z) || !Mobile.InLOS(land) ||
-                    SpellHelper.CheckMulti(candidate, map))
+                    SpellHelper.CheckMulti(candidate, map) || IsFieldAt(candidate))
                 {
                     continue;
                 }
@@ -215,7 +215,7 @@ public sealed partial class MageCompanionAI
             return true;
         }
 
-        if (fieldReady && (TryWall() || TryParalyzeField() || TryPoisonField()))
+        if (fieldReady && (TryWall() || TryParalyzeField()))
         {
             _nextField = now + FieldCooldownMs;
             return true;
@@ -427,18 +427,6 @@ public sealed partial class MageCompanionAI
 
         return FieldIsClear(center, 2, -1, true) && Affordable(new ParalyzeFieldSpell(Mobile)) is { } field &&
                CastAtLocation(field, center);
-    }
-
-    /// <summary>Two or more enemies close together who aren't yet poisoned stand in a poison field.</summary>
-    private bool TryPoisonField()
-    {
-        if (Magery < 55.0 || !FindCluster(IsPoisonable, out var seed))
-        {
-            return false;
-        }
-
-        return FieldIsClear(seed.Location, 2, -1, true) && Affordable(new PoisonFieldSpell(Mobile)) is { } field &&
-               CastAtLocation(field, seed.Location);
     }
 
     /// <summary>

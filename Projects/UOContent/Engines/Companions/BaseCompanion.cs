@@ -402,7 +402,8 @@ public abstract partial class BaseCompanion : BaseCreature
         ApplyLevel(false);
 
         // Nobody is online during a load; whoever was out in the world waits for their employer.
-        if (State == CompanionState.Active)
+        // A band's employer is its captain, who never logs out.
+        if (State == CompanionState.Active && !InBand)
         {
             WaitForEmployer();
         }
@@ -424,6 +425,12 @@ public abstract partial class BaseCompanion : BaseCreature
 
         if (State != CompanionState.Active)
         {
+            return;
+        }
+
+        if (InBand)
+        {
+            OnBandMinute();
             return;
         }
 
@@ -473,7 +480,12 @@ public abstract partial class BaseCompanion : BaseCreature
     public void OnPartyKill(BaseCreature victim, int experience)
     {
         Kills++;
-        AwardExperience(experience);
+
+        // A band's strength is set by where it fights, not earned.
+        if (!InBand)
+        {
+            AwardExperience(experience);
+        }
 
         if (Fears(victim))
         {
@@ -907,7 +919,7 @@ public abstract partial class BaseCompanion : BaseCreature
         {
             if (from.Player)
             {
-                SayTo(from, "I only take coin and orders from my employer.");
+                SayTo(from, InBand ? "We're well supplied, friend. Keep it." : "I only take coin and orders from my employer.");
             }
 
             return false;
@@ -994,8 +1006,12 @@ public abstract partial class BaseCompanion : BaseCreature
     {
         base.OnSingleClick(from);
 
-        var label = IsDeadPet ? "(ghost)" : $"(level {Level})";
-        PrivateOverheadMessage(MessageType.Label, 0x3B2, false, label, from.NetState);
+        var label = IsDeadPet ? "(ghost)" : InBand ? null : $"(level {Level})";
+
+        if (label != null)
+        {
+            PrivateOverheadMessage(MessageType.Label, 0x3B2, false, label, from.NetState);
+        }
     }
 
     public override bool HandlesOnSpeech(Mobile from) =>

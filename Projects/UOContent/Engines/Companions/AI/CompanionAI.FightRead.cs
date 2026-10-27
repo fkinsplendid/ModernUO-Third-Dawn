@@ -68,6 +68,11 @@ public abstract partial class CompanionAI
         var party = Party;
         var now = Core.TickCount;
 
+        if (Outmatched)
+        {
+            party.LastOutmatched = now;
+        }
+
         if (Outmatched && !party.IsRetreating && now - party.NextOutmatchedCall >= 0 &&
             Companion.Speak(SpeechContext.Outmatched, CompanionSpeech.BareName(StrongestThreat.Name), urgent: true))
         {

@@ -55,6 +55,7 @@ From a world that still has the old map's content, in this order:
 |---|---|
 | Companion guildmaster (hires warriors, bards and mages) | `[Add CompanionGuildmaster` |
 | Master Blacksmith (repairs gear for a fee; companions bring worn gear to him) | `[Add MasterBlacksmith`, or `[GenerateSpawners Data/Spawns/shared/trammel/MasterBlacksmith.json` |
+| Adventuring band (an invisible marker on a dungeon level; a captain, warrior, bard and mage muster there once no player is within 18 tiles). `[Props` it for `Level` (1–30) and `PatrolRange`. See [BANDS.md](BANDS.md) | `[Add AdventurerBand` |
 
 ## More detail
 

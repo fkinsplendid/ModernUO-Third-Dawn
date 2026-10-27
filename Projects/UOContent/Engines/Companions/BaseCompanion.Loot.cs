@@ -142,9 +142,13 @@ public abstract partial class BaseCompanion
             CheckGear(now);
         }
 
-        ThinkMind(now);
+        // A band restocks itself and owes its captain no feelings.
+        if (!InBand)
+        {
+            ThinkMind(now);
+            CheckSupplies();
+        }
 
-        CheckSupplies();
         CheckSteed(now);
     }
 
@@ -221,6 +225,11 @@ public abstract partial class BaseCompanion
     /// <summary>Takes one item from the corpse, as a person rummaging would. False once nothing is left worth taking.</summary>
     public bool LootOneItem(Corpse corpse)
     {
+        if (InBand)
+        {
+            return AbsorbOneItem(corpse);
+        }
+
         var pack = Backpack;
 
         if (pack == null)

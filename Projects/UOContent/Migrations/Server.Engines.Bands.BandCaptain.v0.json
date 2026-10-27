@@ -1,0 +1,11 @@
+{
+  "version": 0,
+  "type": "Server.Engines.Bands.BandCaptain",
+  "properties": [
+    {
+      "name": "Band",
+      "type": "Server.Engines.Bands.AdventurerBand",
+      "rule": "SerializableInterfaceMigrationRule"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Server.Engines.Bands;
 using Server.Engines.CannedEvil;
 using Server.Engines.ConPVP;
 using Server.Engines.PartySystem;
@@ -442,6 +443,12 @@ namespace Server.Spells
             }
 
             if (to.Hidden && to.AccessLevel > from.AccessLevel)
+            {
+                return false;
+            }
+
+            // An adventuring band's captain is an innocent NPC, which area spells would otherwise hit.
+            if (BandRules.AreBandmates(from, to))
             {
                 return false;
             }

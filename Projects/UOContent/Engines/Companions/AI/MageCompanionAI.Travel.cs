@@ -150,7 +150,8 @@ public sealed partial class MageCompanionAI
 
     private bool TryEscapeGate()
     {
-        if (_gateRefused || Party.ActiveGate != null)
+        // A band stands its ground or falls back on foot with its captain.
+        if (Companion.InBand || _gateRefused || Party.ActiveGate != null)
         {
             return false;
         }
