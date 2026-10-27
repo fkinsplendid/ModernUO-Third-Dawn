@@ -12,8 +12,7 @@
     "homeRange": 10,
     "walkingRange": 10,
     "entries": [
-      { "name": "LadyLissith", "maxCount": 2, "probability": 100 },
-      { "name": "LadySabrix", "maxCount": 2, "probability": 100 }
+      { "name": "LadyLissith", "maxCount": 2, "probability": 100 }
     ]
   },
   {
@@ -29,59 +28,8 @@
     "homeRange": 20,
     "walkingRange": 20,
     "entries": [
-      { "name": "CuSidhe", "maxCount": 8, "probability": 100 },
       { "name": "DryadA", "maxCount": 8, "probability": 100 },
-      { "name": "Changeling", "maxCount": 8, "probability": 100 },
-      { "name": "Satyr", "maxCount": 8, "probability": 100 },
       { "name": "DireWolf", "maxCount": 2, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "5a47595b-b894-4d45-b35d-5714de0c8c51",
-    "name": "Spawner (314)",
-    "location": [2206, 1220, -8],
-    "map": "Ilshenar",
-    "count": 2,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 20,
-    "walkingRange": 20,
-    "entries": [
-      { "name": "CuSidhe", "maxCount": 2, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "5cb54b29-10c4-448f-a036-5ba23dcb350a",
-    "name": "Spawner (314)",
-    "location": [2224, 1218, 13],
-    "map": "Ilshenar",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 8,
-    "walkingRange": 8,
-    "entries": [
-      { "name": "Swoop", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "68b1853c-f9bd-4bd1-852f-dcc9977a3049",
-    "name": "Spawner (314)",
-    "location": [2167, 1266, -60],
-    "map": "Ilshenar",
-    "count": 3,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 5,
-    "walkingRange": 5,
-    "entries": [
-      { "name": "Malefic", "maxCount": 3, "probability": 100 }
     ]
   },
   {
@@ -97,59 +45,8 @@
     "homeRange": 25,
     "walkingRange": 25,
     "entries": [
-      { "name": "CuSidhe", "maxCount": 12, "probability": 100 },
       { "name": "Dryada", "maxCount": 12, "probability": 100 },
-      { "name": "Changeling", "maxCount": 12, "probability": 100 },
-      { "name": "Satyr", "maxCount": 12, "probability": 100 },
       { "name": "DireWolf", "maxCount": 3, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "76ef21c0-5e48-410e-84f5-57023fa7efb4",
-    "name": "Spawner (314)",
-    "location": [2137, 1216, -60],
-    "map": "Ilshenar",
-    "count": 4,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 5,
-    "walkingRange": 5,
-    "entries": [
-      { "name": "Silk", "maxCount": 4, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "7e991368-4fad-4e2b-af3b-88d360b88627",
-    "name": "Spawner (314)",
-    "location": [2157, 1206, -60],
-    "map": "Ilshenar",
-    "count": 3,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 5,
-    "walkingRange": 5,
-    "entries": [
-      { "name": "Virulent", "maxCount": 3, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "852fa8b9-931f-493c-9ee0-200a3f229110",
-    "name": "Spawner (314)",
-    "location": [2163, 1189, -48],
-    "map": "Ilshenar",
-    "count": 2,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 8,
-    "walkingRange": 8,
-    "entries": [
-      { "name": "Changeling", "maxCount": 2, "probability": 100 }
     ]
   },
   {
@@ -165,7 +62,6 @@
     "homeRange": 5,
     "walkingRange": 5,
     "entries": [
-      { "name": "Gnaw", "maxCount": 5, "probability": 100 },
       { "name": "DireWolf", "maxCount": 5, "probability": 100 }
     ]
   },
@@ -198,26 +94,7 @@
     "homeRange": 20,
     "walkingRange": 20,
     "entries": [
-      { "name": "Quagmire", "maxCount": 8, "probability": 100 },
-      { "name": "WhippingVine", "maxCount": 8, "probability": 100 },
-      { "name": "Irk", "maxCount": 8, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "eea8e238-78e9-4d84-a91b-95360f6f2fd6",
-    "name": "Spawner (314)",
-    "location": [2170, 1247, -60],
-    "map": "Ilshenar",
-    "count": 4,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 10,
-    "walkingRange": 10,
-    "entries": [
-      { "name": "Malefic", "maxCount": 4, "probability": 100 },
-      { "name": "Virulent", "maxCount": 4, "probability": 100 }
+      { "name": "WhippingVine", "maxCount": 8, "probability": 100 }
     ]
   },
   {
@@ -233,9 +110,7 @@
     "homeRange": 10,
     "walkingRange": 10,
     "entries": [
-      { "name": "Corpser", "maxCount": 5, "probability": 100 },
-      { "name": "Spite", "maxCount": 5, "probability": 100 },
-      { "name": "Guile", "maxCount": 5, "probability": 100 }
+      { "name": "Corpser", "maxCount": 5, "probability": 100 }
     ]
   }
 ]

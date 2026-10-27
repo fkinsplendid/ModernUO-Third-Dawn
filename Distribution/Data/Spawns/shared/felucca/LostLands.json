@@ -2345,8 +2345,7 @@
       { "name": "SwampDragon", "maxCount": 5, "probability": 100 },
       { "name": "GiantRat", "maxCount": 12, "probability": 100 },
       { "name": "Alligator", "maxCount": 12, "probability": 100 },
-      { "name": "SewerRat", "maxCount": 11, "probability": 100 },
-      { "name": "PlagueBeast", "maxCount": 2, "probability": 100 }
+      { "name": "SewerRat", "maxCount": 11, "probability": 100 }
     ]
   },
   {
@@ -2731,10 +2730,7 @@
     "homeRange": 80,
     "walkingRange": 90,
     "entries": [
-      { "name": "BullFrog", "maxCount": 15, "probability": 100 },
-      { "name": "SwampTentacle", "maxCount": 5, "probability": 100 },
-      { "name": "Bogling", "maxCount": 13, "probability": 100 },
-      { "name": "BogThing", "maxCount": 3, "probability": 100 }
+      { "name": "BullFrog", "maxCount": 15, "probability": 100 }
     ]
   },
   {

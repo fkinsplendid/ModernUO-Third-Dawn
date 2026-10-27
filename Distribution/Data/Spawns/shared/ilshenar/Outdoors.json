@@ -1,22 +1,6 @@
 ﻿[
   {
     "type": "Spawner",
-    "guid": "0094215e-9411-4fa1-a091-dbfd46540289",
-    "name": "Spawner (306)",
-    "location": [853, 762, -80],
-    "map": "Ilshenar",
-    "count": 3,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 17,
-    "walkingRange": 17,
-    "entries": [
-      { "name": "Quagmire", "maxCount": 3, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
     "guid": "01b06a3d-d447-4ada-aa1e-c0ed77f20988",
     "name": "Spawner (306)",
     "location": [630, 828, -55],
@@ -52,7 +36,6 @@
     "entries": [
       { "name": "SewerRat", "maxCount": 4, "probability": 100 },
       { "name": "Corpser", "maxCount": 2, "probability": 100 },
-      { "name": "Bogling", "maxCount": 2, "probability": 100 },
       { "name": "GiantRat", "maxCount": 2, "probability": 100 },
       { "name": "Alligator", "maxCount": 2, "probability": 100 },
       { "name": "Mongbat", "maxCount": 2, "probability": 100 }
@@ -255,7 +238,6 @@
     "entries": [
       { "name": "SewerRat", "maxCount": 4, "probability": 100 },
       { "name": "Corpser", "maxCount": 2, "probability": 100 },
-      { "name": "Bogling", "maxCount": 2, "probability": 100 },
       { "name": "GiantRat", "maxCount": 2, "probability": 100 },
       { "name": "Alligator", "maxCount": 2, "probability": 100 },
       { "name": "Mongbat", "maxCount": 2, "probability": 100 }
@@ -395,7 +377,6 @@
     "entries": [
       { "name": "SewerRat", "maxCount": 4, "probability": 100 },
       { "name": "Corpser", "maxCount": 2, "probability": 100 },
-      { "name": "Bogling", "maxCount": 1, "probability": 100 },
       { "name": "GiantRat", "maxCount": 2, "probability": 100 },
       { "name": "Alligator", "maxCount": 2, "probability": 100 },
       { "name": "Mongbat", "maxCount": 1, "probability": 100 }
@@ -464,7 +445,6 @@
     "walkingRange": 30,
     "entries": [
       { "name": "Lizardman", "maxCount": 4, "probability": 100 },
-      { "name": "PlagueBeast", "maxCount": 2, "probability": 100 },
       { "name": "AcidElemental", "maxCount": 1, "probability": 100 }
     ]
   },
@@ -592,8 +572,7 @@
     "homeRange": 30,
     "walkingRange": 30,
     "entries": [
-      { "name": "Lizardman", "maxCount": 3, "probability": 100 },
-      { "name": "PlagueBeast", "maxCount": 1, "probability": 100 }
+      { "name": "Lizardman", "maxCount": 3, "probability": 100 }
     ]
   },
   {
@@ -1045,7 +1024,6 @@
     "homeRange": 60,
     "walkingRange": 60,
     "entries": [
-      { "name": "SwampTentacle", "maxCount": 4, "probability": 100 },
       { "name": "GiantToad", "maxCount": 12, "probability": 100 },
       { "name": "Alligator", "maxCount": 14, "probability": 100 },
       { "name": "Reaper", "maxCount": 4, "probability": 100 },
@@ -1082,9 +1060,7 @@
     "walkingRange": 30,
     "entries": [
       { "name": "Lizardman", "maxCount": 4, "probability": 100 },
-      { "name": "PlagueBeast", "maxCount": 2, "probability": 100 },
-      { "name": "AcidElemental", "maxCount": 1, "probability": 100 },
-      { "name": "BogThing", "maxCount": 1, "probability": 100 }
+      { "name": "AcidElemental", "maxCount": 1, "probability": 100 }
     ]
   },
   {
@@ -1212,7 +1188,6 @@
     "homeRange": 40,
     "walkingRange": 40,
     "entries": [
-      { "name": "SwampTentacle", "maxCount": 2, "probability": 100 },
       { "name": "GiantToad", "maxCount": 5, "probability": 100 },
       { "name": "Alligator", "maxCount": 6, "probability": 100 },
       { "name": "Reaper", "maxCount": 2, "probability": 100 },
@@ -2180,7 +2155,6 @@
     "homeRange": 70,
     "walkingRange": 70,
     "entries": [
-      { "name": "SwampTentacle", "maxCount": 5, "probability": 100 },
       { "name": "GiantToad", "maxCount": 8, "probability": 100 },
       { "name": "Lizardman", "maxCount": 5, "probability": 100 },
       { "name": "Alligator", "maxCount": 0, "probability": 100 },
@@ -2341,22 +2315,6 @@
       { "name": "MeerMage", "maxCount": 2, "probability": 100 },
       { "name": "MeerCaptain", "maxCount": 1, "probability": 100 },
       { "name": "MeerEternal", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
-    "guid": "b9bbfa6b-b223-4fb1-828c-100ca2ceb176",
-    "name": "Spawner (306)",
-    "location": [487, 890, -82],
-    "map": "Ilshenar",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 40,
-    "walkingRange": 40,
-    "entries": [
-      { "name": "Jwilson", "maxCount": 1, "probability": 100 }
     ]
   },
   {
@@ -3036,9 +2994,7 @@
     "homeRange": 17,
     "walkingRange": 17,
     "entries": [
-      { "name": "Quagmire", "maxCount": 1, "probability": 100 },
-      { "name": "Doppleganger", "maxCount": 1, "probability": 100 },
-      { "name": "ArcaneDaemon", "maxCount": 1, "probability": 100 }
+      { "name": "Doppleganger", "maxCount": 1, "probability": 100 }
     ]
   },
   {

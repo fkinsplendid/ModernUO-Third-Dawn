@@ -49,22 +49,6 @@
   },
   {
     "type": "Spawner",
-    "guid": "192e009f-b329-47a3-b290-cd1af4504db6",
-    "name": "Spawner (302)",
-    "location": [148, 953, -29],
-    "map": "Ilshenar",
-    "count": 1,
-    "minDelay": "00:05:00",
-    "maxDelay": "00:10:00",
-    "team": 0,
-    "homeRange": 15,
-    "walkingRange": 15,
-    "entries": [
-      { "name": "Kirin", "maxCount": 1, "probability": 100 }
-    ]
-  },
-  {
-    "type": "Spawner",
     "guid": "250608fe-f32f-472e-a726-d5e1e3924160",
     "name": "Spawner (302)",
     "location": [15, 1503, -27],
