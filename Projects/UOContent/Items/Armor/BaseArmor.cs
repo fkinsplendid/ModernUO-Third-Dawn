@@ -5,6 +5,7 @@ using ModernUO.Serialization;
 using Server.Engines.Craft;
 using Server.Ethics;
 using Server.Factions;
+using Server.Mobiles;
 using Server.Network;
 using Server.Text;
 using AMA = Server.Items.ArmorMeditationAllowance;
@@ -763,7 +764,7 @@ namespace Server.Items
             damageTaken = Math.Max(0, damageTaken - absorbed);
 
             // 25% chance to lower durability
-            if (Utility.Random(4) == 0)
+            if (Utility.Random(4) == 0 && !BaseCreature.IsImpervious(this))
             {
                 if (Core.AOS && ArmorAttributes.SelfRepair > Utility.Random(10))
                 {

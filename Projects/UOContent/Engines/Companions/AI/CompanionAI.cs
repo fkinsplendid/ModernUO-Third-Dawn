@@ -217,6 +217,11 @@ public abstract partial class CompanionAI : BaseAI
         PartyHealth = partyMax > 0 ? partyHits / (double)partyMax : 0;
         EnemyStrength = enemyHits / (double)(partyHits > 0 ? partyHits : 1);
 
+        if (_threats.Count > 0)
+        {
+            Party.NoteThreatRatio(EnemyStrength, now);
+        }
+
         ReadFight();
         CheckWarnings();
     }

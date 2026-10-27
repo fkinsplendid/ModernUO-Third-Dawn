@@ -38,10 +38,17 @@ their employer. They follow him in formation, guard him, heal him and fall back 
 - **A fallen band can be looted:** a magic item or two and a small amount of gold, made at the moment
   of death. Their worn gear stays on the body but can't be taken.
 - **They don't attack pets** or anything else belonging to a player.
+- **Their kit never wears out** (weapons, armour, shields, clothing), since a band has no smith in the
+  dungeon. Only band members: hired companions' gear wears as usual.
 
 ## Long, even fights
 
-- Damage both ways between bands and monsters is reduced (around half), so fights last.
+- Blows bend towards an even fight, using the companions' own read of it (enemy strength, weighted by
+  how hard they hit, over the band's). Against far weaker foes the band's blows are weakened, down to
+  30% (`bands.minDamageDealtScale`), so a pushover becomes a scrap. Against far stronger foes
+  monsters' blows are only nudged down, to 80% at most (`bands.minDamageTakenScale`): realism means
+  some fights are won and some lost, and a hopeless one is lost or run from. Between equals nothing
+  changes. (A first version halved damage both ways; a level-10 band beat four ogre lords.)
 - Bands take on what they can handle, heal each other and pull back when hurt, so wipe-outs are rare.
 - Band strength follows depth: novices on the upper levels of Despise, veterans deep in Fire and
   Destard.

@@ -4,6 +4,7 @@ using ModernUO.Serialization;
 using Server.Engines.Craft;
 using Server.Ethics;
 using Server.Factions;
+using Server.Mobiles;
 using Server.Network;
 
 namespace Server.Items
@@ -346,7 +347,7 @@ namespace Server.Items
             // Don't go below zero
             damageTaken = Math.Min(absorbed, damageTaken);
 
-            if (Utility.Random(100) < 25) // 25% chance to lower durability
+            if (Utility.Random(100) < 25 && !BaseCreature.IsImpervious(this)) // 25% chance to lower durability
             {
                 if (Core.AOS && ClothingAttributes.SelfRepair > Utility.Random(10))
                 {

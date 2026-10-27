@@ -1,5 +1,6 @@
 using System;
 using ModernUO.Serialization;
+using Server.Mobiles;
 
 namespace Server.Items;
 
@@ -77,7 +78,7 @@ public partial class BaseShield : BaseArmor
 
     private void TryLowerDurability(int wear)
     {
-        if (wear <= 0 || MaxHitPoints <= 0)
+        if (wear <= 0 || MaxHitPoints <= 0 || BaseCreature.IsImpervious(this))
         {
             return;
         }

@@ -2085,7 +2085,7 @@ public abstract partial class BaseWeapon
                 defender is Slime or AcidElemental;
 
             // Stratics says 50% chance, seems more like 4%..
-            if (isAcidMonster || Utility.Random(25) == 0)
+            if ((isAcidMonster || Utility.Random(25) == 0) && !BaseCreature.IsImpervious(this))
             {
                 if (isAcidMonster)
                 {

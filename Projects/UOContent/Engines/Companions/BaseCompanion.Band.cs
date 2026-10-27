@@ -16,6 +16,9 @@ public abstract partial class BaseCompanion
     /// <summary>Serving a band captain rather than a player.</summary>
     public bool InBand => Employer is BandCaptain;
 
+    /// <summary>A band has no smith in the dungeon and no loot to replace from: its kit never wears.</summary>
+    public override bool ImperviousGear => InBand;
+
     /// <summary>Joins <paramref name="captain"/>'s band and steps into the world beside them.</summary>
     public bool JoinBand(BandCaptain captain)
     {
@@ -157,7 +160,7 @@ public abstract partial class BaseCompanion
 
         if (InBand)
         {
-            BandRules.ScaleTaken(from, ref damage);
+            BandRules.ScaleTaken(this, from, ref damage);
         }
     }
 
@@ -167,7 +170,7 @@ public abstract partial class BaseCompanion
 
         if (InBand)
         {
-            BandRules.ScaleDealt(to, ref damage);
+            BandRules.ScaleDealt(this, to, ref damage);
         }
     }
 
@@ -177,7 +180,7 @@ public abstract partial class BaseCompanion
 
         if (InBand)
         {
-            BandRules.ScaleTaken(from, ref damage);
+            BandRules.ScaleTaken(this, from, ref damage);
         }
     }
 
@@ -187,7 +190,7 @@ public abstract partial class BaseCompanion
 
         if (InBand)
         {
-            BandRules.ScaleDealt(to, ref damage);
+            BandRules.ScaleDealt(this, to, ref damage);
         }
     }
 }

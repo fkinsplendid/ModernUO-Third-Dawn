@@ -20,11 +20,17 @@ public static class BandSystem
     private static readonly HashSet<AdventurerBand> _bands = [];
     private static TimerExecutionToken _timer;
 
-    /// <summary>What a band takes from monsters, as a share of the blow. Lower makes bands harder to bring down.</summary>
-    public static double DamageTakenScale { get; private set; }
+    /// <summary>
+    /// The furthest a band's blows are weakened against foes far weaker than the band, so a pushover
+    /// becomes a scrap. Fights between equals are untouched.
+    /// </summary>
+    public static double MinDamageDealtScale { get; private set; }
 
-    /// <summary>What a band deals to monsters, as a share of the blow. Lower makes fights last longer.</summary>
-    public static double DamageDealtScale { get; private set; }
+    /// <summary>
+    /// The furthest monsters' blows are softened against a band facing far stronger foes. Only a
+    /// nudge: a hopeless fight is still lost, or run from.
+    /// </summary>
+    public static double MinDamageTakenScale { get; private set; }
 
     /// <summary>How long after a band falls before a new one musters in its place.</summary>
     public static TimeSpan RespawnDelay { get; private set; }
@@ -34,8 +40,8 @@ public static class BandSystem
 
     public static void Configure()
     {
-        DamageTakenScale = Math.Clamp(ServerConfiguration.GetOrUpdateSetting("bands.damageTakenScale", 0.5), 0.05, 1.0);
-        DamageDealtScale = Math.Clamp(ServerConfiguration.GetOrUpdateSetting("bands.damageDealtScale", 0.5), 0.05, 1.0);
+        MinDamageDealtScale = Math.Clamp(ServerConfiguration.GetOrUpdateSetting("bands.minDamageDealtScale", 0.3), 0.05, 1.0);
+        MinDamageTakenScale = Math.Clamp(ServerConfiguration.GetOrUpdateSetting("bands.minDamageTakenScale", 0.8), 0.05, 1.0);
         RespawnDelay = ServerConfiguration.GetOrUpdateSetting("bands.respawnDelay", TimeSpan.FromMinutes(30));
         GhostPatience = ServerConfiguration.GetOrUpdateSetting("bands.ghostPatience", TimeSpan.FromMinutes(2));
     }
@@ -143,22 +149,42 @@ public static class BandRules
         return false;
     }
 
-    /// <summary>A band member is struck by <paramref name="from"/>.</summary>
-    public static void ScaleTaken(Mobile from, ref int damage)
+    /// <summary>
+    /// <paramref name="member"/> is struck by a monster. Against far stronger foes the blow is
+    /// softened a little, never enough to turn a hopeless fight.
+    /// </summary>
+    public static void ScaleTaken(Mobile member, Mobile from, ref int damage)
     {
         if (IsMonster(from))
         {
-            damage = Scale(damage, BandSystem.DamageTakenScale);
+            var ratio = ThreatRatioOf(member);
+            damage = Scale(damage, ratio > 1.0 ? Math.Max(BandSystem.MinDamageTakenScale, 1.0 / ratio) : 1.0);
         }
     }
 
-    /// <summary>A band member strikes <paramref name="to"/>.</summary>
-    public static void ScaleDealt(Mobile to, ref int damage)
+    /// <summary>
+    /// <paramref name="member"/> strikes a monster. Against far weaker foes the blow is weakened, so
+    /// the fight still takes a while. Between equals, or against the stronger, it lands in full.
+    /// </summary>
+    public static void ScaleDealt(Mobile member, Mobile to, ref int damage)
     {
         if (IsMonster(to))
         {
-            damage = Scale(damage, BandSystem.DamageDealtScale);
+            damage = Scale(damage, Math.Clamp(ThreatRatioOf(member), BandSystem.MinDamageDealtScale, 1.0));
         }
+    }
+
+    // A fight read older than this is stale: treat the fight as even.
+    private const int ThreatReadMemoryMs = 2000;
+
+    /// <summary>How the band reads its current fight: enemy strength over its own, 1 when unread.</summary>
+    private static double ThreatRatioOf(Mobile member)
+    {
+        var party = CompanionSystem.GetParty(CaptainOf(member));
+
+        return party != null && party.ThreatRatioAt != 0 && Core.TickCount - party.ThreatRatioAt < ThreatReadMemoryMs
+            ? party.ThreatRatio
+            : 1.0;
     }
 
     private static bool IsMonster(Mobile m) => m is BaseCreature && !IsBandMember(m) && !IsOffLimits(m);

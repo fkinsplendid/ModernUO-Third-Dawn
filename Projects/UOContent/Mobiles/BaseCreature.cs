@@ -872,6 +872,12 @@ namespace Server.Mobiles
 
         public virtual bool CanRummageCorpses => false;
 
+        /// <summary>Weapons, armour and clothing worn by this creature never wear out.</summary>
+        public virtual bool ImperviousGear => false;
+
+        /// <summary>True if <paramref name="item"/> is worn by a creature whose gear never wears out.</summary>
+        public static bool IsImpervious(Item item) => item.Parent is BaseCreature { ImperviousGear: true };
+
         public virtual bool DeleteOnRelease => _summoned;
 
         public virtual bool CanDrop => IsBonded;

@@ -163,7 +163,7 @@ public class BandTests : IDisposable
     }
 
     [Fact]
-    public void BlowsBetweenBandsAndMonsters_AreSoftened()
+    public void Blows_BendTowardsAnEvenFight()
     {
         Run((band, captain) =>
         {
@@ -172,20 +172,78 @@ public class BandTests : IDisposable
 
             try
             {
-                var taken = 20;
-                warrior.AlterMeleeDamageFrom(zombie, ref taken);
-                Assert.Equal((int)Math.Round(20 * BandSystem.DamageTakenScale), taken);
+                // No fight read yet: an even match, blows land in full.
+                Assert.Equal(20, Taken(warrior, zombie));
+                Assert.Equal(20, Dealt(captain, zombie));
 
-                var dealt = 20;
-                captain.AlterMeleeDamageTo(zombie, ref dealt);
-                Assert.Equal((int)Math.Round(20 * BandSystem.DamageDealtScale), dealt);
+                // Far weaker foes: the band's blows are weakened, theirs land in full.
+                band.Members.NoteThreatRatio(0.1, Core.TickCount);
+                Assert.Equal((int)Math.Round(20 * BandSystem.MinDamageDealtScale), Dealt(captain, zombie));
+                Assert.Equal(20, Taken(warrior, zombie));
 
+                // Far stronger foes: their blows are softened a little, the band's land in full.
+                band.Members.NoteThreatRatio(10, Core.TickCount);
+                Assert.Equal((int)Math.Round(20 * BandSystem.MinDamageTakenScale), Taken(warrior, zombie));
+                Assert.Equal(20, Dealt(captain, zombie));
+
+                // Bandmates are never scaled.
                 var spell = 20;
                 warrior.AlterSpellDamageFrom(captain, ref spell);
                 Assert.Equal(20, spell);
             }
             finally
             {
+                zombie.Delete();
+            }
+        });
+
+        static int Taken(BaseCreature member, Mobile monster)
+        {
+            var damage = 20;
+            member.AlterMeleeDamageFrom(monster, ref damage);
+            return damage;
+        }
+
+        static int Dealt(BaseCreature member, Mobile monster)
+        {
+            var damage = 20;
+            member.AlterMeleeDamageTo(monster, ref damage);
+            return damage;
+        }
+    }
+
+    [Fact]
+    public void BandKit_NeverWears()
+    {
+        Run((band, captain) =>
+        {
+            var zombie = Place(new Zombie());
+            var club = new Club();
+            var bandArmor = new RingmailChest();
+            var zombieArmor = new RingmailChest();
+
+            try
+            {
+                band.Members[CompanionRole.Warrior].AddItem(bandArmor);
+                zombie.AddItem(zombieArmor);
+
+                // Each piece rolls its own starting durability.
+                var bandFull = bandArmor.HitPoints;
+                var zombieFull = zombieArmor.HitPoints;
+
+                for (var i = 0; i < 200; i++)
+                {
+                    bandArmor.OnHit(club, 20);
+                    zombieArmor.OnHit(club, 20);
+                }
+
+                Assert.True(captain.ImperviousGear);
+                Assert.Equal(bandFull, bandArmor.HitPoints);
+                Assert.True(zombieArmor.Deleted || zombieArmor.HitPoints < zombieFull);
+            }
+            finally
+            {
+                club.Delete();
                 zombie.Delete();
             }
         });

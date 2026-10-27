@@ -45,6 +45,18 @@ public sealed class CompanionParty
     /// <summary>Tick count when a companion last read the fight as outmatched. A band captain retreats on it.</summary>
     public long LastOutmatched { get; set; }
 
+    /// <summary>The latest read of the fight: enemy strength over the party's own, 1 for an even match.</summary>
+    public double ThreatRatio { get; private set; } = 1.0;
+
+    /// <summary>Tick count of the latest fight read.</summary>
+    public long ThreatRatioAt { get; private set; }
+
+    public void NoteThreatRatio(double ratio, long now)
+    {
+        ThreatRatio = ratio;
+        ThreatRatioAt = now;
+    }
+
     /// <summary>Tick count before which no other companion joins in on a shared moment (a revival cheer).</summary>
     public long NextCheer { get; set; }
 

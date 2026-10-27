@@ -82,6 +82,7 @@ public partial class BandCaptain : BaseCreature
     public override bool ShowFameTitle => false;
     public override bool CanRummageCorpses => false;
     public override bool CanBeDistracted => false;
+    public override bool ImperviousGear => true;
 
     /// <summary>Plate and a blade, none of it lootable: a fallen captain's kit stays with them.</summary>
     private void Dress()
@@ -133,25 +134,25 @@ public partial class BandCaptain : BaseCreature
     public override void AlterMeleeDamageFrom(Mobile from, ref int damage)
     {
         base.AlterMeleeDamageFrom(from, ref damage);
-        BandRules.ScaleTaken(from, ref damage);
+        BandRules.ScaleTaken(this, from, ref damage);
     }
 
     public override void AlterMeleeDamageTo(Mobile to, ref int damage)
     {
         base.AlterMeleeDamageTo(to, ref damage);
-        BandRules.ScaleDealt(to, ref damage);
+        BandRules.ScaleDealt(this, to, ref damage);
     }
 
     public override void AlterSpellDamageFrom(Mobile from, ref int damage)
     {
         base.AlterSpellDamageFrom(from, ref damage);
-        BandRules.ScaleTaken(from, ref damage);
+        BandRules.ScaleTaken(this, from, ref damage);
     }
 
     public override void AlterSpellDamageTo(Mobile to, ref int damage)
     {
         base.AlterSpellDamageTo(to, ref damage);
-        BandRules.ScaleDealt(to, ref damage);
+        BandRules.ScaleDealt(this, to, ref damage);
     }
 
     /// <summary>Handing them gold would otherwise fall to the townsfolk's gift handler, which keeps it.</summary>
