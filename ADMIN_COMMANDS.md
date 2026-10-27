@@ -25,9 +25,10 @@ first, and logs what it did. Run `[save` afterwards.
 |---|---|---|
 | `[RemoveAnachronisms` | Administrator | Deletes creatures from after Third Dawn (Mondain's Legacy, Samurai Empire, Age of Shadows, Solen, Jwilson). It deletes spawners that only held them and strips them from mixed spawners. Players and pets are left alone. LBR creatures are kept on purpose. |
 | `[RemoveQuestGivers` | Administrator | Deletes every quest giver, escort NPC and quest item in the world and strips them from spawners. Items in containers or houses are left alone. |
+| `[RemoveUnreachableSpawners` | Administrator | Deletes every spawner in Felucca and in Trammel's east strip (x 6144 and up, Mondain's Legacy land no player can reach), along with the creatures and NPCs there. Players, pets, companions, player vendors and anything in a house are left alone. |
 | `[ThirdDawnMapCleanup` | Administrator | After switching to the Third Dawn map: removes decoration, spawners, teleporters and NPCs on ground that changed or no longer exists, and moves players and pets standing there to Britain. Houses on changed ground are only reported. Needs `Data/third-dawn-map.json`. |
 
-All three are safe to run again: when there's nothing left to do, they say so.
+All four are safe to run again: when there's nothing left to do, they say so.
 
 ### Rebuilding a world on the Third Dawn map
 
@@ -42,6 +43,7 @@ From a world that still has the old map's content, in this order:
 [GenerateSpawners Data/Spawns/shared/trammel/Ocllo.json
 [RemoveQuestGivers
 [RemoveAnachronisms
+[RemoveUnreachableSpawners
 [save
 ```
 
