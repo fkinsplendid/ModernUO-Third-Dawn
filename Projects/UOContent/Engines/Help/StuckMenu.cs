@@ -300,7 +300,8 @@ namespace Server.Menus.Questions
                     }
                     else
                     {
-                        destMap = m_Mobile.Murderer ? Map.Felucca : Map.Trammel;
+                        // Trammel-only shard: murderers too
+                        destMap = Map.Trammel;
                     }
 
                     BaseCreature.TeleportPets(m_Mobile, dest, destMap);

@@ -54,7 +54,7 @@ public class JailSystem : GenericPersistence
 
     // Release location, change this for custom maps
     private static readonly Point3D ReleaseLocation = new(1444, 1697, 10); // Britain Bank
-    public static readonly Map ReleaseMap = Map.Felucca;
+    public static readonly Map ReleaseMap = Map.Trammel; // Trammel-only shard
 
     private static JailSystem Instance;
 
