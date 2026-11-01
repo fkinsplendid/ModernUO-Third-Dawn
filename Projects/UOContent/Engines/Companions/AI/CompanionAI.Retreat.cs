@@ -96,6 +96,12 @@ public abstract partial class CompanionAI
             Note("broke off to fall back with you");
         }
 
+        // Left standing, an attack order would send them straight back once the retreat is over.
+        if (Mobile.ControlOrder == OrderType.Attack)
+        {
+            ResumeFollowing();
+        }
+
         Mobile.Combatant = null;
         Mobile.FocusMob = null;
         Mobile.Warmode = false;

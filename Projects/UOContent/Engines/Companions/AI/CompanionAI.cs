@@ -114,6 +114,11 @@ public abstract partial class CompanionAI : BaseAI
             Companion.ForgiveBandmates();
         }
 
+        if (OrderHasLapsed())
+        {
+            ResumeFollowing();
+        }
+
         var order = Mobile.ControlOrder;
 
         if (order == OrderType.Attack)
@@ -139,6 +144,27 @@ public abstract partial class CompanionAI : BaseAI
         }
 
         return base.Obey();
+    }
+
+    /// <summary>
+    /// Anything going for a following companion turns its order into Attack on that target, and the
+    /// engine only ends such an order when the target dies. One that flees, hides or gets left behind
+    /// would root them to the spot until told otherwise; dropping it costs nothing, since the threat
+    /// list picks the target up again if it comes back. No order at all never means anything to a
+    /// working companion, and Rename isn't an order the AI can carry out: it stops the AI's timer.
+    /// </summary>
+    private bool OrderHasLapsed() =>
+        Mobile.ControlOrder switch
+        {
+            OrderType.Attack                   => !IsValidFocusMob(Mobile.ControlTarget),
+            OrderType.None or OrderType.Rename => true,
+            _                                  => false
+        };
+
+    private void ResumeFollowing()
+    {
+        Mobile.ControlTarget = Employer;
+        Mobile.ControlOrder = OrderType.Follow;
     }
 
     // ---------- Role hooks ----------
@@ -405,7 +431,8 @@ public abstract partial class CompanionAI : BaseAI
             target = FaceFear(target);
         }
 
-        if (target == null)
+        // Spotted, but past the range combat works at: keep walking until it comes closer.
+        if (target == null || !IsValidFocusMob(target))
         {
             return false;
         }
@@ -484,8 +511,7 @@ public abstract partial class CompanionAI : BaseAI
 
         if (Mobile.ControlOrder is OrderType.Follow or OrderType.Guard or OrderType.None)
         {
-            Mobile.ControlTarget = Employer;
-            Mobile.ControlOrder = OrderType.Follow;
+            ResumeFollowing();
         }
 
         // Getting away isn't winning.
