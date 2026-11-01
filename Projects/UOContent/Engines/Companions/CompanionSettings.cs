@@ -21,7 +21,7 @@ public static class CompanionSettings
 
     public static void Configure()
     {
-        HireFee = ServerConfiguration.GetOrUpdateSetting("companions.hireFee", 1000);
+        HireFee = ServerConfiguration.GetOrUpdateSetting("companions.hireFee", 20000);
         MinDailyWage = ServerConfiguration.GetOrUpdateSetting("companions.minDailyWage", 50);
         MaxDailyWage = ServerConfiguration.GetOrUpdateSetting("companions.maxDailyWage", 150);
         WageDayMinutes = Math.Max(1, ServerConfiguration.GetOrUpdateSetting("companions.wageDayMinutes", 30));

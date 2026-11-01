@@ -22,7 +22,7 @@ All values are in `Distribution/Configuration/modernuo.json` (written on first b
 
 | Setting | Default | Meaning |
 |---|---|---|
-| `companions.hireFee` | 1000 | Gold to hire; includes the first day's wage |
+| `companions.hireFee` | 20000 | Gold to hire; includes the first day's wage |
 | `companions.minDailyWage` | 50 | Wage per day at level 1 |
 | `companions.maxDailyWage` | 150 | Wage per day at max level |
 | `companions.wageDayMinutes` | 30 | Real minutes in a wage "day" (only counted while out with their employer) |
